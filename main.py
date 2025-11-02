@@ -545,6 +545,62 @@ async def main_updated():
         await export_single_club_with_retry_v2(cfg, MAX_CLUB_RETRIES, CLUB_RETRY_DELAY)
 
 
-if __name__ == "__main__":
-    asyncio.run(main_updated())
-    input("Press Enter to close terminal...")
+async def run_automatic_export():
+    """Chạy toàn bộ logic export cho TẤT CẢ các câu lạc bộ (tương đương với chọn '0')."""
+    print("==================================================")
+    print(f"✨ Starting scheduled ALL clubs export at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print("==================================================")
+    
+    # Định nghĩa tham số retry (có thể lấy từ globals nếu cần)
+    MAX_CLUB_RETRIES = 3 
+    CLUB_RETRY_DELAY = 5
+    
+    # 1. Concurrent data fetching (giống logic ALL trong main_updated)
+    print("--- 1. Fetching All Data Concurrently ---")
+    fetch_tasks = {
+        key: asyncio.create_task(fetch_json(cfg["URL"])) 
+        for key, cfg in CLUBS.items()
+    }
+    # ... (phần còn lại của logic chạy ALL trong main_updated) ...
+    # ... (Chèn toàn bộ logic ALL ở đây) ...
+    
+    results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
+    results_map = {key: results[i] for i, key in enumerate(CLUBS.keys())}
+    
+    # 2. Sequential Processing and Export with In-Place Retry
+    print("\n--- 2. Processing and Exporting Sequentially with Retry ---")
+    clubs_failed = []
+    
+    for key, cfg in CLUBS.items():
+        title = cfg["title"]
+        initial_result = results_map[key]
+        
+        for attempt in range(MAX_CLUB_RETRIES):
+            if attempt > 0:
+                print(f"\n⚡ Retrying club {title} (Attempt {attempt + 1}/{MAX_CLUB_RETRIES}) after waiting {CLUB_RETRY_DELAY}s...")
+                await asyncio.sleep(CLUB_RETRY_DELAY)
+            
+            try:
+                data_to_use = initial_result if attempt == 0 and not isinstance(initial_result, Exception) else None
+                
+                await process_and_export_club(cfg, data_or_task_result=data_to_use)
+                
+                if attempt == 0:
+                    print(f"✅ {title} exported successfully.")
+                else:
+                    print(f"✅ {title} exported successfully after {attempt} retry(ies).")
+                break
+                
+            except Exception as e:
+                print(f"❌ {title} failed on attempt {attempt + 1}: {e}")
+                if attempt == MAX_CLUB_RETRIES - 1:
+                    clubs_failed.append(title)
+
+    
+    print("\n" + "="*50)
+    if clubs_failed:
+        print(f"⚠️ COMPLETED WITH ERRORS: {len(clubs_failed)} club(s) failed after {MAX_CLUB_RETRIES} attempts.")
+        print("     List of failed clubs: " + ", ".join(clubs_failed))
+    else:
+        print("🎉 COMPLETED: All clubs were exported successfully in order!")
+    print("="*50)
