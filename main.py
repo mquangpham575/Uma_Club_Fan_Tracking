@@ -154,7 +154,7 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
     else:
         gidx = None
 
-    # Bottom "Total" row (sum)
+# Bottom "Total" row (sum)
     bottom_totals = {}
     for c in df_to_write.columns:
         if c == "Member_Name":
@@ -162,7 +162,15 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
         elif c in ("Member_ID", GAP_COL):
             bottom_totals[c] = ""
         else:
-            bottom_totals[c] = pd.to_numeric(df_to_write[c], errors="coerce").sum(min_count=1)
+            total = pd.to_numeric(df_to_write[c], errors="coerce").sum(min_count=1)
+            if pd.isna(total):
+                bottom_totals[c] = ""
+            elif isinstance(total, float):
+                bottom_totals[c] = total  
+            elif hasattr(total, 'item'):
+                bottom_totals[c] = total.item()
+            else:
+                bottom_totals[c] = total 
 
     # Day AVG row — per-day means only (no AVG/d)
     day_avgs = pd.Series("", index=df_to_write.columns, dtype=object)
