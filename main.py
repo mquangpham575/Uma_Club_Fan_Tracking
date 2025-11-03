@@ -24,7 +24,8 @@ def pick_club() -> dict | str:
     for key, cfg in CLUBS.items():
         print(f"{key}. {cfg['title']}")
     print("0. Export ALL clubs (default)")
-    choice = input("Enter 0–7 [default=0]: ").strip()
+    # Giả định người dùng có thể nhập 0-9 dựa trên CLUBS, mặc dù mã gốc chỉ hiển thị 0-7
+    choice = input("Enter 0–9 [default=0]: ").strip()
     if choice == "" or choice == "0":
         return "ALL"
     if choice not in CLUBS:
@@ -63,7 +64,8 @@ async def fetch_json(URL: str):
             return json.loads(text)
             
         except (zd.errors.RemoteDisconnectedError, zd.errors.ConnectionAbortedError) as e:
-            print(f"Lỗi kết nối ({URL}, lần {attempt + 1}/{MAX_RETRIES}): {type(e).__name__}. Đang thử lại sau {RETRY_DELAY}s...")
+            # Giữ lại thông báo lỗi kết nối vì nó quan trọng cho việc debug
+            # print(f"Lỗi kết nối ({URL}, lần {attempt + 1}/{MAX_RETRIES}): {type(e).__name__}. Đang thử lại sau {RETRY_DELAY}s...")
             if attempt < MAX_RETRIES - 1:
                 if browser:
                     await browser.stop()
@@ -138,6 +140,7 @@ def build_dataframe(data: dict) -> pd.DataFrame:
 
 
 # === Google Sheets export ===
+# Không thay đổi, logic này không in ra output.
 def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int):
     from gspread.utils import rowcol_to_a1
 
@@ -370,7 +373,7 @@ async def process_and_export_club(cfg: dict, data_or_task_result=None):
     
     # If data_or_task_result is an Exception (initial fetch error) or needs re-fetching
     if isinstance(data_or_task_result, Exception) or data_or_task_result is None:
-        print(f"    (Re-fetching data for {title}...)")
+        # print(f"    (Re-fetching data for {title}...)") # Loại bỏ
         # This calls the fetch_json function, which contains its own 3-retry logic for connection errors
         data = await fetch_json(cfg["URL"]) 
     else:
@@ -381,76 +384,6 @@ async def process_and_export_club(cfg: dict, data_or_task_result=None):
     df = build_dataframe(data)
     export_to_gsheets(df, spreadsheet_id=SHEET_ID, sheet_title=title, threshold=cfg["THRESHOLD"])
     return True
-
-# === Main ===
-async def main():
-    choice = pick_club()
-    
-    # Define retry parameters
-    MAX_CLUB_RETRIES = 3  
-    CLUB_RETRY_DELAY = 5
-    
-    if choice == "ALL":
-        print("\n⚡ Exporting ALL clubs: Concurrent data fetching, Sequential processing/Export with in-place retry to maintain order...\n")
-        
-        # 1. Concurrent data fetching
-        print("--- 1. Fetching All Data Concurrently ---")
-        fetch_tasks = {
-            key: asyncio.create_task(fetch_json(cfg["URL"])) 
-            for key, cfg in CLUBS.items()
-        }
-        
-        # Wait for all to complete (store results or exceptions)
-        results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
-        results_map = {key: results[i] for i, key in enumerate(CLUBS.keys())}
-        
-        # 2. Sequential Processing and Export with In-Place Retry
-        print("\n--- 2. Processing and Exporting Sequentially with Retry ---")
-        clubs_failed = []
-        
-        for key, cfg in CLUBS.items():
-            title = cfg["title"]
-            initial_result = results_map[key]
-            
-            # High-level retry loop
-            for attempt in range(MAX_CLUB_RETRIES):
-                if attempt > 0:
-                    print(f"\n⚡ Retrying club {title} (Attempt {attempt + 1}/{MAX_CLUB_RETRIES}) after waiting {CLUB_RETRY_DELAY}s...")
-                    await asyncio.sleep(CLUB_RETRY_DELAY)
-                
-                try:
-                    # Attempt 1: Use the initial concurrent fetch result.
-                    # Subsequent attempts (Retry): Re-fetch the data (None will trigger fetch_json inside)
-                    data_to_use = initial_result if attempt == 0 and not isinstance(initial_result, Exception) else None
-                    
-                    await process_and_export_club(cfg, data_or_task_result=data_to_use)
-                    
-                    if attempt == 0:
-                         print(f"✅ {title} exported successfully.")
-                    else:
-                         print(f"✅ {title} exported successfully after {attempt} retry(ies).")
-                    break # Success, move to the next club
-                        
-                except Exception as e:
-                    # Failure could be from fetch_json (final attempt) or gspread/processing error
-                    print(f"❌ {title} failed on attempt {attempt + 1}: {e}")
-                    if attempt == MAX_CLUB_RETRIES - 1:
-                        clubs_failed.append(title)
-                    # If not the final attempt, the loop continues (wait and retry)
-        
-        print("\n" + "="*50)
-        if clubs_failed:
-            print(f"⚠️ COMPLETED WITH ERRORS: {len(clubs_failed)} club(s) failed after {MAX_CLUB_RETRIES} attempts.")
-            print("    List of failed clubs: " + ", ".join(clubs_failed))
-        else:
-            print("🎉 COMPLETED: All clubs were exported successfully in order!")
-        print("="*50)
-    
-    else:
-        cfg = choice
-        print(f"\nSelected: {cfg['title']}\nURL: {cfg['URL']}\nSheet: {SHEET_ID}\nThreshold: {cfg['THRESHOLD']}\n")
-
-        await export_single_club_with_retry_v2(cfg, MAX_CLUB_RETRIES, CLUB_RETRY_DELAY)
 
 # === Main logic for single club with retry (for the single choice path) ===
 async def export_single_club_with_retry_v2(cfg: dict, max_retries: int, retry_delay: int):
@@ -464,20 +397,106 @@ async def export_single_club_with_retry_v2(cfg: dict, max_retries: int, retry_de
             await process_and_export_club(cfg, data_or_task_result=None)
             
             if attempt == 0:
-                print(f"✅ Exported single club '{title}' successfully!")
+                print(f"✅ Exported single club '{title}' successfully.")
             else:
-                print(f"✅ Exported single club '{title}' successfully after {attempt} retry(ies)!")
+                print(f"✅ Exported single club '{title}' successfully after {attempt} retry(ies).")
                 
             return True
             
         except Exception as e:
             print(f"❌ Club '{title}' failed on attempt {attempt + 1}: {e}")
             if attempt < max_retries - 1:
-                print(f"    Waiting {retry_delay}s before next retry...")
+                # print(f"    Waiting {retry_delay}s before next retry...") # Loại bỏ
                 await asyncio.sleep(retry_delay)
             else:
-                print(f"    Final failure for {title} after {max_retries} attempts.")
+                # print(f"    Final failure for {title} after {max_retries} attempts.") # Loại bỏ
                 return False
+
+# === Logic for batch processing all clubs ===
+async def process_all_clubs_in_batches(all_clubs: dict):
+    MAX_CLUB_RETRIES = 3 
+    CLUB_RETRY_DELAY = 5
+    
+    club_keys = list(all_clubs.keys())
+    
+    # Chia thành 2 đợt: 1-5 và 6-9
+    batch1_keys = club_keys[:5]  # Club 1-5 (5 items)
+    batch2_keys = club_keys[5:]  # Club 6-9 (Remaining items)
+    
+    batches = [
+        {"name": "(Club 1-5)", "keys": batch1_keys},
+        {"name": "(Club 6-9)", "keys": batch2_keys},
+    ]
+
+    clubs_failed_total = []
+    print("\n⚡ Exporting ALL clubs: Concurrent data fetching, Sequential processing/Export with retry in two batches...\n")
+
+    for i, batch in enumerate(batches):
+        print(f"\n==================================================")
+        print(f"⚡ BATCH {i+1} {batch['name']}")
+        print(f"==================================================")
+        
+        batch_clubs = {k: all_clubs[k] for k in batch['keys']}
+
+        if not batch_clubs:
+            # print(f"Không có club nào trong {batch['name']}. Bỏ qua.") # Loại bỏ
+            continue
+
+        # 1. Concurrent data fetching for the current batch
+        # print("\n--- 1. Fetching Data Concurrently for this Batch ---") # Loại bỏ
+        fetch_tasks = {
+            key: asyncio.create_task(fetch_json(cfg["URL"])) 
+            for key, cfg in batch_clubs.items()
+        }
+        
+        results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
+        results_map = {key: results[i] for i, key in enumerate(batch_clubs.keys())}
+        
+        # 2. Sequential Processing and Export with In-Place Retry
+        # print("\n--- 2. Processing and Exporting Sequentially with Retry ---") # Loại bỏ
+        clubs_failed_batch = []
+        
+        for key, cfg in batch_clubs.items():
+            title = cfg["title"]
+            initial_result = results_map[key]
+            
+            # High-level retry loop
+            for attempt in range(MAX_CLUB_RETRIES):
+                if attempt > 0:
+                    print(f"\n⚡ Retrying club {title} (Attempt {attempt + 1}/{MAX_CLUB_RETRIES}) after waiting {CLUB_RETRY_DELAY}s...")
+                    await asyncio.sleep(CLUB_RETRY_DELAY)
+                
+                try:
+                    # Attempt 1: Use the initial concurrent fetch result.
+                    data_to_use = initial_result if attempt == 0 and not isinstance(initial_result, Exception) else None
+                    
+                    await process_and_export_club(cfg, data_or_task_result=data_to_use)
+                    
+                    if attempt == 0:
+                          print(f"✅ {title} exported successfully.")
+                    else:
+                          print(f"✅ {title} exported successfully after {attempt} retry(ies).")
+                    break # Success, move to the next club
+                        
+                except Exception as e:
+                    print(f"❌ {title} failed on attempt {attempt + 1}: {e}")
+                    if attempt == MAX_CLUB_RETRIES - 1:
+                        clubs_failed_batch.append(title)
+                    # If not the final attempt, the loop continues (wait and retry)
+        
+        clubs_failed_total.extend(clubs_failed_batch)
+        # print(f"==================================================") # Loại bỏ
+        # print(f"✅ BATCH {i+1} COMPLETED. Failed in this batch: {len(clubs_failed_batch)}") # Loại bỏ
+
+    # Final summary
+    print("\n" + "="*50)
+    if clubs_failed_total:
+        print(f"⚠️ COMPLETED WITH ERRORS: {len(clubs_failed_total)} club(s) failed after {MAX_CLUB_RETRIES} attempts.")
+        print("    List of failed clubs: " + ", ".join(clubs_failed_total))
+    else:
+        print("🎉 COMPLETED: All clubs were exported successfully in order across all batches!")
+    print("="*50)
+    return clubs_failed_total
 
 # Updated main entry function for ALL/Single logic
 async def main_updated():
@@ -487,55 +506,8 @@ async def main_updated():
     CLUB_RETRY_DELAY = 5
     
     if choice == "ALL":
-        # Run ALL logic
-        print("\n⚡ Exporting ALL clubs: Concurrent data fetching, Sequential processing/Export with in-place retry to maintain order...\n")
-        
-        # 1. Concurrent data fetching
-        print("--- 1. Fetching All Data Concurrently ---")
-        fetch_tasks = {
-            key: asyncio.create_task(fetch_json(cfg["URL"])) 
-            for key, cfg in CLUBS.items()
-        }
-        
-        results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
-        results_map = {key: results[i] for i, key in enumerate(CLUBS.keys())}
-        
-        # 2. Sequential Processing and Export with In-Place Retry
-        print("\n--- 2. Processing and Exporting Sequentially with Retry ---")
-        clubs_failed = []
-        
-        for key, cfg in CLUBS.items():
-            title = cfg["title"]
-            initial_result = results_map[key]
-            
-            for attempt in range(MAX_CLUB_RETRIES):
-                if attempt > 0:
-                    print(f"\n⚡ Retrying club {title} (Attempt {attempt + 1}/{MAX_CLUB_RETRIES}) after waiting {CLUB_RETRY_DELAY}s...")
-                    await asyncio.sleep(CLUB_RETRY_DELAY)
-                
-                try:
-                    data_to_use = initial_result if attempt == 0 and not isinstance(initial_result, Exception) else None
-                    
-                    await process_and_export_club(cfg, data_or_task_result=data_to_use)
-                    
-                    if attempt == 0:
-                         print(f"✅ {title} exported successfully.")
-                    else:
-                         print(f"✅ {title} exported successfully after {attempt} retry(ies).")
-                    break
-                        
-                except Exception as e:
-                    print(f"❌ {title} failed on attempt {attempt + 1}: {e}")
-                    if attempt == MAX_CLUB_RETRIES - 1:
-                        clubs_failed.append(title)
-        
-        print("\n" + "="*50)
-        if clubs_failed:
-            print(f"⚠️ COMPLETED WITH ERRORS: {len(clubs_failed)} club(s) failed after {MAX_CLUB_RETRIES} attempts.")
-            print("    List of failed clubs: " + ", ".join(clubs_failed))
-        else:
-            print("🎉 COMPLETED: All clubs were exported successfully in order!")
-        print("="*50)
+        # Run ALL logic in batches
+        await process_all_clubs_in_batches(CLUBS)
 
     else:
         # Run Single club logic
@@ -545,62 +517,6 @@ async def main_updated():
         await export_single_club_with_retry_v2(cfg, MAX_CLUB_RETRIES, CLUB_RETRY_DELAY)
 
 
-async def run_automatic_export():
-    """Chạy toàn bộ logic export cho TẤT CẢ các câu lạc bộ (tương đương với chọn '0')."""
-    print("==================================================")
-    print(f"✨ Starting scheduled ALL clubs export at {time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print("==================================================")
-    
-    # Định nghĩa tham số retry (có thể lấy từ globals nếu cần)
-    MAX_CLUB_RETRIES = 3 
-    CLUB_RETRY_DELAY = 5
-    
-    # 1. Concurrent data fetching (giống logic ALL trong main_updated)
-    print("--- 1. Fetching All Data Concurrently ---")
-    fetch_tasks = {
-        key: asyncio.create_task(fetch_json(cfg["URL"])) 
-        for key, cfg in CLUBS.items()
-    }
-    # ... (phần còn lại của logic chạy ALL trong main_updated) ...
-    # ... (Chèn toàn bộ logic ALL ở đây) ...
-    
-    results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
-    results_map = {key: results[i] for i, key in enumerate(CLUBS.keys())}
-    
-    # 2. Sequential Processing and Export with In-Place Retry
-    print("\n--- 2. Processing and Exporting Sequentially with Retry ---")
-    clubs_failed = []
-    
-    for key, cfg in CLUBS.items():
-        title = cfg["title"]
-        initial_result = results_map[key]
-        
-        for attempt in range(MAX_CLUB_RETRIES):
-            if attempt > 0:
-                print(f"\n⚡ Retrying club {title} (Attempt {attempt + 1}/{MAX_CLUB_RETRIES}) after waiting {CLUB_RETRY_DELAY}s...")
-                await asyncio.sleep(CLUB_RETRY_DELAY)
-            
-            try:
-                data_to_use = initial_result if attempt == 0 and not isinstance(initial_result, Exception) else None
-                
-                await process_and_export_club(cfg, data_or_task_result=data_to_use)
-                
-                if attempt == 0:
-                    print(f"✅ {title} exported successfully.")
-                else:
-                    print(f"✅ {title} exported successfully after {attempt} retry(ies).")
-                break
-                
-            except Exception as e:
-                print(f"❌ {title} failed on attempt {attempt + 1}: {e}")
-                if attempt == MAX_CLUB_RETRIES - 1:
-                    clubs_failed.append(title)
-
-    
-    print("\n" + "="*50)
-    if clubs_failed:
-        print(f"⚠️ COMPLETED WITH ERRORS: {len(clubs_failed)} club(s) failed after {MAX_CLUB_RETRIES} attempts.")
-        print("     List of failed clubs: " + ", ".join(clubs_failed))
-    else:
-        print("🎉 COMPLETED: All clubs were exported successfully in order!")
-    print("="*50)
+if __name__ == "__main__":
+    asyncio.run(main_updated())
+    input("Press Enter to close terminal...")
