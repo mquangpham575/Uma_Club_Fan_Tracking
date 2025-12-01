@@ -12,7 +12,7 @@ CLUBS = {
         "THRESHOLD": 3300000,
     },
     "3": {
-        "title": "ENDGLUE (S+)",
+        "title": "ENDIVE (S+)",
         "URL": "https://chronogenesis.net/club_profile?circle_id=168472480",
         "THRESHOLD": 3300000,
     },
