@@ -24,8 +24,7 @@ def pick_club() -> dict | str:
     for key, cfg in CLUBS.items():
         print(f"{key}. {cfg['title']}")
     print("0. Export ALL clubs (default)")
-    # Giả định người dùng có thể nhập 0-9 dựa trên CLUBS, mặc dù mã gốc chỉ hiển thị 0-7
-    choice = input("Enter 0–9 [default=0]: ").strip()
+    choice = input("Enter Choice [default=0]: ").strip()
     if choice == "" or choice == "0":
         return "ALL"
     if choice not in CLUBS:
@@ -64,8 +63,6 @@ async def fetch_json(URL: str):
             return json.loads(text)
             
         except (zd.errors.RemoteDisconnectedError, zd.errors.ConnectionAbortedError) as e:
-            # Giữ lại thông báo lỗi kết nối vì nó quan trọng cho việc debug
-            # print(f"Lỗi kết nối ({URL}, lần {attempt + 1}/{MAX_RETRIES}): {type(e).__name__}. Đang thử lại sau {RETRY_DELAY}s...")
             if attempt < MAX_RETRIES - 1:
                 if browser:
                     await browser.stop()
@@ -140,7 +137,6 @@ def build_dataframe(data: dict) -> pd.DataFrame:
 
 
 # === Google Sheets export ===
-# Không thay đổi, logic này không in ra output.
 def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int):
     from gspread.utils import rowcol_to_a1
 
@@ -157,7 +153,7 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
     else:
         gidx = None
 
-# Bottom "Total" row (sum)
+    # Bottom "Total" row (sum)
     bottom_totals = {}
     for c in df_to_write.columns:
         if c == "Member_Name":
@@ -207,7 +203,7 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
 
     # ====== FORMATTING ======
     sheet_id = ws._properties["sheetId"]
-    last_data_row_1based = 1 + len(data_rows)  # header + data (excludes the 2 summary rows)
+    last_data_row_1based = 1 + len(data_rows) 
 
     header_range = {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": end_col}
     totals_range = {"sheetId": sheet_id, "startRowIndex": end_row - 2, "endRowIndex": end_row, "startColumnIndex": 0, "endColumnIndex": end_col}
@@ -217,18 +213,15 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
                   "startColumnIndex": (gidx + 1 if gidx is not None else end_col), "endColumnIndex": end_col}
     full_table_range = {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": end_row, "startColumnIndex": 0, "endColumnIndex": end_col}
 
-    # Column index helpers
     def col_1_based(col_name: str) -> int | None:
         try:
             return header.index(col_name) + 1
         except ValueError:
             return None
 
-    # Number formatting applies to all numeric columns except id/name/gap
     skip_for_number = {"Member_ID", "Member_Name", GAP_COL}
     numeric_cols_1 = [i + 1 for i, c in enumerate(header) if c not in skip_for_number]
 
-    # Conditional threshold: Day columns + AVG/d (data rows only).
     day_cols_1 = [col_1_based(c) for c in dcols]
     day_cols_1 = [c1 for c1 in day_cols_1 if c1 is not None]
 
@@ -239,7 +232,6 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
     numeric_ranges_all = [col_range_rows(2, end_row, c1) for c1 in numeric_cols_1]
     numeric_ranges_data_days = [col_range_rows(2, last_data_row_1based, c1) for c1 in day_cols_1]
 
-    # NEW: add AVG/d to the threshold-based red rule (data rows only)
     avgd_col_1 = col_1_based("AVG/d")
     numeric_ranges_data = list(numeric_ranges_data_days)
     if avgd_col_1 is not None:
@@ -255,8 +247,6 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
 
     requests = [
         {"setBasicFilter": {"filter": {"range": header_plus_data_range}}},
-
-        # Header styling
         {
             "repeatCell": {
                 "range": header_range,
@@ -269,8 +259,6 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
                 "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)"
             }
         },
-
-        # Style both "Total" and "Day AVG" rows
         {
             "repeatCell": {
                 "range": totals_range,
@@ -278,8 +266,6 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
                 "fields": "userEnteredFormat(backgroundColor,textFormat)"
             }
         },
-
-        # GAP column blue & narrow
         *([
             {
                 "repeatCell": {
@@ -296,43 +282,33 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
                 }
             }
         ] if gidx is not None else []),
-
-        # Alternating banded rows (data only)
         *([
             {"addBanding": {"bandedRange": {"range": band_left,  "rowProperties": {"firstBandColor": band_light, "secondBandColor": band_very}}}}
         ] if gidx is None or gidx > 0 else []),
         *([
             {"addBanding": {"bandedRange": {"range": band_right, "rowProperties": {"firstBandColor": band_light, "secondBandColor": band_very}}}}
         ] if gidx is not None and gidx + 1 < end_col else []),
-
-        # Number formatting for all numeric columns (AVG/d, Day N, Total)
         *[
             {"repeatCell": {"range": r, "cell": {"userEnteredFormat": {"numberFormat": number_format}}, "fields": "userEnteredFormat.numberFormat"}}
             for r in numeric_ranges_all
         ],
-
-        # Conditional red (below threshold) — Day N columns + AVG/d, data rows only
         *([{
             "addConditionalFormatRule": {
                 "rule": {"ranges": numeric_ranges_data,
                          "booleanRule": {"condition": {"type": "NUMBER_LESS",
                                                        "values": [{"userEnteredValue": str(threshold)}]},
-                                         "format": {"backgroundColor": red_fill}}},
+                                     "format": {"backgroundColor": red_fill}}},
                 "index": 0
             }
         }] if numeric_ranges_data else []),
-
-        # Conditional grey (blanks) — ONLY for Day N columns, data rows
         *([{
             "addConditionalFormatRule": {
                 "rule": {"ranges": numeric_ranges_data_days,
                          "booleanRule": {"condition": {"type": "BLANK"},
-                                         "format": {"backgroundColor": grey_fill}}},
+                                     "format": {"backgroundColor": grey_fill}}},
                 "index": 0
             }
         }] if numeric_ranges_data_days else []),
-
-        # Borders on all cells
         {
             "updateBorders": {
                 "range": full_table_range,
@@ -346,7 +322,6 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
         },
     ]
 
-    # Wider Member_Name (for filter icon space)
     if "Member_Name" in header:
         name_col_index = header.index("Member_Name")
         requests.append({
@@ -357,7 +332,6 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
             }
         })
 
-    # Freeze header
     requests.append({
         "updateSheetProperties": {
             "properties": {"sheetId": sheet_id, "gridProperties": {"frozenRowCount": 1}},
@@ -371,79 +345,48 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
 async def process_and_export_club(cfg: dict, data_or_task_result=None):
     title = cfg['title']
     
-    # If data_or_task_result is an Exception (initial fetch error) or needs re-fetching
     if isinstance(data_or_task_result, Exception) or data_or_task_result is None:
-        # print(f"    (Re-fetching data for {title}...)") # Loại bỏ
-        # This calls the fetch_json function, which contains its own 3-retry logic for connection errors
         data = await fetch_json(cfg["URL"]) 
     else:
-        # If data was successfully fetched during the initial concurrent run
         data = data_or_task_result
 
-    # Process and export
     df = build_dataframe(data)
     export_to_gsheets(df, spreadsheet_id=SHEET_ID, sheet_title=title, threshold=cfg["THRESHOLD"])
     return True
 
-# === Main logic for single club with retry (for the single choice path) ===
-async def export_single_club_with_retry_v2(cfg: dict, max_retries: int, retry_delay: int):
-    title = cfg['title']
-    for attempt in range(max_retries):
-        if attempt > 0:
-            print(f"\n⚡ Retrying full process for {title} (Attempt {attempt + 1}/{max_retries})...")
-            
-        try:
-            # Initial data is None to always trigger fetch_json inside
-            await process_and_export_club(cfg, data_or_task_result=None)
-            
-            if attempt == 0:
-                print(f"✅ Exported single club '{title}' successfully.")
-            else:
-                print(f"✅ Exported single club '{title}' successfully after {attempt} retry(ies).")
-                
-            return True
-            
-        except Exception as e:
-            print(f"❌ Club '{title}' failed on attempt {attempt + 1}: {e}")
-            if attempt < max_retries - 1:
-                # print(f"    Waiting {retry_delay}s before next retry...") # Loại bỏ
-                await asyncio.sleep(retry_delay)
-            else:
-                # print(f"    Final failure for {title} after {max_retries} attempts.") # Loại bỏ
-                return False
-
-# === Logic for batch processing all clubs ===
+# === Logic for batch processing all clubs (UPDATED) ===
 async def process_all_clubs_in_batches(all_clubs: dict):
     MAX_CLUB_RETRIES = 3 
     CLUB_RETRY_DELAY = 5
+    BATCH_SIZE = 5
     
     club_keys = list(all_clubs.keys())
-    
-    # Chia thành 2 đợt: 1-5 và 6-9
-    batch1_keys = club_keys[:5]  # Club 1-5 (5 items)
-    batch2_keys = club_keys[5:]  # Club 6-9 (Remaining items)
-    
-    batches = [
-        {"name": "(Club 1-5)", "keys": batch1_keys},
-        {"name": "(Club 6-9)", "keys": batch2_keys},
-    ]
+    batches = []
+
+    # Dynamic batch creation: chunks of 5
+    for i in range(0, len(club_keys), BATCH_SIZE):
+        batch_keys = club_keys[i : i + BATCH_SIZE]
+        start_idx = i + 1
+        end_idx = i + len(batch_keys)
+        batches.append({
+            "name": f"(Club {start_idx}-{end_idx})",
+            "keys": batch_keys
+        })
 
     clubs_failed_total = []
-    print("\n⚡ Exporting ALL clubs: Concurrent data fetching, Sequential processing/Export with retry in two batches...\n")
+    print("\n⚡ Exporting ALL clubs: Concurrent data fetching, Sequential processing/Export with retry in batches...\n")
 
     for i, batch in enumerate(batches):
         print(f"\n==================================================")
-        print(f"⚡ BATCH {i+1} {batch['name']}")
+        print(f"⚡ BATCH {i+1}/{len(batches)} {batch['name']}")
         print(f"==================================================")
         
         batch_clubs = {k: all_clubs[k] for k in batch['keys']}
 
         if not batch_clubs:
-            # print(f"Không có club nào trong {batch['name']}. Bỏ qua.") # Loại bỏ
             continue
 
         # 1. Concurrent data fetching for the current batch
-        # print("\n--- 1. Fetching Data Concurrently for this Batch ---") # Loại bỏ
         fetch_tasks = {
             key: asyncio.create_task(fetch_json(cfg["URL"])) 
             for key, cfg in batch_clubs.items()
@@ -453,21 +396,18 @@ async def process_all_clubs_in_batches(all_clubs: dict):
         results_map = {key: results[i] for i, key in enumerate(batch_clubs.keys())}
         
         # 2. Sequential Processing and Export with In-Place Retry
-        # print("\n--- 2. Processing and Exporting Sequentially with Retry ---") # Loại bỏ
         clubs_failed_batch = []
         
         for key, cfg in batch_clubs.items():
             title = cfg["title"]
             initial_result = results_map[key]
             
-            # High-level retry loop
             for attempt in range(MAX_CLUB_RETRIES):
                 if attempt > 0:
                     print(f"\n⚡ Retrying club {title} (Attempt {attempt + 1}/{MAX_CLUB_RETRIES}) after waiting {CLUB_RETRY_DELAY}s...")
                     await asyncio.sleep(CLUB_RETRY_DELAY)
                 
                 try:
-                    # Attempt 1: Use the initial concurrent fetch result.
                     data_to_use = initial_result if attempt == 0 and not isinstance(initial_result, Exception) else None
                     
                     await process_and_export_club(cfg, data_or_task_result=data_to_use)
@@ -476,23 +416,19 @@ async def process_all_clubs_in_batches(all_clubs: dict):
                           print(f"✅ {title} exported successfully.")
                     else:
                           print(f"✅ {title} exported successfully after {attempt} retry(ies).")
-                    break # Success, move to the next club
+                    break
                         
                 except Exception as e:
                     print(f"❌ {title} failed on attempt {attempt + 1}: {e}")
                     if attempt == MAX_CLUB_RETRIES - 1:
                         clubs_failed_batch.append(title)
-                    # If not the final attempt, the loop continues (wait and retry)
         
         clubs_failed_total.extend(clubs_failed_batch)
-        # print(f"==================================================") # Loại bỏ
-        # print(f"✅ BATCH {i+1} COMPLETED. Failed in this batch: {len(clubs_failed_batch)}") # Loại bỏ
 
-    # Final summary
     print("\n" + "="*50)
     if clubs_failed_total:
         print(f"⚠️ COMPLETED WITH ERRORS: {len(clubs_failed_total)} club(s) failed after {MAX_CLUB_RETRIES} attempts.")
-        print("    List of failed clubs: " + ", ".join(clubs_failed_total))
+        print("    List of failed clubs: " + ", ".join(clubs_failed_total))
     else:
         print("🎉 COMPLETED: All clubs were exported successfully in order across all batches!")
     print("="*50)
@@ -506,16 +442,32 @@ async def main_updated():
     CLUB_RETRY_DELAY = 5
     
     if choice == "ALL":
-        # Run ALL logic in batches
         await process_all_clubs_in_batches(CLUBS)
 
     else:
-        # Run Single club logic
         cfg = choice
         print(f"\nSelected: {cfg['title']}\nURL: {cfg['URL']}\nSheet: {SHEET_ID}\nThreshold: {cfg['THRESHOLD']}\n")
         
-        await export_single_club_with_retry_v2(cfg, MAX_CLUB_RETRIES, CLUB_RETRY_DELAY)
-
+        # Single club processing logic inline for simplicity
+        title = cfg['title']
+        for attempt in range(MAX_CLUB_RETRIES):
+            if attempt > 0:
+                print(f"\n⚡ Retrying full process for {title} (Attempt {attempt + 1}/{MAX_CLUB_RETRIES})...")
+            
+            try:
+                await process_and_export_club(cfg, data_or_task_result=None)
+                if attempt == 0:
+                    print(f"✅ Exported single club '{title}' successfully.")
+                else:
+                    print(f"✅ Exported single club '{title}' successfully after {attempt} retry(ies).")
+                break
+                
+            except Exception as e:
+                print(f"❌ Club '{title}' failed on attempt {attempt + 1}: {e}")
+                if attempt < MAX_CLUB_RETRIES - 1:
+                    await asyncio.sleep(CLUB_RETRY_DELAY)
+                else:
+                    pass
 
 if __name__ == "__main__":
     asyncio.run(main_updated())
