@@ -3,7 +3,7 @@ SHEET_ID = "1O09PM-hYo-H05kWWqMg71GelEpfaGrePQWzdDCKOqyU"
 CLUBS = {
     "1": {
         "title": "ENDLESS (SS)",
-        "URL": "",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=145606097",
         "THRESHOLD": 4000000,
     },
     "2": {
@@ -18,12 +18,12 @@ CLUBS = {
     },
     "4": {
         "title": "ENDEAVOUR (S+/S)",
-        "URL": "",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=125289696",
         "THRESHOLD": 2500000,
     },
     "5": {
         "title": "ENDWISE (S)",
-        "URL": "",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=ENDWISE",
         "THRESHOLD": 2000000,
     },
     "6": {
@@ -58,7 +58,7 @@ CLUBS = {
     },
     "12": {
         "title": "ENDFIELD (A)",
-        "URL": "",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=881939298",
         "THRESHOLD": 700000,
     },
     "13": {
