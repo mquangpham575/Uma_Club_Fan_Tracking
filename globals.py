@@ -58,7 +58,7 @@ CLUBS = {
     },
     "12": {
         "title": "ENDFIELD (A)",
-        "URL": "https://chronogenesis.net/club_profile?circle_id=881939298",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=653291031",
         "THRESHOLD": 700000,
     },
     "13": {
