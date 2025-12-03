@@ -40,14 +40,18 @@ def resolve_base_dir() -> Path:
     return Path(__file__).parent
 
 
-# === Data fetch ===
+# === Data fetch (UPDATED WITH TIMEOUT) ===
 async def fetch_json(URL: str):
     MAX_RETRIES = 3
     RETRY_DELAY = 5
+    TIMEOUT_SECONDS = 20  # Limit runtime to 20s per attempt
     
     for attempt in range(MAX_RETRIES):
         browser = None
-        try:
+        
+        # We define the browser logic as an inner function to wrap it in wait_for
+        async def _run_browser_session():
+            nonlocal browser # Allow access to outer variable for cleanup
             browser = await zd.start(
                 browser="edge",
                 browser_executable_path="C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
@@ -61,22 +65,42 @@ async def fetch_json(URL: str):
             
             text = body.decode("utf-8", errors="replace") if isinstance(body, (bytes, bytearray)) else str(body)
             return json.loads(text)
+
+        try:
+            # === Enforce the 20s Timeout here ===
+            return await asyncio.wait_for(_run_browser_session(), timeout=TIMEOUT_SECONDS)
             
-        except (zd.errors.RemoteDisconnectedError, zd.errors.ConnectionAbortedError) as e:
+        except asyncio.TimeoutError:
+            print(f"⚠️ Attempt {attempt + 1}: Timed out (> {TIMEOUT_SECONDS}s). Closing Edge and retrying...")
+            # The 'finally' block below will execute, closing the browser, then loop repeats.
             if attempt < MAX_RETRIES - 1:
-                if browser:
-                    await browser.stop()
+                await asyncio.sleep(RETRY_DELAY)
+                continue
+            else:
+                raise Exception(f"Timeout exceeded ({TIMEOUT_SECONDS}s) on all {MAX_RETRIES} attempts.")
+
+        except (zd.errors.RemoteDisconnectedError, zd.errors.ConnectionAbortedError) as e:
+            print(f"⚠️ Attempt {attempt + 1}: Connection error ({e}). Retrying...")
+            if attempt < MAX_RETRIES - 1:
                 await asyncio.sleep(RETRY_DELAY)
                 continue
             else:
                 raise
                 
         except Exception as e:
-            raise e
+            # If it's the last attempt, raise the error
+            if attempt == MAX_RETRIES - 1:
+                raise e
+            print(f"⚠️ Attempt {attempt + 1}: Unexpected error: {e}")
+            await asyncio.sleep(RETRY_DELAY)
             
         finally:
+            # Ensure browser closes every time (Timeout, Error, or Success)
             if browser:
-                await browser.stop()
+                try:
+                    await browser.stop()
+                except Exception:
+                    pass
     
     raise Exception(f"Thất bại sau {MAX_RETRIES} lần thử.")
 
