@@ -28,7 +28,7 @@ CLUBS = {
     },
     "6": {
         "title": "ENDGAME (S)",
-        "URL": "https://chronogenesis.net/club_profile?circle_id=ENDGAME",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=558806657",
         "THRESHOLD": 2000000,
     },
     "7": {
