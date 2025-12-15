@@ -8,7 +8,6 @@ import zendriver as zd
 import gspread
 from google.oauth2.service_account import Credentials
 import time
-
 from globals import CLUBS, SHEET_ID
 
 
@@ -40,26 +39,37 @@ def resolve_base_dir() -> Path:
     return Path(__file__).parent
 
 
-# === Data fetch (UPDATED WITH TIMEOUT) ===
+# === Data fetch (UPDATED WITH BRAVE BROWSER LOGIC) ===
 async def fetch_json(URL: str):
     MAX_RETRIES = 3
     RETRY_DELAY = 5
-    TIMEOUT_SECONDS = 20  # Limit runtime to 20s per attempt
+    TIMEOUT_SECONDS = 30  
     
+    brave_path = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
+    if not os.path.exists(brave_path):
+        brave_path = "C:/Program Files (x86)/BraveSoftware/Brave-Browser/Application/brave.exe"
+
+    if not os.path.exists(brave_path):
+        raise FileNotFoundError(f"Không tìm thấy Brave browser tại cả 2 đường dẫn mặc định.")
+
     for attempt in range(MAX_RETRIES):
         browser = None
         
-        # We define the browser logic as an inner function to wrap it in wait_for
         async def _run_browser_session():
-            nonlocal browser # Allow access to outer variable for cleanup
+            nonlocal browser 
+            
             browser = await zd.start(
-                browser="edge",
-                browser_executable_path="C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
+                browser="chrome",  
+                browser_executable_path=brave_path,
+                headless=False,     
+                arguments=["--mute-audio"] 
             )
+            
             page = await browser.get("https://google.com")
             
             async with page.expect_request(r".*\/api\/club_profile.*") as req:
-                await page.get(URL)
+                await page.get(URL) # Truy cập URL của Club
+                
                 await req.value
                 body, _ = await req.response_body
             
@@ -67,12 +77,10 @@ async def fetch_json(URL: str):
             return json.loads(text)
 
         try:
-            # === Enforce the 20s Timeout here ===
             return await asyncio.wait_for(_run_browser_session(), timeout=TIMEOUT_SECONDS)
             
         except asyncio.TimeoutError:
-            print(f"⚠️ Attempt {attempt + 1}: Timed out (> {TIMEOUT_SECONDS}s). Closing Edge and retrying...")
-            # The 'finally' block below will execute, closing the browser, then loop repeats.
+            print(f"⚠️ Attempt {attempt + 1}: Timed out (> {TIMEOUT_SECONDS}s). Closing Brave and retrying...")
             if attempt < MAX_RETRIES - 1:
                 await asyncio.sleep(RETRY_DELAY)
                 continue
@@ -88,14 +96,12 @@ async def fetch_json(URL: str):
                 raise
                 
         except Exception as e:
-            # If it's the last attempt, raise the error
             if attempt == MAX_RETRIES - 1:
                 raise e
             print(f"⚠️ Attempt {attempt + 1}: Unexpected error: {e}")
             await asyncio.sleep(RETRY_DELAY)
             
         finally:
-            # Ensure browser closes every time (Timeout, Error, or Success)
             if browser:
                 try:
                     await browser.stop()

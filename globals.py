@@ -53,7 +53,7 @@ CLUBS = {
     },
     "11": {
         "title": "UMA Vault (A+)",
-        "URL": "https://chronogenesis.net/club_profile?circle_id=UMA%20Vault",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=150259101",
         "THRESHOLD": 1000000,
     },
     "12": {
