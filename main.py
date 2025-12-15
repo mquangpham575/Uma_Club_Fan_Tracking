@@ -43,7 +43,7 @@ def resolve_base_dir() -> Path:
 async def fetch_json(URL: str):
     MAX_RETRIES = 3
     RETRY_DELAY = 5
-    TIMEOUT_SECONDS = 30  
+    TIMEOUT_SECONDS = 20  
     
     brave_path = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
     if not os.path.exists(brave_path):
