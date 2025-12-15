@@ -13,7 +13,7 @@ CLUBS = {
     },
     "3": {
         "title": "ENDCORE (SS/S+)",
-        "URL": "https://chronogenesis.net/club_profile?circle_id=ENDCORE",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=168472480",
         "THRESHOLD": 3000000,
     },
     "4": {
@@ -23,7 +23,7 @@ CLUBS = {
     },
     "5": {
         "title": "ENDWISE (S)",
-        "URL": "https://chronogenesis.net/club_profile?circle_id=ENDWISE",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=678360559",
         "THRESHOLD": 2000000,
     },
     "6": {
@@ -38,17 +38,17 @@ CLUBS = {
     },
     "8": {
         "title": "ENDURANCE (A+)",
-        "URL": "https://chronogenesis.net/club_profile?circle_id=ENDURANCE",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=237354394",
         "THRESHOLD": 1300000,
     },
     "9": {
         "title": "ENDYMION (A+)",
-        "URL": "https://chronogenesis.net/club_profile?circle_id=ENDYMION",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=636004975",
         "THRESHOLD": 1300000,
     },
     "10": {
         "title": "Dirt Idols (A+)",
-        "URL": "https://chronogenesis.net/club_profile?circle_id=Dirt%20Idols",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=524890130",
         "THRESHOLD": 1000000,
     },
     "11": {
@@ -63,7 +63,7 @@ CLUBS = {
     },
     "13": {
         "title": "ENDGRAVE (Casual)",
-        "URL": "https://chronogenesis.net/club_profile?circle_id=ENDGRAVE",
+        "URL": "https://chronogenesis.net/club_profile?circle_id=647067019",
         "THRESHOLD": 0,
     },
 }
