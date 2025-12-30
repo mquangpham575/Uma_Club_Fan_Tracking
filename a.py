@@ -1,43 +1,74 @@
 import asyncio
+import re
 import zendriver as zd
-import os
+
+SEARCH_TERM = "ENDLESS"
+CLUB_ID_STARTING = "1456"
+
+RESPONSES = []
+
+REGEX = re.compile(
+    rf".*/api/club_profile\?circle_id={CLUB_ID_STARTING}.*", re.IGNORECASE
+)
+
+
+async def resp_handler(e: zd.cdp.network.ResponseReceived):
+    if REGEX.match(e.response.url):
+        RESPONSES.append(e.request_id)
+
 
 async def main():
     print("Đang lụm dữ liệu... ", end="", flush=True)
 
-    # Đường dẫn mặc định thường thấy của Brave trên Windows
-    # Nếu không chạy, hãy kiểm tra lại xem Brave của bạn nằm ở 'Program Files' hay 'Program Files (x86)'
-    brave_path = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
-    
-    # Kiểm tra file có tồn tại không để tránh lỗi
-    if not os.path.exists(brave_path):
-        brave_path = "C:/Program Files (x86)/BraveSoftware/Brave-Browser/Application/brave.exe"
-
     browser = await zd.start(
-        browser="chrome",  # Brave dùng nhân Chromium nên cấu hình là "chrome"
-        browser_executable_path=brave_path,
-        headless=False # Thường cần để false để tránh bị chặn
+        browser="edge",
+        browser_executable_path="C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
     )
-    
+
+    page = await browser.get("https://chronogenesis.net/")
+
+    club_profile = await page.select_all(".home-menu-item")
+    await club_profile[1].click()
+    await asyncio.sleep(1)
+
+    page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
+
+    search_box = await page.select(".club-id-input", timeout=20)
+    await search_box.send_keys(SEARCH_TERM)
+    await search_box.send_keys(zd.SpecialKeys.ENTER)
+    await asyncio.sleep(1)
+
     try:
-        page = await browser.get("https://google.com")
+        results = await page.select_all(".club-results-row", timeout=3)
 
-        # Regex để bắt request API
-        async with page.expect_request(r".*\/api\/club_profile.*") as request_info:
-            await page.get("https://chronogenesis.net/club_profile?circle_id=145606097")
+        for result in results:
+            if SEARCH_TERM in str(result):
+                await result.click()
+                break
+    except:
+        pass
 
-            await request_info.value
-            response_body, _ = await request_info.response_body
+    await asyncio.sleep(3)
 
-        # Có response rồi, làm gì thì làm
-        with open("response.json", "w", encoding="utf-8") as f:
-            f.write(response_body)
-            
-        print("✅ Xong!", end="", flush=True)
+    largest_response = None
+    largest_size = 0
 
-    finally:
-        # Đảm bảo tắt trình duyệt dù có lỗi hay không
-        await browser.stop()
+    for request_id in RESPONSES:
+        response_body, _ = await page.send(
+            zd.cdp.network.get_response_body(request_id=request_id)
+        )
+        size = len(response_body)
+        if size > largest_size:
+            largest_size = size
+            largest_response = response_body
+
+    await browser.stop()
+
+    with open("response.json", "w", encoding="utf-8") as f:
+        f.write(largest_response)
+
+    print("✅ Xong!", end="", flush=True)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

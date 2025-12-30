@@ -42,3 +42,5 @@ build/
 main.spec
 *.spec
 credentials.json
+a.py
+response.json
