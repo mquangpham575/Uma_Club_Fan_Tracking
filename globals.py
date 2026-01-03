@@ -96,7 +96,7 @@ CLUBS = {
     "16": {
         "title": "yurimusume (A+)",
         "SEARCH_TERM": "yurimusume",
-        "CLUB_ID_STARTING": "6450",
+        "CLUB_ID_STARTING": "4155",
         "THRESHOLD": 1000000,
     },
     "17": {
