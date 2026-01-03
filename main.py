@@ -3,136 +3,150 @@ import json
 import os
 import sys
 import re
+import time
+from pathlib import Path
 import pandas as pd
 import zendriver as zd
 import gspread
 from google.oauth2.service_account import Credentials
-from gspread.utils import rowcol_to_a1
 
-# Import globals
+# ==============================================================================
+# IMPORT GLOBALS
+# ==============================================================================
 try:
     from globals import CLUBS, SHEET_ID
 except ImportError:
-    print("❌ Error: 'globals.py' not found!")
+    print("Error: 'globals.py' not found.")
     sys.exit(1)
 
-# ========== Google Sheets config ==========
+# ==============================================================================
+# GOOGLE SHEETS CONFIG
+# ==============================================================================
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-CREDS_FILE = "credentials.json"
-if not os.path.exists(CREDS_FILE):
-    print(f"❌ Error: '{CREDS_FILE}' not found!")
+try:
+    CREDS = Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
+    GC = gspread.authorize(CREDS)
+except Exception as e:
+    print(f"Config Error: {e}")
     sys.exit(1)
 
-CREDS = Credentials.from_service_account_file(CREDS_FILE, scopes=SCOPES)
-GC = gspread.authorize(CREDS)
 
-# === DATA FETCHING METHOD (Optimized & English) ===
-async def fetch_club_data_browser(club_cfg: dict):
-    MAX_RETRIES = 3
-    SEARCH_TERM = club_cfg["SEARCH_TERM"]
-    CLUB_ID_STARTING = club_cfg["CLUB_ID_STARTING"]
+# ==============================================================================
+# HELPER FUNCTIONS
+# ==============================================================================
+def pick_club() -> dict | str:
+    print("\n--- SELECT TARGET ---")
+    club_keys = list(CLUBS.keys())
+    for key in club_keys:
+        print(f" [{key}] {CLUBS[key]['title']}")
+    print("-" * 25)
+    print(" [0] PROCESS ALL (Default)")
     
-    API_REGEX = re.compile(
-        rf".*/api/club_profile\?circle_id={re.escape(CLUB_ID_STARTING)}.*", re.IGNORECASE
+    choice = input("\n> Selection: ").strip()
+    
+    if choice == "" or choice == "0":
+        return "ALL"
+    if choice in CLUBS:
+        return CLUBS[choice]
+    return CLUBS[list(CLUBS.keys())[0]]
+
+# ==============================================================================
+# CORE SCRAPING LOGIC
+# ==============================================================================
+async def fetch_club_data_browser(club_cfg: dict):
+    SEARCH_TERM = club_cfg["SEARCH_TERM"]
+    CLUB_ID_STARTING = str(club_cfg["CLUB_ID_STARTING"])
+    TITLE = club_cfg["title"]
+
+    REGEX = re.compile(
+        rf".*/api/club_profile\?circle_id={CLUB_ID_STARTING}.*", re.IGNORECASE
     )
 
+    RESPONSES = [] 
+
+    async def resp_handler(e: zd.cdp.network.ResponseReceived):
+        if REGEX.match(e.response.url):
+            RESPONSES.append(e.request_id)
+
+    # Browser Path Setup
     brave_path = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
     if not os.path.exists(brave_path):
         brave_path = "C:/Program Files (x86)/BraveSoftware/Brave-Browser/Application/brave.exe"
+    
+    # Silent browser start (No print)
+    browser = await zd.start(
+        browser="edge",
+        browser_executable_path=brave_path,
+        headless=False,
+        arguments=["--mute-audio"] 
+    )
 
-    for attempt in range(MAX_RETRIES):
-        browser = None
-        captured_ids = []
+    try:
+        page = await browser.get("https://chronogenesis.net/")
 
-        async def resp_handler(e: zd.cdp.network.ResponseReceived):
-            if API_REGEX.match(e.response.url):
-                captured_ids.append(e.request_id)
+        club_profile = await page.select_all(".home-menu-item")
+        await club_profile[1].click()
+        await asyncio.sleep(1)
+
+        page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
+
+        search_box = await page.select(".club-id-input", timeout=20)
+        await search_box.send_keys(SEARCH_TERM)
+        await search_box.send_keys(zd.SpecialKeys.ENTER)
+        await asyncio.sleep(1)
 
         try:
-            browser = await zd.start(
-                browser="chrome",
-                browser_executable_path=brave_path,
-                headless=False,
-                arguments=["--mute-audio"]
-            )
+            results = await page.select_all(".club-results-row", timeout=3)
+            for result in results:
+                if SEARCH_TERM in str(result):
+                    await result.click()
+                    break
+        except:
+            pass
 
-            page = await browser.get("https://chronogenesis.net/")
-            
-            # 1. Click Menu "Club Profile"
-            menu_items = await page.select_all(".home-menu-item", timeout=15)
-            if len(menu_items) > 1:
-                await menu_items[1].click()
-            else:
-                raise Exception("Club Profile menu not found")
-            
-            await asyncio.sleep(1)
+        # Silent wait (Removed print)
+        await asyncio.sleep(3)
 
-            # 2. Add Network Listener
-            page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
+        largest_response = None
+        largest_size = 0
 
-            # 3. Input Search
-            search_box = await page.select(".club-id-input", timeout=20)
-            await search_box.send_keys(SEARCH_TERM)
-            await search_box.send_keys(zd.SpecialKeys.ENTER)
-            await asyncio.sleep(1.5)
+        if not RESPONSES:
+            raise Exception("No API request matched.")
 
-            # 4. Click Result (Logic: Search Term check in string representation)
+        for request_id in RESPONSES:
             try:
-                results = await page.select_all(".club-results-row", timeout=5)
+                response_body, _ = await page.send(
+                    zd.cdp.network.get_response_body(request_id=request_id)
+                )
                 
-                target_clicked = False
-                for row in results:
-                    # Logic: convert row to string and check search term
-                    if SEARCH_TERM in str(row):
-                        await row.click()
-                        target_clicked = True
-                        break
-                
-                # Fallback: Click first result if specific match fails
-                if not target_clicked and results:
-                    await results[0].click()
+                if isinstance(response_body, bytes) or isinstance(response_body, bytearray):
+                      content = response_body.decode('utf-8', errors='replace')
+                else:
+                      content = str(response_body)
 
+                size = len(content)
+                if size > largest_size:
+                    largest_size = size
+                    largest_response = content
             except Exception:
-                pass
+                continue
+        
+        await browser.stop()
+        
+        if largest_response:
+            return json.loads(largest_response)
+        else:
+            raise Exception("Empty response body.")
 
-            # 5. Wait for Data
-            await asyncio.sleep(4)
+    except Exception as e:
+        try:
+            await browser.stop()
+        except:
+            pass
+        raise e
 
-            if not captured_ids:
-                raise Exception("Network Response not captured (API not called or wrong ID)")
-
-            # 6. Get Largest Body
-            largest_body = None
-            max_size = 0
-            for rid in captured_ids:
-                try:
-                    body, _ = await page.send(zd.cdp.network.get_response_body(request_id=rid))
-                    content = body.decode('utf-8', errors='ignore') if isinstance(body, (bytes, bytearray)) else str(body)
-                    if len(content) > max_size:
-                        max_size = len(content)
-                        largest_body = content
-                except:
-                    continue
-
-            if not largest_body:
-                raise Exception("Failed to retrieve JSON body from response")
-
-            return json.loads(largest_body)
-
-        except Exception as e:
-            if attempt == MAX_RETRIES - 1:
-                raise e
-            print(f"⚠️ Retry {attempt+1}/{MAX_RETRIES} for '{club_cfg['title']}': {e}")
-            await asyncio.sleep(2)
-        finally:
-            if browser:
-                await browser.stop()
-
-# === DataFrame Processing (From your code) ===
 def build_dataframe(data: dict) -> pd.DataFrame:
     df = pd.json_normalize(data.get("club_friend_history") or [])
-    if df.empty: return pd.DataFrame()
-
     for c in ("friend_viewer_id", "friend_name", "actual_date", "adjusted_interpolated_fan_gain"):
         if c not in df.columns:
             df[c] = pd.NA
@@ -159,7 +173,6 @@ def build_dataframe(data: dict) -> pd.DataFrame:
 
     day_cols = [c for c in df.columns if isinstance(c, str) and c.startswith("Day ")]
 
-    # Keep only members present on the newest day
     nums = [n for n in map(_day_num, day_cols) if n is not None]
     if nums:
         latest_day = max(nums)
@@ -167,33 +180,30 @@ def build_dataframe(data: dict) -> pd.DataFrame:
         if latest_col in df.columns:
             df = df[~df[latest_col].isna()].copy()
 
-    # Sort columns
     day_cols = sorted(day_cols, key=lambda c: (_day_num(c) if _day_num(c) is not None else float("inf")))
 
-    # Avg/d
     df["AVG/d"] = df[day_cols].mean(axis=1).round(0) if day_cols else 0
     df = df[["friend_viewer_id", "friend_name", "AVG/d"] + day_cols].rename(
         columns={"friend_viewer_id": "Member_ID", "friend_name": "Member_Name"}
     )
-    
     df["Member_ID"] = df["Member_ID"].fillna("").astype(str)
     df["Member_Name"] = df["Member_Name"].fillna("").astype(str)
-    
-    # Numeric conversion
     for c in df.columns:
         if c not in ("Member_ID", "Member_Name"):
             df[c] = pd.to_numeric(df[c], errors="coerce")
 
-    return df.sort_values(["AVG/d", "Member_Name"], ascending=[False, True]).reset_index(drop=True)
+    df = df.sort_values(["AVG/d", "Member_Name"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
+    return df
 
-# === Export to GSheets (EXACT LOGIC FROM YOUR CODE) ===
+
+# === Google Sheets export (Unchanged logic, just silenced) ===
 def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int):
-    # ====== PREP DATA ======
+    from gspread.utils import rowcol_to_a1
+
     GAP_COL = " "
     dcols = [c for c in df.columns if isinstance(c, str) and c.startswith("Day ")]
     df_to_write = df.copy()
 
-    # Add Total and a blue gap column before it
     if dcols:
         df_to_write["Total"] = df_to_write[dcols].sum(axis=1, min_count=1)
         gidx = df_to_write.columns.get_loc("Total")
@@ -201,7 +211,6 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
     else:
         gidx = None
 
-    # Bottom "Total" row (sum)
     bottom_totals = {}
     for c in df_to_write.columns:
         if c == "Member_Name":
@@ -219,7 +228,6 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
             else:
                 bottom_totals[c] = total 
 
-    # Day AVG row — per-day means only (no AVG/d)
     day_avgs = pd.Series("", index=df_to_write.columns, dtype=object)
     if dcols:
         means = df_to_write[dcols].mean(axis=0, skipna=True).round(0)
@@ -232,10 +240,8 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
     totals_row = [("" if pd.isna(v) else v) for v in (bottom_totals.get(c, "") for c in df_to_write.columns)]
     day_avg_row = [day_avgs.get(c, "") for c in df_to_write.columns]
 
-    # Values order: header, data..., Total, Day AVG
     values = [header] + data_rows + [totals_row, day_avg_row]
 
-    # ====== OPEN SHEET ======
     ss = GC.open_by_key(spreadsheet_id)
     try:
         ws = ss.worksheet(sheet_title)
@@ -245,13 +251,11 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
         
     ws = ss.add_worksheet(title=sheet_title, rows=max(len(values) + 50, 120), cols=max(len(header) + 10, 26))
 
-    # Write values
     end_row = len(values)
     end_col = len(header)
     end_a1 = rowcol_to_a1(end_row, end_col)
     ws.update(values, f"A1:{end_a1}")
 
-    # ====== FORMATTING ======
     sheet_id = ws._properties["sheetId"]
     last_data_row_1based = 1 + len(data_rows) 
 
@@ -391,42 +395,73 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
 
     ws.spreadsheet.batch_update({"requests": requests})
 
-# === Batch Engine ===
-async def process_batch(batch_configs):
-    tasks = [fetch_club_data_browser(cfg) for cfg in batch_configs]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    
-    for i, data in enumerate(results):
-        cfg = batch_configs[i]
-        if isinstance(data, Exception):
-            print(f"❌ Failed: {cfg['title']} | Error: {data}")
-            continue
-        try:
-            df = build_dataframe(data)
-            export_to_gsheets(df, SHEET_ID, cfg['title'], cfg['THRESHOLD'])
-            print(f"✅ Success: {cfg['title']}")
-        except Exception as e:
-            print(f"❌ Processing Error: {cfg['title']} | {e}")
+# ==============================================================================
+# MAIN BATCH PROCESS
+# ==============================================================================
+async def process_and_export_club(cfg: dict, pre_fetched_data=None):
+    data = await fetch_club_data_browser(cfg) if pre_fetched_data is None else pre_fetched_data
+    if isinstance(data, Exception): raise data
+    export_to_gsheets(build_dataframe(data), SHEET_ID, cfg['title'], cfg["THRESHOLD"])
+    return True
 
 async def main():
-    print("=== CHRONOGENESIS BATCH EXPORTER ===")
-    print("0. Export ALL (Batch 5)")
-    for k, v in CLUBS.items():
-        print(f"{k}. {v['title']}")
+    choice = pick_club()
+    BATCH_SIZE = 5
+    MAX_RETRIES = 3
+    RETRY_DELAY = 5
     
-    choice = input("\nSelect option: ").strip() or "0"
+    clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
+    club_keys = list(clubs_to_process.keys())
+    batches = [club_keys[i:i + BATCH_SIZE] for i in range(0, len(club_keys), BATCH_SIZE)]
+
+    print(f"\n>>> PROCESSING: {len(club_keys)} CLUBS\n")
     
-    if choice == "0":
-        all_cfgs = list(CLUBS.values())
-        for i in range(0, len(all_cfgs), 5):
-            batch = all_cfgs[i : i + 5]
-            print(f"\n🚀 Running Batch {i//5 + 1}...")
-            await process_batch(batch)
-    elif choice in CLUBS:
-        await process_batch([CLUBS[choice]])
+    failed_clubs = []
     
-    print("\n🎉 COMPLETED!")
+    for batch_idx, batch_keys in enumerate(batches):
+        print(f"[ Batch {batch_idx + 1}/{len(batches)} ] Processing {len(batch_keys)} items...")
+        
+        # Parallel Fetch
+        tasks = {key: asyncio.create_task(fetch_club_data_browser(CLUBS[key])) for key in batch_keys}
+        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+        results_map = dict(zip(batch_keys, results))
+
+        # Sequential Export
+        for key in batch_keys:
+            cfg, result = CLUBS[key], results_map[key]
+            title = cfg["title"]
+            success = False
+            
+            for attempt in range(MAX_RETRIES):
+                try:
+                    data = result if (attempt == 0 and not isinstance(result, Exception)) else None
+                    
+                    if attempt > 0: 
+                        print(f"  ⟳ {title} (Retry {attempt})...", end="\r")
+                        await asyncio.sleep(RETRY_DELAY)
+                    
+                    await process_and_export_club(cfg, pre_fetched_data=data)
+                    print(f"  ✓ {title}")
+                    success = True
+                    break
+                except Exception as e:
+                    # Clean error log, only show detail if needed or critical
+                    result = None # Force re-fetch next loop
+            
+            if not success:
+                print(f"  ✗ {title} (Failed)")
+                failed_clubs.append(title)
+        
+        print("") # Spacer between batches
+
+    print("-" * 30)
+    if failed_clubs:
+        print(f"⚠️  Done with errors: {len(failed_clubs)} failed.")
+    else:
+        print("🎉 All Complete.")
+    print("-" * 30)
+    input("Press Enter to exit...")
 
 if __name__ == "__main__":
+    if sys.platform == 'win32': asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
-    input("Press Enter to exit...")
