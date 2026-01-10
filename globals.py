@@ -58,9 +58,9 @@ CLUBS = {
         "THRESHOLD": 1000000,
     },
     "10": {
-        "title": "ENDENCE (A+)",
-        "SEARCH_TERM": "ENDENCE",
-        "CLUB_ID_STARTING": "ENDENCE",
+        "title": "ENDURE (A+)",
+        "SEARCH_TERM": "ENDURE",
+        "CLUB_ID_STARTING": "3704",
         "THRESHOLD": 1000000,
     },
     "11": {

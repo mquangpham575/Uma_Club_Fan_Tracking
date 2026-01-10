@@ -73,12 +73,24 @@ async def fetch_club_data_browser(club_cfg: dict):
     if not os.path.exists(brave_path):
         brave_path = "C:/Program Files (x86)/BraveSoftware/Brave-Browser/Application/brave.exe"
     
-    # Silent browser start (No print)
+    # OPTIMIZATION
+    browser_args = [
+        "--mute-audio",
+        "--disable-extensions",
+        "--window-position=-3000,0",             
+        "--disable-background-timer-throttling", 
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+        "--no-first-run",
+        "--no-default-browser-check"
+    ]
+
+    # Use headless=False so the site doesn't block us, but args hide it
     browser = await zd.start(
-        browser="edge",
+        browser="edge", 
         browser_executable_path=brave_path,
-        headless=False,
-        arguments=["--mute-audio"] 
+        headless=False, 
+        arguments=browser_args
     )
 
     try:
