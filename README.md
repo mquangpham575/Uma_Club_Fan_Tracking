@@ -1,96 +1,101 @@
-# 📄 Uma Club Tracking
+# Uma Club Tracking
 
-This project fetches **club friend history data** from [ChronoGenesis](https://chronogenesis.net/). Automatically exports it into a **formatted Google Spreadsheet** — complete with borders, totals, averages, and conditional formatting.
+**Disclaimer: This is a fan-made automatic program.**
+
+This software automates the process of fetching club friend history data from [ChronoGenesis](https://chronogenesis.net/) and exporting it into a formatted Google Spreadsheet. The output includes automated styling, borders, totals, averages, and conditional formatting for enhanced readability.
 
 ![preview](assets/preview.png)
 
-For the **Endless** community, check the **[Releases](https://github.com/mquangpham575/Uma_Club_Fan_Tracking/releases/tag/v1.0)** — no need the setup below.
+## Overview
 
----
+The application streamlines data tracking for Uma Musume clubs by:
+- Retrieving latest club data.
+- Formatting data into a clear, professional Google Sheet.
+- Handling distinct club profiles concurrently or individually.
 
-## ⚙️ Setup
+For users preferring a pre-compiled solution, please visit the [Releases](https://github.com/mquangpham575/Uma_Club_Fan_Tracking/releases/tag/v1.0) page. The following setup instructions are intended for developers or users running the source code directly.
 
-1. Click the green **Code** button → **Download ZIP**
-2. Extract the folder anywhere on your computer
-3. Follow this video tutorial to create your Google API credentials:
-   ▶️ https://youtu.be/zCEJurLGFRk
+## Features
 
-- Watch from `1:59 → 6:50` to generate your Service Account key
-- Then rename the file to credentials.json and place it in the same folder as main.py  
-  Make sure to share your target Google Sheet with the service account’s client_email (Editor access).
+- **Automated Formatting:** Headers and totals are styled for high visibility.
+- **Visual Aids:** Alternating row colors and automatic borders.
+- **Conditional Formatting:**
+  - Red highlights for values below defined thresholds.
+  - Grey background for empty cells.
+- **Auto-Summarization:** Automatic calculation of totals and averages.
+- **Scalability:** Supports parallel exporting for multiple clubs.
 
-4. Open `globals.py` and edit these values if needed:
+## Setup
 
+### Prerequisites
+- Python 3.x installed.
+- A Google Cloud Project with the Google Sheets API enabled.
+
+### Installation
+
+1. **Clone or Download:**
+   - Click **Code** -> **Download ZIP** and extract, or clone the repository via Git.
+
+2. **Google API Credentials:**
+   - A `credentials.json` file is required to authenticate with Google Sheets.
+   - Refer to this [video tutorial](https://youtu.be/zCEJurLGFRk) (01:59 - 06:50) for instructions on creating a Service Account Key.
+   - Rename the downloaded key file to `credentials.json` and place it in the `config/` directory.
+   - **Important:** Share the target Google Sheet with the Service Account's `client_email` (Editor access).
+
+3. **Configuration:**
+   - Open `config/globals.py` to configure the `SHEET_ID` and club details:
+     ```python
+     SHEET_ID = "YOUR_SPREADSHEET_ID"
+
+     CLUBS = {
+         "1": {"title": "EndGame", "URL": "...", "THRESHOLD": 1800000},
+         # Add other clubs as needed
+     }
+     ```
+
+## Usage
+
+To execute the program, run the provided batch script:
+`Script_run.bat`
+
+Alternatively, execute via command line:
+```bash
+python main.py
 ```
-SHEET_ID = "1O09PM-hYo-H05kWWqMg71GelEpfaGrePQWzdDCKOqyU"
 
-CLUBS = {
-"1": {"title": "EndGame", "URL": "https://chronogenesis.net/club_profile?circle_id=endgame", "THRESHOLD": 1800000},
-...
-}
-```
-
----
-
-## ▶️ Usage
-
-Simply double-click:
-'''"Script_run.bat"'''
-Then choose:
-
-```
-
+### Operation
+Upon running, select an operation mode:
+```text
 === Choose a club to export ===
 
 1. EndGame
-2. AnotherClub
-   ...
-3. Export ALL clubs (default)
-   Enter 0–7 [default=0]:
-
+...
+0. Export ALL clubs (default)
 ```
+- **Enter 0 or Press Enter:** Exports all configured clubs in parallel.
+- **Enter Number:** Exports only the selected club.
 
-- Press Enter / 0: export all clubs in parallel
-- Enter a number: export a single club only
-- Each club will appear as a separate sheet inside your Google Spreadsheet.
+Each club will be generated as a separate worksheet within the specified Google Spreadsheet. Note that existing sheets with the same name will be deleted and recreated.
 
----
+## Build Instructions (Windows)
 
-## 🧾 Export Details
+To bundle the application into a standalone executable:
 
-- Header & totals → **bold, white text on blue background**
-- Alternating light rows for readability
-- Automatic borders around all cells
-- Conditional colors:
-  - 🔴 **Red** → value below threshold
-  - ⚪ **Grey** → blank cell
-- `Member_Name` column auto-sized (fits filter icon)
-- Adds a **Total** column & row automatically
+1. Install PyInstaller:
+   ```bash
+   pip install pyinstaller
+   ```
 
-## 🛠 Build to EXE (Windows)
+2. Build the executable:
+   ```bash
+   python -m PyInstaller --onefile --noconfirm --clean --icon=assets/app_icon.ico --name ENDLESS_tracker_v1.7.0 --paths . src/main.py --add-data "config;config"
+   ```
 
-To bundle everything into one executable:
+3. Locate the output:
+   The compiled file will be available at `dist/main.exe`.
 
-```
+## Notes
 
-python -m PyInstaller --onefile main.py
-
-```
-
-Output file:
-
-```
-
-dist/main.exe
-
-```
-
----
-
-## 🪶 Notes
-
-- If you want to change your output Google Sheet, edit `SHEET_ID` in `globals.py`
-- The script automatically deletes and recreates each sheet before exporting
-- To limit simultaneous exports (for lower-end PCs), you can add a concurrency cap in `main()`
-
-![hehe](assets/evernight.gif)
+- To change the destination Google Sheet, update the `SHEET_ID` variable in `globals.py`.
+- The application automatically handles the deletion and recreation of sheets during export.
+- For systems with limited resources, concurrency settings can be adjusted in the `main()` function in `main.py`.

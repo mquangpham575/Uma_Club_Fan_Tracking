@@ -10,39 +10,50 @@ import zendriver as zd
 import gspread
 from google.oauth2.service_account import Credentials
 
-# ==============================================================================
-# IMPORT GLOBALS
-# ==============================================================================
+# Imports and Globals
 try:
-    from globals import CLUBS, SHEET_ID
-except ImportError:
-    print("Error: 'globals.py' not found.")
+    if getattr(sys, 'frozen', False):
+        # If the application is run as a bundle, the PyInstaller bootloader
+        # extends the sys module by a flag frozen=True and sets the app 
+        # path into variable _MEIPASS'.
+        base_path = sys._MEIPASS
+    else:
+        # If running purely as a script, file path is inside src/
+        # We need the parent directory of src/ to find config/
+        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    
+    # Add base_path to sys.path to ensure we can import config
+    if base_path not in sys.path:
+        sys.path.append(base_path)
+        
+    from config.globals import CLUBS, SHEET_ID
+except ImportError as e:
+    print(f"Error: 'globals.py' not found (Base path: {base_path}). Details: {e}")
     sys.exit(1)
 
-# ==============================================================================
-# GOOGLE SHEETS CONFIG
-# ==============================================================================
+# Google Sheets Configuration
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 try:
-    CREDS = Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
+    # Construct path to credentials.json in config folder
+    creds_path = os.path.join(base_path, 'config', 'credentials.json')
+    CREDS = Credentials.from_service_account_file(creds_path, scopes=SCOPES)
     GC = gspread.authorize(CREDS)
 except Exception as e:
     print(f"Config Error: {e}")
     sys.exit(1)
 
 
-# ==============================================================================
-# HELPER FUNCTIONS
-# ==============================================================================
+# Helper Functions
 def pick_club() -> dict | str:
-    print("\n--- SELECT TARGET ---")
+    print("Select Target Club:")
+    print("-" * 30)
     club_keys = list(CLUBS.keys())
     for key in club_keys:
-        print(f" [{key}] {CLUBS[key]['title']}")
-    print("-" * 25)
-    print(" [0] PROCESS ALL (Default)")
+        print(f"[{key}] {CLUBS[key]['title']}")
+    print("-" * 30)
+    print("[0] Process All (Default)")
     
-    choice = input("\n> Selection: ").strip()
+    choice = input("\nSelection: ").strip()
     
     if choice == "" or choice == "0":
         return "ALL"
@@ -50,9 +61,7 @@ def pick_club() -> dict | str:
         return CLUBS[choice]
     return CLUBS[list(CLUBS.keys())[0]]
 
-# ==============================================================================
-# CORE SCRAPING LOGIC
-# ==============================================================================
+# Core Scraping Logic
 async def fetch_club_data_browser(club_cfg: dict):
     SEARCH_TERM = club_cfg["SEARCH_TERM"]
     CLUB_ID_STARTING = str(club_cfg["CLUB_ID_STARTING"])
@@ -208,7 +217,7 @@ def build_dataframe(data: dict) -> pd.DataFrame:
     return df
 
 
-# === Google Sheets export (Unchanged logic, just silenced) ===
+# Google Sheets Export
 def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int):
     from gspread.utils import rowcol_to_a1
 
@@ -407,9 +416,7 @@ def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, t
 
     ws.spreadsheet.batch_update({"requests": requests})
 
-# ==============================================================================
-# MAIN BATCH PROCESS
-# ==============================================================================
+# Main Execution
 async def process_and_export_club(cfg: dict, pre_fetched_data=None):
     data = await fetch_club_data_browser(cfg) if pre_fetched_data is None else pre_fetched_data
     if isinstance(data, Exception): raise data
@@ -426,12 +433,12 @@ async def main():
     club_keys = list(clubs_to_process.keys())
     batches = [club_keys[i:i + BATCH_SIZE] for i in range(0, len(club_keys), BATCH_SIZE)]
 
-    print(f"\n>>> PROCESSING: {len(club_keys)} CLUBS\n")
+    print(f"\nProcessing {len(club_keys)} clubs...\n")
     
     failed_clubs = []
     
     for batch_idx, batch_keys in enumerate(batches):
-        print(f"[ Batch {batch_idx + 1}/{len(batches)} ] Processing {len(batch_keys)} items...")
+        print(f"Batch {batch_idx + 1}/{len(batches)}: Processing {len(batch_keys)} items...")
         
         # Parallel Fetch
         tasks = {key: asyncio.create_task(fetch_club_data_browser(CLUBS[key])) for key in batch_keys}
@@ -449,11 +456,11 @@ async def main():
                     data = result if (attempt == 0 and not isinstance(result, Exception)) else None
                     
                     if attempt > 0: 
-                        print(f"  ⟳ {title} (Retry {attempt})...", end="\r")
+                        print(f"  Retrying: {title} ({attempt})...", end="\r")
                         await asyncio.sleep(RETRY_DELAY)
                     
                     await process_and_export_club(cfg, pre_fetched_data=data)
-                    print(f"  ✓ {title}")
+                    print(f"  Success: {title}")
                     success = True
                     break
                 except Exception as e:
@@ -461,18 +468,18 @@ async def main():
                     result = None # Force re-fetch next loop
             
             if not success:
-                print(f"  ✗ {title} (Failed)")
+                print(f"  Failed: {title}")
                 failed_clubs.append(title)
         
         print("") # Spacer between batches
 
     print("-" * 30)
     if failed_clubs:
-        print(f"⚠️  Done with errors: {len(failed_clubs)} failed.")
+        print(f"Completed with errors: {len(failed_clubs)} failed.")
     else:
-        print("🎉 All Complete.")
+        print("All operations complete.")
     print("-" * 30)
-    input("Press Enter to exit...")
+    input("Press Enter to close...")
 
 if __name__ == "__main__":
     if sys.platform == 'win32': asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
