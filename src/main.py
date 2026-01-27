@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 import zendriver as zd
 import gspread
+import ctypes
 from google.oauth2.service_account import Credentials
 
 # Imports and Globals
@@ -44,7 +45,26 @@ except Exception as e:
 
 
 # Helper Functions
+def setup_windows_console():
+    """Disables QuickEdit Mode in Windows Console to prevent freezing on click."""
+    if sys.platform == 'win32':
+        try:
+            kernel32 = ctypes.windll.kernel32
+            mode = ctypes.c_ulong()
+            handle = kernel32.GetStdHandle(-10) # STD_INPUT_HANDLE
+            
+            kernel32.GetConsoleMode(handle, ctypes.byref(mode))
+            # Disable ENABLE_QUICK_EDIT_MODE (0x0040) and ENABLE_INSERT_MODE (0x0020)
+            mode.value &= ~0x0060 
+            kernel32.SetConsoleMode(handle, mode)
+        except Exception:
+            pass
+
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
 def pick_club() -> dict | str:
+    clear_screen()
     print("Select Target Club:")
     print("-" * 30)
     club_keys = list(CLUBS.keys())
@@ -424,7 +444,10 @@ async def process_and_export_club(cfg: dict, pre_fetched_data=None):
     return True
 
 async def main():
+    setup_windows_console()
     choice = pick_club()
+    clear_screen()
+    
     BATCH_SIZE = 5
     MAX_RETRIES = 3
     RETRY_DELAY = 5
@@ -456,11 +479,11 @@ async def main():
                     data = result if (attempt == 0 and not isinstance(result, Exception)) else None
                     
                     if attempt > 0: 
-                        print(f"  Retrying: {title} ({attempt})...", end="\r")
+                        print(f"  Retrying: {title} ({attempt})...", end="\r", flush=True)
                         await asyncio.sleep(RETRY_DELAY)
                     
                     await process_and_export_club(cfg, pre_fetched_data=data)
-                    print(f"  Success: {title}")
+                    print(f"  Success: {title}", flush=True)
                     success = True
                     break
                 except Exception as e:
