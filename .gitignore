@@ -43,3 +43,5 @@ main.spec
 *.spec
 credentials.json
 response.json
+
+scraper_test/
