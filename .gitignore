@@ -44,4 +44,4 @@ main.spec
 credentials.json
 response.json
 
-scraper_test/
+scrape_test/
