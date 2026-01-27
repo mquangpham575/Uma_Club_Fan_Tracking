@@ -88,7 +88,7 @@ To bundle the application into a standalone executable:
 
 2. Build the executable:
    ```bash
-   python -m PyInstaller --onefile --noconfirm --clean --icon=assets/app_icon.ico --name ENDLESS_tracker_v1.7.0 --paths . src/main.py --add-data "config;config"
+   python -m PyInstaller --onefile --noconfirm --clean --icon=assets/app_icon.ico --name [name-file] --paths . src/main.py --add-data "config;config"
    ```
 
 3. Locate the output:

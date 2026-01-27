@@ -1,17 +1,8 @@
 import asyncio
-import json
-import os
 import sys
-import re
-import time
-from pathlib import Path
-import pandas as pd
-import zendriver as zd
-import gspread
-import ctypes
-from google.oauth2.service_account import Credentials
+import os
 
-# Imports and Globals
+# Import Globals
 try:
     if getattr(sys, 'frozen', False):
         # If the application is run as a bundle, the PyInstaller bootloader
@@ -32,37 +23,13 @@ except ImportError as e:
     print(f"Error: 'globals.py' not found (Base path: {base_path}). Details: {e}")
     sys.exit(1)
 
-# Google Sheets Configuration
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-try:
-    # Construct path to credentials.json in config folder
-    creds_path = os.path.join(base_path, 'config', 'credentials.json')
-    CREDS = Credentials.from_service_account_file(creds_path, scopes=SCOPES)
-    GC = gspread.authorize(CREDS)
-except Exception as e:
-    print(f"Config Error: {e}")
-    sys.exit(1)
-
+# Import Modules
+from src.utils import setup_windows_console, clear_screen
+from src.scraper import fetch_club_data_browser
+from src.processing import build_dataframe
+from src.sheets import get_gspread_client, export_to_gsheets
 
 # Helper Functions
-def setup_windows_console():
-    """Disables QuickEdit Mode in Windows Console to prevent freezing on click."""
-    if sys.platform == 'win32':
-        try:
-            kernel32 = ctypes.windll.kernel32
-            mode = ctypes.c_ulong()
-            handle = kernel32.GetStdHandle(-10) # STD_INPUT_HANDLE
-            
-            kernel32.GetConsoleMode(handle, ctypes.byref(mode))
-            # Disable ENABLE_QUICK_EDIT_MODE (0x0040) and ENABLE_INSERT_MODE (0x0020)
-            mode.value &= ~0x0060 
-            kernel32.SetConsoleMode(handle, mode)
-        except Exception:
-            pass
-
-def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
 def pick_club() -> dict | str:
     clear_screen()
     print("Select Target Club:")
@@ -81,370 +48,54 @@ def pick_club() -> dict | str:
         return CLUBS[choice]
     return CLUBS[list(CLUBS.keys())[0]]
 
-# Core Scraping Logic
-async def fetch_club_data_browser(club_cfg: dict):
-    SEARCH_TERM = club_cfg["SEARCH_TERM"]
-    CLUB_ID_STARTING = str(club_cfg["CLUB_ID_STARTING"])
-    TITLE = club_cfg["title"]
-
-    REGEX = re.compile(
-        rf".*/api/club_profile\?circle_id={CLUB_ID_STARTING}.*", re.IGNORECASE
-    )
-
-    RESPONSES = [] 
-
-    async def resp_handler(e: zd.cdp.network.ResponseReceived):
-        if REGEX.match(e.response.url):
-            RESPONSES.append(e.request_id)
-
-    # Browser Path Setup
-    brave_path = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
-    if not os.path.exists(brave_path):
-        brave_path = "C:/Program Files (x86)/BraveSoftware/Brave-Browser/Application/brave.exe"
-    
-    # OPTIMIZATION
-    browser_args = [
-        "--mute-audio",
-        "--disable-extensions",
-        "--window-position=-3000,0",             
-        "--disable-background-timer-throttling", 
-        "--disable-backgrounding-occluded-windows",
-        "--disable-renderer-backgrounding",
-        "--no-first-run",
-        "--no-default-browser-check"
-    ]
-
-    # Use headless=False so the site doesn't block us, but args hide it
-    browser = await zd.start(
-        browser="edge", 
-        browser_executable_path=brave_path,
-        headless=False, 
-        arguments=browser_args
-    )
-
-    try:
-        page = await browser.get("https://chronogenesis.net/")
-
-        club_profile = await page.select_all(".home-menu-item")
-        await club_profile[1].click()
-        await asyncio.sleep(1)
-
-        page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
-
-        search_box = await page.select(".club-id-input", timeout=20)
-        await search_box.send_keys(SEARCH_TERM)
-        await search_box.send_keys(zd.SpecialKeys.ENTER)
-        await asyncio.sleep(1)
-
-        try:
-            results = await page.select_all(".club-results-row", timeout=3)
-            for result in results:
-                if SEARCH_TERM in str(result):
-                    await result.click()
-                    break
-        except:
-            pass
-
-        # Silent wait (Removed print)
-        await asyncio.sleep(3)
-
-        largest_response = None
-        largest_size = 0
-
-        if not RESPONSES:
-            raise Exception("No API request matched.")
-
-        for request_id in RESPONSES:
-            try:
-                response_body, _ = await page.send(
-                    zd.cdp.network.get_response_body(request_id=request_id)
-                )
-                
-                if isinstance(response_body, bytes) or isinstance(response_body, bytearray):
-                      content = response_body.decode('utf-8', errors='replace')
-                else:
-                      content = str(response_body)
-
-                size = len(content)
-                if size > largest_size:
-                    largest_size = size
-                    largest_response = content
-            except Exception:
-                continue
-        
-        await browser.stop()
-        
-        if largest_response:
-            return json.loads(largest_response)
-        else:
-            raise Exception("Empty response body.")
-
-    except Exception as e:
-        try:
-            await browser.stop()
-        except:
-            pass
-        raise e
-
-def build_dataframe(data: dict) -> pd.DataFrame:
-    df = pd.json_normalize(data.get("club_friend_history") or [])
-    for c in ("friend_viewer_id", "friend_name", "actual_date", "adjusted_interpolated_fan_gain"):
-        if c not in df.columns:
-            df[c] = pd.NA
-
-    df = (
-        df.assign(day_col=lambda d: "Day " + d["actual_date"].astype(str))
-            .pivot_table(
-                index=["friend_viewer_id", "friend_name"],
-                columns="day_col",
-                values="adjusted_interpolated_fan_gain",
-                aggfunc="first"
-            )
-            .reset_index()
-    )
-    df.columns.name = None
-
-    def _day_num(x: str):
-        if not isinstance(x, str) or not x.startswith("Day "):
-            return None
-        try:
-            return int(x.split(maxsplit=1)[1])
-        except Exception:
-            return None
-
-    day_cols = [c for c in df.columns if isinstance(c, str) and c.startswith("Day ")]
-
-    nums = [n for n in map(_day_num, day_cols) if n is not None]
-    if nums:
-        latest_day = max(nums)
-        latest_col = f"Day {latest_day}"
-        if latest_col in df.columns:
-            df = df[~df[latest_col].isna()].copy()
-
-    day_cols = sorted(day_cols, key=lambda c: (_day_num(c) if _day_num(c) is not None else float("inf")))
-
-    df["AVG/d"] = df[day_cols].mean(axis=1).round(0) if day_cols else 0
-    df = df[["friend_viewer_id", "friend_name", "AVG/d"] + day_cols].rename(
-        columns={"friend_viewer_id": "Member_ID", "friend_name": "Member_Name"}
-    )
-    df["Member_ID"] = df["Member_ID"].fillna("").astype(str)
-    df["Member_Name"] = df["Member_Name"].fillna("").astype(str)
-    for c in df.columns:
-        if c not in ("Member_ID", "Member_Name"):
-            df[c] = pd.to_numeric(df[c], errors="coerce")
-
-    df = df.sort_values(["AVG/d", "Member_Name"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
-    return df
-
-
-# Google Sheets Export
-def export_to_gsheets(df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int):
-    from gspread.utils import rowcol_to_a1
-
-    GAP_COL = " "
-    dcols = [c for c in df.columns if isinstance(c, str) and c.startswith("Day ")]
-    df_to_write = df.copy()
-
-    if dcols:
-        df_to_write["Total"] = df_to_write[dcols].sum(axis=1, min_count=1)
-        gidx = df_to_write.columns.get_loc("Total")
-        df_to_write.insert(gidx, GAP_COL, "")
-    else:
-        gidx = None
-
-    bottom_totals = {}
-    for c in df_to_write.columns:
-        if c == "Member_Name":
-            bottom_totals[c] = "Total"
-        elif c in ("Member_ID", GAP_COL):
-            bottom_totals[c] = ""
-        else:
-            total = pd.to_numeric(df_to_write[c], errors="coerce").sum(min_count=1)
-            if pd.isna(total):
-                bottom_totals[c] = ""
-            elif isinstance(total, float):
-                bottom_totals[c] = total  
-            elif hasattr(total, 'item'):
-                bottom_totals[c] = total.item()
-            else:
-                bottom_totals[c] = total 
-
-    day_avgs = pd.Series("", index=df_to_write.columns, dtype=object)
-    if dcols:
-        means = df_to_write[dcols].mean(axis=0, skipna=True).round(0)
-        for c in dcols:
-            day_avgs[c] = means.get(c, "")
-    day_avgs["Member_Name"] = "Day AVG"
-
-    header = list(map(str, df_to_write.columns))
-    data_rows = df_to_write.where(pd.notna(df_to_write), "").values.tolist()
-    totals_row = [("" if pd.isna(v) else v) for v in (bottom_totals.get(c, "") for c in df_to_write.columns)]
-    day_avg_row = [day_avgs.get(c, "") for c in df_to_write.columns]
-
-    values = [header] + data_rows + [totals_row, day_avg_row]
-
-    ss = GC.open_by_key(spreadsheet_id)
-    try:
-        ws = ss.worksheet(sheet_title)
-        ss.del_worksheet(ws)
-    except gspread.WorksheetNotFound:
-        pass
-        
-    ws = ss.add_worksheet(title=sheet_title, rows=max(len(values) + 50, 120), cols=max(len(header) + 10, 26))
-
-    end_row = len(values)
-    end_col = len(header)
-    end_a1 = rowcol_to_a1(end_row, end_col)
-    ws.update(values, f"A1:{end_a1}")
-
-    sheet_id = ws._properties["sheetId"]
-    last_data_row_1based = 1 + len(data_rows) 
-
-    header_range = {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": end_col}
-    totals_range = {"sheetId": sheet_id, "startRowIndex": end_row - 2, "endRowIndex": end_row, "startColumnIndex": 0, "endColumnIndex": end_col}
-    header_plus_data_range = {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": last_data_row_1based, "startColumnIndex": 0, "endColumnIndex": end_col}
-    band_left = {"sheetId": sheet_id, "startRowIndex": 1, "endRowIndex": last_data_row_1based, "startColumnIndex": 0, "endColumnIndex": (gidx if gidx is not None else end_col)}
-    band_right = {"sheetId": sheet_id, "startRowIndex": 1, "endRowIndex": last_data_row_1based,
-                  "startColumnIndex": (gidx + 1 if gidx is not None else end_col), "endColumnIndex": end_col}
-    full_table_range = {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": end_row, "startColumnIndex": 0, "endColumnIndex": end_col}
-
-    def col_1_based(col_name: str) -> int | None:
-        try:
-            return header.index(col_name) + 1
-        except ValueError:
-            return None
-
-    skip_for_number = {"Member_ID", "Member_Name", GAP_COL}
-    numeric_cols_1 = [i + 1 for i, c in enumerate(header) if c not in skip_for_number]
-
-    day_cols_1 = [col_1_based(c) for c in dcols]
-    day_cols_1 = [c1 for c1 in day_cols_1 if c1 is not None]
-
-    def col_range_rows(start_row_1, end_row_1, col_1):
-        return {"sheetId": sheet_id, "startRowIndex": start_row_1 - 1, "endRowIndex": end_row_1,
-                "startColumnIndex": col_1 - 1, "endColumnIndex": col_1}
-
-    numeric_ranges_all = [col_range_rows(2, end_row, c1) for c1 in numeric_cols_1]
-    numeric_ranges_data_days = [col_range_rows(2, last_data_row_1based, c1) for c1 in day_cols_1]
-
-    avgd_col_1 = col_1_based("AVG/d")
-    numeric_ranges_data = list(numeric_ranges_data_days)
-    if avgd_col_1 is not None:
-        numeric_ranges_data.append(col_range_rows(2, last_data_row_1based, avgd_col_1))
-
-    blue_fill  = {"red": 0.31, "green": 0.51, "blue": 0.74}
-    white_font = {"red": 1, "green": 1, "blue": 1}
-    red_fill   = {"red": 1.00, "green": 0.78, "blue": 0.81}
-    grey_fill  = {"red": 0.75, "green": 0.75, "blue": 0.75}
-    band_light = {"red": 0.86, "green": 0.92, "blue": 0.97}
-    band_very  = {"red": 0.95, "green": 0.97, "blue": 0.98}
-    number_format = {"type": "NUMBER", "pattern": "#,##0"}
-
-    requests = [
-        {"setBasicFilter": {"filter": {"range": header_plus_data_range}}},
-        {
-            "repeatCell": {
-                "range": header_range,
-                "cell": {"userEnteredFormat": {
-                    "backgroundColor": blue_fill,
-                    "textFormat": {"bold": True, "foregroundColor": white_font},
-                    "horizontalAlignment": "CENTER",
-                    "verticalAlignment": "MIDDLE"
-                }},
-                "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)"
-            }
-        },
-        {
-            "repeatCell": {
-                "range": totals_range,
-                "cell": {"userEnteredFormat": {"backgroundColor": blue_fill, "textFormat": {"bold": True, "foregroundColor": white_font}}},
-                "fields": "userEnteredFormat(backgroundColor,textFormat)"
-            }
-        },
-        *([
-            {
-                "repeatCell": {
-                    "range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": end_row, "startColumnIndex": gidx, "endColumnIndex": gidx + 1},
-                    "cell": {"userEnteredFormat": {"backgroundColor": blue_fill}},
-                    "fields": "userEnteredFormat.backgroundColor"
-                }
-            },
-            {
-                "updateDimensionProperties": {
-                    "range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": gidx, "endIndex": gidx + 1},
-                    "properties": {"pixelSize": 40},
-                    "fields": "pixelSize"
-                }
-            }
-        ] if gidx is not None else []),
-        *([
-            {"addBanding": {"bandedRange": {"range": band_left,  "rowProperties": {"firstBandColor": band_light, "secondBandColor": band_very}}}}
-        ] if gidx is None or gidx > 0 else []),
-        *([
-            {"addBanding": {"bandedRange": {"range": band_right, "rowProperties": {"firstBandColor": band_light, "secondBandColor": band_very}}}}
-        ] if gidx is not None and gidx + 1 < end_col else []),
-        *[
-            {"repeatCell": {"range": r, "cell": {"userEnteredFormat": {"numberFormat": number_format}}, "fields": "userEnteredFormat.numberFormat"}}
-            for r in numeric_ranges_all
-        ],
-        *([{
-            "addConditionalFormatRule": {
-                "rule": {"ranges": numeric_ranges_data,
-                         "booleanRule": {"condition": {"type": "NUMBER_LESS",
-                                                       "values": [{"userEnteredValue": str(threshold)}]},
-                                     "format": {"backgroundColor": red_fill}}},
-                "index": 0
-            }
-        }] if numeric_ranges_data else []),
-        *([{
-            "addConditionalFormatRule": {
-                "rule": {"ranges": numeric_ranges_data_days,
-                         "booleanRule": {"condition": {"type": "BLANK"},
-                                     "format": {"backgroundColor": grey_fill}}},
-                "index": 0
-            }
-        }] if numeric_ranges_data_days else []),
-        {
-            "updateBorders": {
-                "range": full_table_range,
-                "top": {"style": "SOLID"},
-                "bottom": {"style": "SOLID"},
-                "left": {"style": "SOLID"},
-                "right": {"style": "SOLID"},
-                "innerHorizontal": {"style": "SOLID"},
-                "innerVertical": {"style": "SOLID"},
-            }
-        },
-    ]
-
-    if "Member_Name" in header:
-        name_col_index = header.index("Member_Name")
-        requests.append({
-            "updateDimensionProperties": {
-                "range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": name_col_index, "endIndex": name_col_index + 1},
-                "properties": {"pixelSize": 140},
-                "fields": "pixelSize"
-            }
-        })
-
-    requests.append({
-        "updateSheetProperties": {
-            "properties": {"sheetId": sheet_id, "gridProperties": {"frozenRowCount": 1}},
-            "fields": "gridProperties.frozenRowCount"
-        }
-    })
-
-    ws.spreadsheet.batch_update({"requests": requests})
-
 # Main Execution
-async def process_and_export_club(cfg: dict, pre_fetched_data=None):
+async def process_and_export_club(cfg: dict, gc_client, pre_fetched_data=None):
+    # Fetch data if not provided
     data = await fetch_club_data_browser(cfg) if pre_fetched_data is None else pre_fetched_data
     if isinstance(data, Exception): raise data
-    export_to_gsheets(build_dataframe(data), SHEET_ID, cfg['title'], cfg["THRESHOLD"])
+    
+    # Process DataFrame (CPU-bound, fast)
+    df = build_dataframe(data)
+    
+    # Export to Google Sheets (Blocking I/O - Run in Thread)
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(
+        None, 
+        export_to_gsheets, 
+        gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"]
+    )
     return True
+
+async def process_club_workflow(key: str, cfg: dict, gc_client, initial_result, retry_delay: int, max_retries: int) -> bool:
+    """Handles the retry loop and processing for a single club."""
+    title = cfg["title"]
+    
+    for attempt in range(max_retries):
+        try:
+            # consistency: use initial_result only on first attempt if it's valid
+            data = initial_result if (attempt == 0 and not isinstance(initial_result, Exception)) else None
+            
+            if attempt > 0:
+                print(f"  Retrying: {title} ({attempt})...", flush=True)
+                await asyncio.sleep(retry_delay)
+            
+            await process_and_export_club(cfg, gc_client, pre_fetched_data=data)
+            print(f"  Success: {title}", flush=True)
+            return True
+            
+        except Exception as e:
+            # On failure, data becomes None for next loop -> triggers re-fetch
+            pass
+            
+    print(f"  Failed: {title}", flush=True)
+    return False
 
 async def main():
     setup_windows_console()
+    
+    # Initialize Google Sheets Client
+    GC = get_gspread_client(base_path)
+    
     choice = pick_club()
     clear_screen()
     
@@ -454,53 +105,51 @@ async def main():
     
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
     club_keys = list(clubs_to_process.keys())
+    # Sort keys nicely if they are numeric strings
+    try:
+        club_keys.sort(key=int)
+    except ValueError:
+        pass
+        
     batches = [club_keys[i:i + BATCH_SIZE] for i in range(0, len(club_keys), BATCH_SIZE)]
 
-    print(f"\nProcessing {len(club_keys)} clubs...\n")
+    print(f"\nProcessing {len(club_keys)} clubs...\n", flush=True)
     
-    failed_clubs = []
+    total_failures = 0
     
     for batch_idx, batch_keys in enumerate(batches):
-        print(f"Batch {batch_idx + 1}/{len(batches)}: Processing {len(batch_keys)} items...")
+        print(f"Batch {batch_idx + 1}/{len(batches)}: Processing {len(batch_keys)} items...", flush=True)
         
-        # Parallel Fetch
-        tasks = {key: asyncio.create_task(fetch_club_data_browser(CLUBS[key])) for key in batch_keys}
-        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
-        results_map = dict(zip(batch_keys, results))
+        # Step 1: Parallel Fetch
+        fetch_tasks = {key: asyncio.create_task(fetch_club_data_browser(CLUBS[key])) for key in batch_keys}
+        fetch_results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
+        results_map = dict(zip(batch_keys, fetch_results))
 
-        # Sequential Export
+        # Step 2: Parallel Export & Processing
+        export_tasks = []
         for key in batch_keys:
-            cfg, result = CLUBS[key], results_map[key]
-            title = cfg["title"]
-            success = False
+            cfg = CLUBS[key]
+            result = results_map[key]
+            export_tasks.append(
+                asyncio.create_task(
+                    process_club_workflow(key, cfg, GC, result, RETRY_DELAY, MAX_RETRIES)
+                )
+            )
             
-            for attempt in range(MAX_RETRIES):
-                try:
-                    data = result if (attempt == 0 and not isinstance(result, Exception)) else None
-                    
-                    if attempt > 0: 
-                        print(f"  Retrying: {title} ({attempt})...", end="\r", flush=True)
-                        await asyncio.sleep(RETRY_DELAY)
-                    
-                    await process_and_export_club(cfg, pre_fetched_data=data)
-                    print(f"  Success: {title}", flush=True)
-                    success = True
-                    break
-                except Exception as e:
-                    # Clean error log, only show detail if needed or critical
-                    result = None # Force re-fetch next loop
-            
-            if not success:
-                print(f"  Failed: {title}")
-                failed_clubs.append(title)
+        # Wait for all exports in this batch to finish
+        batch_outcomes = await asyncio.gather(*export_tasks)
+        
+        # Count failures
+        failures = batch_outcomes.count(False)
+        total_failures += failures
         
         print("") # Spacer between batches
 
     print("-" * 30)
-    if failed_clubs:
-        print(f"Completed with errors: {len(failed_clubs)} failed.")
+    if total_failures > 0:
+        print(f"Completed with errors: {total_failures} failed.", flush=True)
     else:
-        print("All operations complete.")
+        print("All operations complete.", flush=True)
     print("-" * 30)
     input("Press Enter to close...")
 
