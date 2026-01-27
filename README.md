@@ -99,3 +99,5 @@ To bundle the application into a standalone executable:
 - To change the destination Google Sheet, update the `SHEET_ID` variable in `globals.py`.
 - The application automatically handles the deletion and recreation of sheets during export.
 - For systems with limited resources, concurrency settings can be adjusted in the `main()` function in `main.py`.
+
+![evernight](assets/evernight.gif)
