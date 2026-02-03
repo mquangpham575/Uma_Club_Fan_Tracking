@@ -27,7 +27,7 @@ except ImportError as e:
 from src.utils import setup_windows_console, clear_screen
 from src.scraper import fetch_club_data_browser
 from src.processing import build_dataframe
-from src.sheets import get_gspread_client, export_to_gsheets
+from src.sheets import get_gspread_client, export_to_gsheets, reorder_sheets
 
 # Helper Functions
 def pick_club() -> dict | str:
@@ -66,29 +66,26 @@ async def process_and_export_club(cfg: dict, gc_client, pre_fetched_data=None):
     )
     return True
 
-async def process_club_workflow(key: str, cfg: dict, gc_client, initial_result, retry_delay: int, max_retries: int) -> bool:
-    """Handles the retry loop and processing for a single club."""
+async def process_club_workflow(key: str, cfg: dict, gc_client, initial_result, retry_delay: int) -> bool:
+    # Handles the retry loop and processing for a single club
     title = cfg["title"]
     
-    for attempt in range(max_retries):
+    attempt = 0
+    while True:
         try:
             # consistency: use initial_result only on first attempt if it's valid
             data = initial_result if (attempt == 0 and not isinstance(initial_result, Exception)) else None
             
             if attempt > 0:
-                print(f"  Retrying: {title} ({attempt})...", flush=True)
                 await asyncio.sleep(retry_delay)
             
             await process_and_export_club(cfg, gc_client, pre_fetched_data=data)
             print(f"  Success: {title}", flush=True)
             return True
             
-        except Exception as e:
+        except Exception:
             # On failure, data becomes None for next loop -> triggers re-fetch
-            pass
-            
-    print(f"  Failed: {title}", flush=True)
-    return False
+            attempt += 1
 
 async def main():
     setup_windows_console()
@@ -100,16 +97,12 @@ async def main():
     clear_screen()
     
     BATCH_SIZE = 5
-    MAX_RETRIES = 3
+    # MAX_RETRIES = 3 # Removed for infinite retry
     RETRY_DELAY = 5
     
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
     club_keys = list(clubs_to_process.keys())
-    # Sort keys nicely if they are numeric strings
-    try:
-        club_keys.sort(key=int)
-    except ValueError:
-        pass
+
         
     batches = [club_keys[i:i + BATCH_SIZE] for i in range(0, len(club_keys), BATCH_SIZE)]
 
@@ -132,7 +125,7 @@ async def main():
             result = results_map[key]
             export_tasks.append(
                 asyncio.create_task(
-                    process_club_workflow(key, cfg, GC, result, RETRY_DELAY, MAX_RETRIES)
+                    process_club_workflow(key, cfg, GC, result, RETRY_DELAY)
                 )
             )
             
@@ -150,6 +143,11 @@ async def main():
         print(f"Completed with errors: {total_failures} failed.", flush=True)
     else:
         print("All operations complete.", flush=True)
+        
+    print("Reordering sheets...", flush=True)
+    ordered_titles = [CLUBS[k]['title'] for k in CLUBS]
+    reorder_sheets(GC, SHEET_ID, ordered_titles)
+    print("Sheets reordered.", flush=True)
     print("-" * 30)
     input("Press Enter to close...")
 

@@ -17,6 +17,29 @@ def get_gspread_client(base_path: str):
         print(f"Config Error: {e}")
         sys.exit(1)
 
+def reorder_sheets(gc_client, spreadsheet_id: str, ordered_titles: list[str]):
+    # Reorders the worksheets in the spreadsheet to match the order of ordered_titles
+    try:
+        ss = gc_client.open_by_key(spreadsheet_id)
+        worksheets = ss.worksheets()
+        ws_map = {ws.title: ws for ws in worksheets}
+        
+        ordered_ws = []
+        # Add sheets in the order specified
+        for title in ordered_titles:
+            if title in ws_map:
+                ordered_ws.append(ws_map[title])
+        
+        # Add any remaining sheets that were not in the ordered list
+        for ws in worksheets:
+             if ws.title not in ordered_titles:
+                ordered_ws.append(ws)
+
+        if ordered_ws:
+            ss.reorder_worksheets(ordered_ws)
+    except Exception as e:
+        print(f"Warning: Failed to reorder sheets: {e}")
+
 def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int):
     GAP_COL = " "
     dcols = [c for c in df.columns if isinstance(c, str) and c.startswith("Day ")]
