@@ -64,54 +64,60 @@ CLUBS = {
         "THRESHOLD": 1300000,
     },
     "11": {
+        "title": "ENDDOOKIE (A)",
+        "SEARCH_TERM": "ClubDookie",
+        "CLUB_ID_STARTING": "ClubDookie",
+        "THRESHOLD": 1000000,
+    },
+    "12": {
         "title": "ENDFIELD (A)",
         "SEARCH_TERM": "ENDFIELD",
         "CLUB_ID_STARTING": "6532",
         "THRESHOLD": 700000,
     },
-    "12": {
+    "13": {
         "title": "ENDMOON (A)",
         "SEARCH_TERM": "ENDMOON",
         "CLUB_ID_STARTING": "ENDMOON",
         "THRESHOLD": 700000,
     },
-    "13": {
+    "14": {
         "title": "ENDGRAVE (Casual)",
         "SEARCH_TERM": "ENDGRAVE",
         "CLUB_ID_STARTING": "ENDGRAVE",
         "THRESHOLD": 0,
     },
-    "14": {
+    "15": {
         "title": "ENDVILE (Casual)",
         "SEARCH_TERM": "ENDVILE",
         "CLUB_ID_STARTING": "ENDVILE",
         "THRESHOLD": 0,
     },
-    "15": {
+    "16": {
         "title": "UMA Vault (S)",
         "SEARCH_TERM": "UMA Vault",
         "CLUB_ID_STARTING": "1502",
         "THRESHOLD": 2100000,
     },
-    "16": {
+    "17": {
         "title": "Dirt Idols (A+)",
         "SEARCH_TERM": "Dirt Idols",
         "CLUB_ID_STARTING": "Dirt%20Idols",
         "THRESHOLD": 1000000,
     },
-    "17": {
+    "18": {
         "title": "Artisia (A+)",
         "SEARCH_TERM": "Artisia",
         "CLUB_ID_STARTING": "Artisia",
         "THRESHOLD": 1000000,
     },
-    "18": {
+    "19": {
         "title": "MamboFanbo (A)",
         "SEARCH_TERM": "MamboFanbo",
         "CLUB_ID_STARTING": "MamboFanbo",
         "THRESHOLD": 700000,
     },
-    "19": {
+    "20": {
         "title": "yurimusume (Casual)",
         "SEARCH_TERM": "yurimusume",
         "CLUB_ID_STARTING": "4155",
