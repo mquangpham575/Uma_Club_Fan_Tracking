@@ -65,8 +65,8 @@ CLUBS = {
     },
     "11": {
         "title": "ENDDOOKIE (A)",
-        "SEARCH_TERM": "ClubDookie",
-        "CLUB_ID_STARTING": "ClubDookie",
+        "SEARCH_TERM": "ENDDOOKIE",
+        "CLUB_ID_STARTING": "ENDDOOKIE",
         "THRESHOLD": 1000000,
     },
     "12": {
