@@ -62,7 +62,8 @@ async def process_and_export_club(cfg: dict, gc_client, pre_fetched_data=None):
     await loop.run_in_executor(
         None, 
         export_to_gsheets, 
-        gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"]
+        gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+        data.get("club_daily_history")
     )
     return True
 

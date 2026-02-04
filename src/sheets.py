@@ -40,7 +40,7 @@ def reorder_sheets(gc_client, spreadsheet_id: str, ordered_titles: list[str]):
     except Exception as e:
         print(f"Warning: Failed to reorder sheets: {e}")
 
-def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int):
+def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int, club_daily_history: list = None):
     GAP_COL = " "
     dcols = [c for c in df.columns if isinstance(c, str) and c.startswith("Day ")]
     df_to_write = df.copy()
@@ -81,7 +81,31 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
     totals_row = [("" if pd.isna(v) else v) for v in (bottom_totals.get(c, "") for c in df_to_write.columns)]
     day_avg_row = [day_avgs.get(c, "") for c in df_to_write.columns]
 
+    club_row = []
+    if club_daily_history:
+        # map actual_date string -> rank
+        history_map = {}
+        for entry in club_daily_history:
+            d_str = str(entry.get("actual_date", ""))
+            if d_str:
+                history_map[d_str] = entry.get("rank", "")
+        
+        club_row_vals = pd.Series("", index=df_to_write.columns, dtype=object)
+        
+        for col in dcols:
+            # col is like "Day <date>"
+            # extraction logic matching processing.py: "Day " + actual_date
+            if col.startswith("Day "):
+                date_part = col[4:] # strip "Day "
+                if date_part in history_map:
+                     club_row_vals[col] = history_map[date_part]
+        
+        club_row_vals["Member_Name"] = "Club Daily Rank"
+        club_row = [club_row_vals.get(c, "") for c in df_to_write.columns]
+
     values = [header] + data_rows + [totals_row, day_avg_row]
+    if club_row:
+        values.append(club_row)
 
     ss = gc_client.open_by_key(spreadsheet_id)
     try:
@@ -101,7 +125,7 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
     last_data_row_1based = 1 + len(data_rows) 
 
     header_range = {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": end_col}
-    totals_range = {"sheetId": sheet_id, "startRowIndex": end_row - 2, "endRowIndex": end_row, "startColumnIndex": 0, "endColumnIndex": end_col}
+    totals_range = {"sheetId": sheet_id, "startRowIndex": last_data_row_1based, "endRowIndex": end_row, "startColumnIndex": 0, "endColumnIndex": end_col}
     header_plus_data_range = {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": last_data_row_1based, "startColumnIndex": 0, "endColumnIndex": end_col}
     band_left = {"sheetId": sheet_id, "startRowIndex": 1, "endRowIndex": last_data_row_1based, "startColumnIndex": 0, "endColumnIndex": (gidx if gidx is not None else end_col)}
     band_right = {"sheetId": sheet_id, "startRowIndex": 1, "endRowIndex": last_data_row_1based,
