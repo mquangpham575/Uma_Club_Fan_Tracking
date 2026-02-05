@@ -1,0 +1,18 @@
+[project]
+name = "uma-tracking"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "google-auth>=2.48.0",
+    "gspread>=6.2.1",
+    "pandas>=3.0.0",
+    "protobuf>=6.33.5",
+    "zendriver>=0.15.2",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.0",
+]

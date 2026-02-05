@@ -1,6 +1,7 @@
-import sys
-import os
 import ctypes
+import os
+import sys
+
 
 def setup_windows_console():
     """Disables QuickEdit Mode in Windows Console to prevent freezing on click."""

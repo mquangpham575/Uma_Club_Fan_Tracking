@@ -1,6 +1,6 @@
 import asyncio
-import sys
 import os
+import sys
 
 # Import Globals
 try:
@@ -24,10 +24,11 @@ except ImportError as e:
     sys.exit(1)
 
 # Import Modules
-from src.utils import setup_windows_console, clear_screen
-from src.scraper import fetch_club_data_browser
 from src.processing import build_dataframe
-from src.sheets import get_gspread_client, export_to_gsheets, reorder_sheets
+from src.scraper import fetch_club_data_browser
+from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
+from src.utils import clear_screen, setup_windows_console
+
 
 # Helper Functions
 def pick_club() -> dict | str:
@@ -52,7 +53,8 @@ def pick_club() -> dict | str:
 async def process_and_export_club(cfg: dict, gc_client, pre_fetched_data=None):
     # Fetch data if not provided
     data = await fetch_club_data_browser(cfg) if pre_fetched_data is None else pre_fetched_data
-    if isinstance(data, Exception): raise data
+    if isinstance(data, Exception): 
+        raise data
     
     # Process DataFrame (CPU-bound, fast)
     df = build_dataframe(data)
@@ -153,5 +155,6 @@ async def main():
     input("Press Enter to close...")
 
 if __name__ == "__main__":
-    if sys.platform == 'win32': asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    if sys.platform == 'win32': 
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())

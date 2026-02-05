@@ -1,8 +1,10 @@
 import asyncio
-import re
-import os
 import json
+import os
+import re
+
 import zendriver as zd
+
 
 async def fetch_club_data_browser(club_cfg: dict):
     SEARCH_TERM = club_cfg["SEARCH_TERM"]
@@ -63,7 +65,7 @@ async def fetch_club_data_browser(club_cfg: dict):
                 if SEARCH_TERM in str(result):
                     await result.click()
                     break
-        except:
+        except Exception:
             pass
 
         # Silent wait
@@ -103,6 +105,6 @@ async def fetch_club_data_browser(club_cfg: dict):
     except Exception as e:
         try:
             await browser.stop()
-        except:
+        except Exception:
             pass
         raise e

@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def build_dataframe(data: dict) -> pd.DataFrame:
     df = pd.json_normalize(data.get("club_friend_history") or [])
     for c in ("friend_viewer_id", "friend_name", "actual_date", "adjusted_interpolated_fan_gain"):
