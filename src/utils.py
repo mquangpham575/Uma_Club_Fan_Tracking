@@ -3,11 +3,20 @@ import os
 import sys
 
 
-def setup_windows_console():
-    """Disables QuickEdit Mode in Windows Console to prevent freezing on click."""
+def setup_windows_console(version_str=None):
+    """
+    Disables QuickEdit Mode to prevent freezing.
+    Sets Console Title if version is provided.
+    """
     if sys.platform == 'win32':
         try:
             kernel32 = ctypes.windll.kernel32
+            
+            # Set Title
+            if version_str:
+                kernel32.SetConsoleTitleW(f"Endless_{version_str}")
+            
+            # Disable QuickEdit
             mode = ctypes.c_ulong()
             handle = kernel32.GetStdHandle(-10) # STD_INPUT_HANDLE
             

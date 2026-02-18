@@ -18,7 +18,7 @@ try:
     if base_path not in sys.path:
         sys.path.append(base_path)
         
-    from config.globals import CLUBS, SHEET_ID
+    from config.globals import CLUBS, SHEET_ID, VERSION
 except ImportError as e:
     print(f"Error: 'globals.py' not found (Base path: {base_path}). Details: {e}")
     sys.exit(1)
@@ -143,8 +143,24 @@ async def process_club_workflow(key: str, cfg: dict, gc_client, initial_result, 
 
 
 async def main():
-    setup_windows_console()
+    setup_windows_console(VERSION)
     
+    # Startup Update Check (Non-blocking)
+    print(f"Starting Endless v{VERSION}...", flush=True)
+    try:
+        print("Checking for updates...", end="", flush=True)
+        update_info = updater.check_for_update()
+        if update_info:
+            tag, url = update_info
+            print(f"\n[!] New version available: {tag}")
+            if input("    Do you want to install it now? (y/n): ").strip().lower().startswith('y'):
+                 updater.update_application(url)
+                 return 
+        else:
+            print(" (Up to date)")
+    except Exception:
+        print(" (Check failed - continuing)")
+
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
     
