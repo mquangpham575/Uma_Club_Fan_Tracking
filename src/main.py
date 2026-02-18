@@ -42,11 +42,14 @@ def pick_club() -> dict | str:
     print("-" * 30)
     print("[0] Process All (Default)")
     print("[U] Check for Updates")
+    print("[E] Exit")
     
     choice = input("\nSelection: ").strip().lower()
     
     if choice == "u":
         return "UPDATE"
+    if choice == "e":
+        return "EXIT"
     
     if choice == "" or choice == "0":
         return "ALL"
@@ -107,6 +110,9 @@ async def main():
         choice = pick_club()
         clear_screen()
         
+        if choice == "EXIT":
+            sys.exit(0)
+
         if choice == "UPDATE":
             try:
                 print("Checking for updates...", flush=True)
