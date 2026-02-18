@@ -1,6 +1,6 @@
 # globals.py
 
-VERSION = "0.9"
+VERSION = "1.1"
 GITHUB_REPO_URL = "https://github.com/mquangpham575/Uma_Club_Fan_Tracking"
 GITHUB_API_URL = "https://api.github.com/repos/mquangpham575/Uma_Club_Fan_Tracking/releases/latest"
 
