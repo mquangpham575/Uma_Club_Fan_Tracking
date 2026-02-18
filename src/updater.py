@@ -84,12 +84,17 @@ def update_application(download_url):
     
     bat_script = f"""
 @echo off
-timeout /t 2 /nobreak > NUL
+timeout /t 1 /nobreak > NUL
 :RETRY
 del "{current_exe}.old" 2>NUL
 move /y "{current_exe}" "{current_exe}.old"
 if exist "{current_exe}" goto RETRY
 move /y "{new_exe_path}" "{current_exe}"
+
+:: Try to delete the old file immediately
+del "{current_exe}.old" 2>NUL
+
+echo Launching new version...
 start "" "{current_exe}"
 del "%~f0"
     """
@@ -106,29 +111,4 @@ del "%~f0"
 
 
 
-def cleanup_old_versions():
-    """
-    Removes any .old executable files left over from previous updates.
-    Retries for a few seconds to allow file locks to release.
-    """
-    if not is_frozen():
-        return
-        
-    current_exe = sys.executable
-    old_exe = current_exe + ".old"
-    
-    # Try to delete for up to 3 seconds
-    for _ in range(10): 
-        if not os.path.exists(old_exe):
-            return
-            
-        try:
-            os.remove(old_exe)
-            print(f"Removed old version: {old_exe}")
-            return
-        except Exception:
-            time.sleep(0.3)
-            
-    # Final attempt or log failure
-    if os.path.exists(old_exe):
-        print(f"Could not remove old version: {old_exe} (File likely locked)")
+
