@@ -44,12 +44,54 @@ def pick_club() -> dict | str:
     print("[U] Check for Updates")
     print("[E] Exit")
     
-    choice = input("\nSelection: ").strip().lower()
-    
-    if choice == "u":
-        return "UPDATE"
-    if choice == "e":
-        return "EXIT"
+    print("\nSelection: ", end="", flush=True)
+
+    # Hotkey implementation for Windows
+    if sys.platform == 'win32':
+        import msvcrt
+        buffer = []
+        while True:
+            # Get a single character
+            char = msvcrt.getwch()
+            
+            # Hotkeys for U and E (case insensitive)
+            if char.lower() == 'u' and not buffer:
+                print(char) # Echo the char
+                return "UPDATE"
+            if char.lower() == 'e' and not buffer:
+                print(char) # Echo the char
+                return "EXIT"
+            
+            # Handle Enter
+            if char == '\r' or char == '\n':
+                print() # New line
+                choice = "".join(buffer).strip()
+                break
+                
+            # Handle Backspace
+            if char == '\b':
+                if buffer:
+                    buffer.pop()
+                    # visual backspace (move back, overwrite with space, move back)
+                    sys.stdout.write('\b \b')
+                    sys.stdout.flush()
+                continue
+                
+            # Handle numeric input only (since club keys are digits or 0)
+            # Actually, club keys are strings "1", "2", etc.
+            # We should allow any printable char really in case keys change, but digits are safer for now
+            # Let's just allow printable chars to fill buffer
+            if char.isprintable():
+                buffer.append(char)
+                print(char, end="", flush=True)
+                
+    else:
+        # Fallback for non-Windows (or if msvcrt fails/not available)
+        choice = input().strip().lower()
+        if choice == "u":
+            return "UPDATE"
+        if choice == "e":
+            return "EXIT"
     
     if choice == "" or choice == "0":
         return "ALL"
