@@ -10,6 +10,7 @@ dependencies = [
     "pandas>=3.0.0",
     "protobuf>=6.33.5",
     "zendriver>=0.15.2",
+    "requests>=2.31.0",
 ]
 
 [dependency-groups]

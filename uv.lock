@@ -504,6 +504,7 @@ dependencies = [
     { name = "gspread" },
     { name = "pandas" },
     { name = "protobuf" },
+    { name = "requests" },
     { name = "zendriver" },
 ]
 
@@ -518,6 +519,7 @@ requires-dist = [
     { name = "gspread", specifier = ">=6.2.1" },
     { name = "pandas", specifier = ">=3.0.0" },
     { name = "protobuf", specifier = ">=6.33.5" },
+    { name = "requests", specifier = ">=2.31.0" },
     { name = "zendriver", specifier = ">=0.15.2" },
 ]
 

@@ -24,6 +24,7 @@ except ImportError as e:
     sys.exit(1)
 
 # Import Modules
+from src import updater
 from src.processing import build_dataframe
 from src.scraper import fetch_club_data_browser
 from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
@@ -40,8 +41,12 @@ def pick_club() -> dict | str:
         print(f"[{key}] {CLUBS[key]['title']}")
     print("-" * 30)
     print("[0] Process All (Default)")
+    print("[U] Check for Updates")
     
-    choice = input("\nSelection: ").strip()
+    choice = input("\nSelection: ").strip().lower()
+    
+    if choice == "u":
+        return "UPDATE"
     
     if choice == "" or choice == "0":
         return "ALL"
@@ -90,14 +95,37 @@ async def process_club_workflow(key: str, cfg: dict, gc_client, initial_result, 
             # On failure, data becomes None for next loop -> triggers re-fetch
             attempt += 1
 
+
+
 async def main():
     setup_windows_console()
     
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
     
-    choice = pick_club()
-    clear_screen()
+    while True:
+        choice = pick_club()
+        clear_screen()
+        
+        if choice == "UPDATE":
+            try:
+                print("Checking for updates...", flush=True)
+                update_info = updater.check_for_update()
+                if update_info:
+                    tag, url = update_info
+                    print(f"\nNew version available: {tag}")
+                    if input("Do you want to update? (y/n): ").strip().lower().startswith('y'):
+                        updater.update_application(url)
+                        return # Should not be reached if update restarts, but good safety
+                else:
+                    print("No updates found.")
+                    input("\nPress Enter to return to menu...")
+            except Exception as e:
+                print(f"Update check failed: {e}")
+                input("\nPress Enter to return to menu...")
+            continue
+            
+        break # Valid club selection made
     
     BATCH_SIZE = 5
     # MAX_RETRIES = 3 # Removed for infinite retry
