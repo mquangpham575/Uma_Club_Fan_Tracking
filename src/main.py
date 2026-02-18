@@ -145,6 +145,9 @@ async def process_club_workflow(key: str, cfg: dict, gc_client, initial_result, 
 async def main():
     setup_windows_console()
     
+    # Cleanup old versions
+    updater.cleanup_old_versions()
+    
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
     

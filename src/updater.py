@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import time
 
 import requests
 from packaging import version
@@ -102,3 +103,32 @@ del "%~f0"
     
     # Exit current app
     sys.exit(0)
+
+
+
+def cleanup_old_versions():
+    """
+    Removes any .old executable files left over from previous updates.
+    Retries for a few seconds to allow file locks to release.
+    """
+    if not is_frozen():
+        return
+        
+    current_exe = sys.executable
+    old_exe = current_exe + ".old"
+    
+    # Try to delete for up to 3 seconds
+    for _ in range(10): 
+        if not os.path.exists(old_exe):
+            return
+            
+        try:
+            os.remove(old_exe)
+            print(f"Removed old version: {old_exe}")
+            return
+        except Exception:
+            time.sleep(0.3)
+            
+    # Final attempt or log failure
+    if os.path.exists(old_exe):
+        print(f"Could not remove old version: {old_exe} (File likely locked)")
