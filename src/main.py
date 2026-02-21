@@ -24,7 +24,6 @@ except ImportError as e:
     sys.exit(1)
 
 # Import Modules
-from src import updater
 from src.processing import build_dataframe
 from src.scraper import fetch_club_data
 from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
@@ -41,7 +40,6 @@ def pick_club() -> dict | str:
         print(f"[{key}] {CLUBS[key]['title']}")
     print("-" * 30)
     print("[0] Process All (Default)")
-    print("[U] Check for Updates")
     print("[E] Exit")
     
     print("\nSelection: ", end="", flush=True)
@@ -54,10 +52,7 @@ def pick_club() -> dict | str:
             # Get a single character
             char = msvcrt.getwch()
             
-            # Hotkeys for U and E (case insensitive)
-            if char.lower() == 'u' and not buffer:
-                print(char) # Echo the char
-                return "UPDATE"
+            # Hotkeys for E (case insensitive)
             if char.lower() == 'e' and not buffer:
                 print(char) # Echo the char
                 return "EXIT"
@@ -88,8 +83,6 @@ def pick_club() -> dict | str:
     else:
         # Fallback for non-Windows (or if msvcrt fails/not available)
         choice = input().strip().lower()
-        if choice == "u":
-            return "UPDATE"
         if choice == "e":
             return "EXIT"
     
@@ -146,22 +139,9 @@ async def main():
     setup_windows_console(VERSION)
     is_cron = "--cron" in sys.argv
     
-    # Startup Update Check (Non-blocking)
+    # Startup
     if not is_cron:
         print(f"Starting Endless v{VERSION}...", flush=True)
-        try:
-            print("Checking for updates...", end="", flush=True)
-            update_info = updater.check_for_update()
-            if update_info:
-                tag, url = update_info
-                print(f"\n[!] New version available: {tag}")
-                if input("    Do you want to install it now? (y/n): ").strip().lower().startswith('y'):
-                     updater.update_application(url)
-                     return 
-            else:
-                print(" (Up to date)")
-        except Exception:
-            print(" (Check failed - continuing)")
 
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
@@ -175,24 +155,6 @@ async def main():
             
             if choice == "EXIT":
                 sys.exit(0)
-    
-            if choice == "UPDATE":
-                try:
-                    print("Checking for updates...", flush=True)
-                    update_info = updater.check_for_update()
-                    if update_info:
-                        tag, url = update_info
-                        print(f"\nNew version available: {tag}")
-                        if input("Do you want to update? (y/n): ").strip().lower().startswith('y'):
-                            updater.update_application(url)
-                            return # Should not be reached if update restarts, but good safety
-                    else:
-                        print("No updates found.")
-                        input("\nPress Enter to return to menu...")
-                except Exception as e:
-                    print(f"Update check failed: {e}")
-                    input("\nPress Enter to return to menu...")
-                continue
                 
             break # Valid club selection made
     
