@@ -9,6 +9,7 @@ This software automates the process of fetching club friend history data from [C
 ## Overview
 
 The application streamlines data tracking for Uma Musume clubs by:
+
 - Retrieving latest club data.
 - Formatting data into a clear, professional Google Sheet.
 - Handling distinct club profiles concurrently or individually.
@@ -28,6 +29,7 @@ For users preferring a pre-compiled solution, please visit the [Releases](https:
 ## Setup
 
 ### Prerequisites
+
 - Python 3.x installed.
 - A Google Cloud Project with the Google Sheets API enabled.
 
@@ -44,6 +46,7 @@ For users preferring a pre-compiled solution, please visit the [Releases](https:
 
 3. **Configuration:**
    - Open `config/globals.py` to configure the `SHEET_ID` and club details:
+
      ```python
      SHEET_ID = "YOUR_SPREADSHEET_ID"
 
@@ -55,16 +58,27 @@ For users preferring a pre-compiled solution, please visit the [Releases](https:
 
 ## Usage
 
+### 1. Local Execution
+
+First, ensure you have the dependencies installed. This project uses [uv](https://docs.astral.sh/uv/) for fast dependency management:
+
+```bash
+uv sync
+```
+
 To execute the program, run the provided batch script:
 `Script_run.bat`
 
-Alternatively, execute via command line:
+Alternatively, execute via command line using uv:
+
 ```bash
-python main.py
+uv run python src/main.py
 ```
 
-### Operation
-Upon running, select an operation mode:
+#### Operation
+
+Upon running locally, select an operation mode:
+
 ```text
 === Choose a club to export ===
 
@@ -72,21 +86,34 @@ Upon running, select an operation mode:
 ...
 0. Export ALL clubs (default)
 ```
+
 - **Enter 0 or Press Enter:** Exports all configured clubs in parallel.
 - **Enter Number:** Exports only the selected club.
 
 Each club will be generated as a separate worksheet within the specified Google Spreadsheet. Note that existing sheets with the same name will be deleted and recreated.
+
+### 2. Automated Daily Run (GitHub Actions)
+
+You can set up this tracker to run automatically every day using GitHub Actions. The workflow is already configured in `.github/workflows/update.yml`.
+
+1. Go to your repository's **Settings** -> **Secrets and variables** -> **Actions**.
+2. Click **New repository secret**.
+3. Name the secret `GCP_CREDENTIALS` and paste the entire content of your `credentials.json` file into the value field.
+4. The GitHub Action will run automatically every day at 00:00 UTC.
+5. You can also trigger it manually at any time from the **Actions** tab by selecting **Daily Uma Tracker Update** and clicking **Run workflow**.
 
 ## Build Instructions (Windows)
 
 To bundle the application into a standalone executable:
 
 1. Install PyInstaller:
+
    ```bash
    pip install pyinstaller
    ```
 
 2. Build the executable:
+
    ```bash
    python -m PyInstaller --onefile --noconfirm --clean --icon=assets/app_icon.ico --name [name-file] --paths . src/main.py --add-data "config;config"
    ```
