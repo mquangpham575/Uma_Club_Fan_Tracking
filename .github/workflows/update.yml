@@ -1,0 +1,31 @@
+name: Daily Uma Tracker Update
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs at 00:00 UTC every day
+  workflow_dispatch: # Allows running it manually from the UI
+
+jobs:
+  run-tracker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create Google Credentials File
+        run: |
+          mkdir -p config
+          echo '${{ secrets.GCP_CREDENTIALS }}' > config/credentials.json
+
+      - name: Run Tracker
+        run: python src/main.py --cron

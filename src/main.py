@@ -144,52 +144,57 @@ async def process_club_workflow(key: str, cfg: dict, gc_client, initial_result, 
 
 async def main():
     setup_windows_console(VERSION)
+    is_cron = "--cron" in sys.argv
     
     # Startup Update Check (Non-blocking)
-    print(f"Starting Endless v{VERSION}...", flush=True)
-    try:
-        print("Checking for updates...", end="", flush=True)
-        update_info = updater.check_for_update()
-        if update_info:
-            tag, url = update_info
-            print(f"\n[!] New version available: {tag}")
-            if input("    Do you want to install it now? (y/n): ").strip().lower().startswith('y'):
-                 updater.update_application(url)
-                 return 
-        else:
-            print(" (Up to date)")
-    except Exception:
-        print(" (Check failed - continuing)")
+    if not is_cron:
+        print(f"Starting Endless v{VERSION}...", flush=True)
+        try:
+            print("Checking for updates...", end="", flush=True)
+            update_info = updater.check_for_update()
+            if update_info:
+                tag, url = update_info
+                print(f"\n[!] New version available: {tag}")
+                if input("    Do you want to install it now? (y/n): ").strip().lower().startswith('y'):
+                     updater.update_application(url)
+                     return 
+            else:
+                print(" (Up to date)")
+        except Exception:
+            print(" (Check failed - continuing)")
 
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
     
-    while True:
-        choice = pick_club()
-        clear_screen()
-        
-        if choice == "EXIT":
-            sys.exit(0)
-
-        if choice == "UPDATE":
-            try:
-                print("Checking for updates...", flush=True)
-                update_info = updater.check_for_update()
-                if update_info:
-                    tag, url = update_info
-                    print(f"\nNew version available: {tag}")
-                    if input("Do you want to update? (y/n): ").strip().lower().startswith('y'):
-                        updater.update_application(url)
-                        return # Should not be reached if update restarts, but good safety
-                else:
-                    print("No updates found.")
-                    input("\nPress Enter to return to menu...")
-            except Exception as e:
-                print(f"Update check failed: {e}")
-                input("\nPress Enter to return to menu...")
-            continue
+    if is_cron:
+        choice = "ALL"
+    else:
+        while True:
+            choice = pick_club()
+            clear_screen()
             
-        break # Valid club selection made
+            if choice == "EXIT":
+                sys.exit(0)
+    
+            if choice == "UPDATE":
+                try:
+                    print("Checking for updates...", flush=True)
+                    update_info = updater.check_for_update()
+                    if update_info:
+                        tag, url = update_info
+                        print(f"\nNew version available: {tag}")
+                        if input("Do you want to update? (y/n): ").strip().lower().startswith('y'):
+                            updater.update_application(url)
+                            return # Should not be reached if update restarts, but good safety
+                    else:
+                        print("No updates found.")
+                        input("\nPress Enter to return to menu...")
+                except Exception as e:
+                    print(f"Update check failed: {e}")
+                    input("\nPress Enter to return to menu...")
+                continue
+                
+            break # Valid club selection made
     
     BATCH_SIZE = 5
     # MAX_RETRIES = 3 # Removed for infinite retry
@@ -244,7 +249,9 @@ async def main():
     reorder_sheets(GC, SHEET_ID, ordered_titles)
     print("Sheets reordered.", flush=True)
     print("-" * 30)
-    input("Press Enter to close...")
+    
+    if not is_cron:
+        input("Press Enter to close...")
 
 if __name__ == "__main__":
     if sys.platform == 'win32': 
