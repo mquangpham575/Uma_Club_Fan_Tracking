@@ -13,14 +13,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.x"
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: uv sync
 
       - name: Create Google Credentials File
         env:
@@ -30,4 +34,4 @@ jobs:
           echo "$GCP_CREDS" > config/credentials.json
 
       - name: Run Tracker
-        run: python src/main.py --cron
+        run: uv run python src/main.py --cron
