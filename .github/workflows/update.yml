@@ -23,9 +23,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Create Google Credentials File
+        env:
+          GCP_CREDS: ${{ secrets.GCP_CREDENTIALS }}
         run: |
           mkdir -p config
-          echo '${{ secrets.GCP_CREDENTIALS }}' > config/credentials.json
+          echo "$GCP_CREDS" > config/credentials.json
 
       - name: Run Tracker
         run: python src/main.py --cron
