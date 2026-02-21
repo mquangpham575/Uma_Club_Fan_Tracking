@@ -1,110 +1,52 @@
 import asyncio
-import json
-import os
-import re
+from datetime import datetime
 
-import zendriver as zd
+import requests
 
 
-async def fetch_club_data_browser(club_cfg: dict):
-    SEARCH_TERM = club_cfg["SEARCH_TERM"]
-    CLUB_ID_STARTING = str(club_cfg["CLUB_ID_STARTING"])
+async def fetch_club_data(club_cfg: dict):
+    # Fetch club member data directly from the uma.moe API dynamically using the current month and year.
+    circle_id = club_cfg.get("club_id", "")
     
-    REGEX = re.compile(
-        rf".*/api/club_profile\?circle_id={CLUB_ID_STARTING}.*", re.IGNORECASE
-    )
-
-    RESPONSES = [] 
-
-    async def resp_handler(e: zd.cdp.network.ResponseReceived):
-        if REGEX.match(e.response.url):
-            RESPONSES.append(e.request_id)
-
-    # Browser Path Setup
-    brave_path = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
-    if not os.path.exists(brave_path):
-        brave_path = "C:/Program Files (x86)/BraveSoftware/Brave-Browser/Application/brave.exe"
+    now = datetime.now()
+    url = f"https://uma.moe/api/v4/circles?circle_id={circle_id}&year={now.year}&month={now.month}"
     
-    # OPTIMIZATION
-    browser_args = [
-        "--mute-audio",
-        "--disable-extensions",
-        "--window-position=-3000,0",             
-        "--disable-background-timer-throttling", 
-        "--disable-backgrounding-occluded-windows",
-        "--disable-renderer-backgrounding",
-        "--no-first-run",
-        "--no-default-browser-check"
-    ]
-
-    # Use headless=False so the site doesn't block us, but args hide it
-    browser = await zd.start(
-        browser="edge", 
-        browser_executable_path=brave_path,
-        headless=False, 
-        arguments=browser_args
-    )
-
+    loop = asyncio.get_event_loop()
     try:
-        page = await browser.get("https://chronogenesis.net/")
-
-        club_profile = await page.select_all(".home-menu-item")
-        await club_profile[1].click()
-        await asyncio.sleep(1)
-
-        page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
-
-        search_box = await page.select(".club-id-input", timeout=20)
-        await search_box.send_keys(SEARCH_TERM)
-        await search_box.send_keys(zd.SpecialKeys.ENTER)
-        await asyncio.sleep(1)
-
-        try:
-            results = await page.select_all(".club-results-row", timeout=3)
-            for result in results:
-                if SEARCH_TERM in str(result):
-                    await result.click()
-                    break
-        except Exception:
-            pass
-
-        # Silent wait
-        await asyncio.sleep(3)
-
-        largest_response = None
-        largest_size = 0
-
-        if not RESPONSES:
-            raise Exception("No API request matched.")
-
-        for request_id in RESPONSES:
-            try:
-                response_body, _ = await page.send(
-                    zd.cdp.network.get_response_body(request_id=request_id)
-                )
-                
-                if isinstance(response_body, bytes) or isinstance(response_body, bytearray):
-                      content = response_body.decode('utf-8', errors='replace')
-                else:
-                      content = str(response_body)
-
-                size = len(content)
-                if size > largest_size:
-                    largest_size = size
-                    largest_response = content
-            except Exception:
-                continue
-        
-        await browser.stop()
-        
-        if largest_response:
-            return json.loads(largest_response)
-        else:
-            raise Exception("Empty response body.")
-
+        # Adjustment: timeout=20 prevents infinite hangs on bad requests
+        response = await loop.run_in_executor(None, lambda: requests.get(url, timeout=20))
+        if response.status_code != 200:
+            raise Exception(f"API Error {response.status_code}")
+            
+        data = response.json()
     except Exception as e:
-        try:
-            await browser.stop()
-        except Exception:
-            pass
-        raise e
+        raise Exception(f"Failed to fetch {url}: {e}")
+        
+    club_friend_history = []
+    
+    members = data.get("members", [])
+    for member in members:
+        friend_viewer_id = str(member.get("viewer_id", ""))
+        friend_name = member.get("trainer_name", "")
+        daily_fans = member.get("daily_fans", [])
+        
+        # We start from Day 2 (index 1) to calculate difference from Day 1 (index 0)
+        for i in range(1, len(daily_fans)):
+            prev = daily_fans[i-1]
+            curr = daily_fans[i]
+            
+            if curr > 0 and prev > 0 and curr >= prev:
+                gain = curr - prev
+                day_num = i + 1
+                
+                club_friend_history.append({
+                    "friend_viewer_id": friend_viewer_id,
+                    "friend_name": friend_name,
+                    "actual_date": str(day_num),
+                    "adjusted_interpolated_fan_gain": gain
+                })
+                
+    return {
+        "club_friend_history": club_friend_history,
+        "club_daily_history": []
+    }

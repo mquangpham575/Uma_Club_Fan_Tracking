@@ -26,7 +26,7 @@ except ImportError as e:
 # Import Modules
 from src import updater
 from src.processing import build_dataframe
-from src.scraper import fetch_club_data_browser
+from src.scraper import fetch_club_data
 from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
 from src.utils import clear_screen, setup_windows_console
 
@@ -102,7 +102,7 @@ def pick_club() -> dict | str:
 # Main Execution
 async def process_and_export_club(cfg: dict, gc_client, pre_fetched_data=None):
     # Fetch data if not provided
-    data = await fetch_club_data_browser(cfg) if pre_fetched_data is None else pre_fetched_data
+    data = await fetch_club_data(cfg) if pre_fetched_data is None else pre_fetched_data
     if isinstance(data, Exception): 
         raise data
     
@@ -209,7 +209,7 @@ async def main():
         print(f"Batch {batch_idx + 1}/{len(batches)}: Processing {len(batch_keys)} items...", flush=True)
         
         # Step 1: Parallel Fetch
-        fetch_tasks = {key: asyncio.create_task(fetch_club_data_browser(CLUBS[key])) for key in batch_keys}
+        fetch_tasks = {key: asyncio.create_task(fetch_club_data(CLUBS[key])) for key in batch_keys}
         fetch_results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
         results_map = dict(zip(batch_keys, fetch_results))
 
