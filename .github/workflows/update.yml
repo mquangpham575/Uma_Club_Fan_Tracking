@@ -1,9 +1,9 @@
 name: Daily Uma Tracker Update
 
 on:
-  schedule:
-    - cron: "0 0 * * *" # Runs at 00:00 UTC every day
-  workflow_dispatch: # Allows running it manually from the UI
+  repository_dispatch:
+    types: [external-cron]
+  workflow_dispatch: # Allows running it manually from the UI and via API
 
 jobs:
   run-tracker:
