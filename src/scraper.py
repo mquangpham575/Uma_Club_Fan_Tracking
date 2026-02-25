@@ -30,14 +30,14 @@ async def fetch_club_data(club_cfg: dict):
         friend_name = member.get("trainer_name", "")
         daily_fans = member.get("daily_fans", [])
         
-        # We start from Day 2 (index 1) to calculate difference from Day 1 (index 0)
+        # Calculate daily gain by comparing current and previous day values
         for i in range(1, len(daily_fans)):
             prev = daily_fans[i-1]
             curr = daily_fans[i]
             
             if curr > 0 and prev > 0 and curr >= prev:
                 gain = curr - prev
-                day_num = i + 1
+                day_num = i
                 
                 club_friend_history.append({
                     "friend_viewer_id": friend_viewer_id,
