@@ -2,7 +2,7 @@
 
 **Disclaimer: This is a fan-made automatic program.**
 
-This software automates the process of fetching club friend history data from [ChronoGenesis](https://chronogenesis.net/) and exporting it into a formatted Google Spreadsheet. The output includes automated styling, borders, totals, averages, and conditional formatting for enhanced readability.
+This software automates the process of fetching club friend history data from [uma.moe](https://uma.moe/) and exporting it into a formatted Google Spreadsheet. The output includes automated styling, borders, totals, averages, and conditional formatting for enhanced readability.
 
 ![preview](assets/preview.png)
 
@@ -47,14 +47,14 @@ For users preferring a pre-compiled solution, please visit the [Releases](https:
 3. **Configuration:**
    - Open `config/globals.py` to configure the `SHEET_ID` and club details:
 
-     ```python
-     SHEET_ID = "YOUR_SPREADSHEET_ID"
+   ```python
+   SHEET_ID = "YOUR_SPREADSHEET_ID"
 
-     CLUBS = {
-         "1": {"title": "EndGame", "URL": "...", "THRESHOLD": 1800000},
-         # Add other clubs as needed
-     }
-     ```
+   CLUBS = {
+       "1": {"title": "EndGame", "URL": "...", "THRESHOLD": 1800000},
+       # Add other clubs as needed
+   }
+   ```
 
 ## Usage
 
@@ -94,12 +94,12 @@ Each club will be generated as a separate worksheet within the specified Google 
 
 ### 2. Automated Daily Run (GitHub Actions)
 
-You can set up this tracker to run automatically every day using GitHub Actions. The workflow is already configured in `.github/workflows/update.yml`.
+You can set up this tracker to run automatically using GitHub Actions. The workflow is already configured in `.github/workflows/update.yml`.
 
 1. Go to your repository's **Settings** -> **Secrets and variables** -> **Actions**.
 2. Click **New repository secret**.
 3. Name the secret `GCP_CREDENTIALS` and paste the entire content of your `credentials.json` file into the value field.
-4. The GitHub Action will run automatically every day at 00:00 UTC.
+4. To run it automatically, set up an external cron service (like [cron-job.org](https://cron-job.org/)) to trigger a `repository_dispatch` event via the GitHub API with `event_type` set to `external-cron`. Your POST request should include a Personal Access Token (PAT).
 5. You can also trigger it manually at any time from the **Actions** tab by selecting **Daily Uma Tracker Update** and clicking **Run workflow**.
 
 ## Build Instructions (Windows)
