@@ -32,96 +32,90 @@ CLUBS = {
         "THRESHOLD": 3000000,
     },
     "5": {
-        "title": "ENDWISE (S)",
-        "SEARCH_TERM": "ENDWISE",
-        "club_id": "678360559",
-        "THRESHOLD": 2100000,
-    },
-    "6": {
         "title": "ENDGAME (S)",
         "SEARCH_TERM": "ENDGAME",
         "club_id": "558806657",
         "THRESHOLD": 2100000,
     },
-    "7": {
+    "6": {
         "title": "ENDURANCE (S)",
         "SEARCH_TERM": "ENDURANCE",
         "club_id": "237354394",
         "THRESHOLD": 2100000,
     },
-    "8": {
+    "7": {
         "title": "ENDURE (S)",
         "SEARCH_TERM": "ENDURE",
         "club_id": "370447850",
         "THRESHOLD": 1800000,
     },
-    "9": {
+    "8": {
         "title": "ENIGMA (A+)",
         "SEARCH_TERM": "ENIGMA",
         "club_id": "166373193",
         "THRESHOLD": 1300000,
     },
-    "10": {
+    "9": {
         "title": "ENDYMION (A+)",
         "SEARCH_TERM": "ENDYMION",
         "club_id": "636004975",
         "THRESHOLD": 1300000,
     },
-    "11": {
+    "10": {
         "title": "ENDDOOKIE (A)",
         "SEARCH_TERM": "ENDDOOKIE",
         "club_id": "532271884",
         "THRESHOLD": 1000000,
     },
-    "12": {
+    "11": {
         "title": "ENDFIELD (A)",
         "SEARCH_TERM": "ENDFIELD",
         "club_id": "653291031",
         "THRESHOLD": 700000,
     },
-    "13": {
+    "12": {
         "title": "ENDMOON (A)",
         "SEARCH_TERM": "ENDMOON",
         "club_id": "327708043",
         "THRESHOLD": 700000,
     },
-    "14": {
+    "13": {
         "title": "ENDGRAVE (Casual)",
         "SEARCH_TERM": "ENDGRAVE",
         "club_id": "647067019",
         "THRESHOLD": 0,
     },
-    "15": {
+    "14": {
         "title": "ENDVILE (Casual)",
         "SEARCH_TERM": "ENDVILE",
         "club_id": "114502546",
         "THRESHOLD": 0,
     },
-    "16": {
+    "15": {
         "title": "UMA Vault (S)",
         "SEARCH_TERM": "UMA Vault",
         "club_id": "150259101",
         "THRESHOLD": 2100000,
     },
-    "17": {
+    "16": {
         "title": "Dirt Idols (A+)",
         "SEARCH_TERM": "Dirt Idols",
         "club_id": "524890130",
         "THRESHOLD": 1000000,
     },
-    "18": {
+    "17": {
         "title": "Artisia (A+)",
         "SEARCH_TERM": "Artisia",
         "club_id": "531543637",
         "THRESHOLD": 1000000,
     },
-    "19": {
+    "18": {
         "title": "MamboFanbo (A)",
         "SEARCH_TERM": "MamboFanbo",
         "club_id": "394737639",
         "THRESHOLD": 700000,
     },
-    "20": {
+    "19": {
         "title": "yurimusume (Casual)",
         "SEARCH_TERM": "yurimusume",
         "club_id": "415579817",
