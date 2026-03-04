@@ -1,6 +1,8 @@
 name: Daily Uma Tracker Update
 
 on:
+  push:
+    branches: ["main"]
   repository_dispatch:
     types: [external-cron]
   workflow_dispatch: # Allows running it manually from the UI and via API
