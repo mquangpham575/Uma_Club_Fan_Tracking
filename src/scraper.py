@@ -31,7 +31,8 @@ async def fetch_club_data(club_cfg: dict):
         daily_fans = member.get("daily_fans", [])
         
         # Calculate daily gain by comparing current and previous day values
-        for i in range(1, len(daily_fans)):
+        # Adjustment: ignore the last element (current active day) so only strictly settled past days are pushed to sheet
+        for i in range(1, len(daily_fans) - 1):
             prev = daily_fans[i-1]
             curr = daily_fans[i]
             
