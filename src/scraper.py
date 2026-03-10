@@ -30,9 +30,17 @@ async def fetch_club_data(club_cfg: dict):
         friend_name = member.get("trainer_name", "")
         daily_fans = member.get("daily_fans", [])
         
+        # The API always returns an array of length 31 (for March), filled with 0s for future days.
+        # To ignore the actively accumulating day (the latest day with data), we must find its index first.
+        last_active_idx = -1
+        for i in range(len(daily_fans) - 1, -1, -1):
+            if daily_fans[i] > 0:
+                last_active_idx = i
+                break
+                
         # Calculate daily gain by comparing current and previous day values
-        # Adjustment: ignore the last element (current active day) so only strictly settled past days are pushed to sheet
-        for i in range(1, len(daily_fans) - 1):
+        # We stop processing strictly BEFORE the last_active_idx
+        for i in range(1, last_active_idx):
             prev = daily_fans[i-1]
             curr = daily_fans[i]
             
