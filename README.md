@@ -92,39 +92,45 @@ Upon running locally, select an operation mode:
 
 Each club will be generated as a separate worksheet within the specified Google Spreadsheet. Note that existing sheets with the same name will be deleted and recreated.
 
-### 2. Automated Daily Run (GitHub Actions)
+### 3. ChronoScraper (Backup Browser Scraper)
 
-You can set up this tracker to run automatically using GitHub Actions. The workflow is already configured in `.github/workflows/update.yml`.
+In cases where the standard API fetch is restricted or fails, use the **ChronoScraper**. This tool uses browser automation to simulate a real user and intercept the required network packets.
 
-1. Go to your repository's **Settings** -> **Secrets and variables** -> **Actions**.
-2. Click **New repository secret**.
-3. Name the secret `GCP_CREDENTIALS` and paste the entire content of your `credentials.json` file into the value field.
-4. To run it automatically, set up an external cron service (like [cron-job.org](https://cron-job.org/)) to trigger a `repository_dispatch` event via the GitHub API with `event_type` set to `external-cron`. Your POST request should include a Personal Access Token (PAT).
-5. You can also trigger it manually at any time from the **Actions** tab by selecting **Daily Uma Tracker Update** and clicking **Run workflow**.
+- **Purpose**: A reliable backup for manual data extraction.
+- **Requirement**: Requires [Microsoft Edge](https://www.microsoft.com/edge) or a Chromium-based browser (configured in `chrono_scrape.py`).
+
+#### Running the Scraper
+Run the pre-compiled [ChronoScraper.exe](dist/ChronoScraper.exe) or use `uv`:
+
+```bash
+# Run interactively
+uv run chrono_scrape/chrono_scrape.py
+
+# Run for a specific club (e.g. ID 1)
+uv run chrono_scrape/chrono_scrape.py 1
+```
 
 ## Build Instructions (Windows)
 
-To bundle the application into a standalone executable:
+To bundle the application into standalone executables:
 
-1. Install PyInstaller:
-
+1. **Main Application:**
    ```bash
-   pip install pyinstaller
+   uv run pyinstaller --onefile --noconfirm --clean --icon=assets/app_icon.ico --name "UmaTracker" --paths . src/main.py --add-data "config;config"
    ```
 
-2. Build the executable:
-
+2. **Chrono Scraper (Backup):**
    ```bash
-   python -m PyInstaller --onefile --noconfirm --clean --icon=assets/app_icon.ico --name [name-file] --paths . src/main.py --add-data "config;config"
+   uv run pyinstaller --onefile --name "ChronoScraper" --icon "assets/app_icon.ico" --add-data "config;config" --paths "." --collect-all pandas --collect-all gspread --collect-all zendriver chrono_scrape/chrono_scrape.py
    ```
 
-3. Locate the output:
-   The compiled file will be available at `dist/main.exe`.
+3. **Locate the output:**
+   The compiled files will be available in the `dist/` directory.
 
 ## Notes
 
-- To change the destination Google Sheet, update the `SHEET_ID` variable in `globals.py`.
+- **Backup Scaper**: The ChronoScraper uses a dedicated [globals_chrono.py](config/globals_chrono.py) for its target Sheet ID and club list.
+- To change the destination Google Sheet for the main app, update the `SHEET_ID` variable in `globals.py`.
 - The application automatically handles the deletion and recreation of sheets during export.
-- For systems with limited resources, concurrency settings can be adjusted in the `main()` function in `main.py`.
 
 ![evernight](assets/evernight.gif)
