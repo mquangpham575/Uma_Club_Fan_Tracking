@@ -97,31 +97,40 @@ Each club will be generated as a separate worksheet within the specified Google 
 In cases where the standard API fetch is restricted or fails, use the **ChronoScraper**. This tool uses browser automation to simulate a real user and intercept the required network packets.
 
 - **Purpose**: A reliable backup for manual data extraction.
-- **Requirement**: Requires [Microsoft Edge](https://www.microsoft.com/edge) or a Chromium-based browser (configured in `chrono_scrape.py`).
+- **Requirement**: Requires [Microsoft Edge](https://www.microsoft.com/edge) or a Chromium-based browser (configured in `chrono/chrono_scrape.py`).
 
 #### Running the Scraper
-Run the pre-compiled [ChronoScraper.exe](dist/ChronoScraper.exe) or use `uv`:
 
-```bash
-# Run interactively
-uv run chrono_scrape/chrono_scrape.py
+The ChronoScraper is designed to be highly portable:
 
-# Run for a specific club (e.g. ID 1)
-uv run chrono_scrape/chrono_scrape.py 1
-```
+1. **Portable EXE**: Run the `ChronoScraper.exe` from the root folder. It looks for a `chrono/` folder next to itself (containing `credentials.json` and any `globals_*.py` files). You can edit these files freely.
+2. **Simplified Configs**: Each `globals_*.py` inside the `chrono/` folder should follow this format:
+   ```python
+   SHEET_ID = "YOUR_SPREADSHEET_ID"
+   CLUBS = {
+       "1": {"title": "FrailFrame", "club_id": "283921372", "THRESHOLD": 1000000},
+       "2": {"title": "ChillFrame", "club_id": "474350360", "THRESHOLD": 1000000},
+   }
+   ```
+3. **Via UV (Devs)**:
+   ```bash
+   uv run chrono/chrono_scrape.py
+   ```
 
 ## Build Instructions (Windows)
 
 To bundle the application into standalone executables:
 
 1. **Main Application:**
+
    ```bash
    uv run pyinstaller --onefile --noconfirm --clean --icon=assets/app_icon.ico --name "UmaTracker" --paths . src/main.py --add-data "config;config"
    ```
 
 2. **Chrono Scraper (Backup):**
+
    ```bash
-   uv run pyinstaller --onefile --name "ChronoScraper" --icon "assets/app_icon.ico" --add-data "config;config" --paths "." --collect-all pandas --collect-all gspread --collect-all zendriver chrono_scrape/chrono_scrape.py
+   uv run pyinstaller --onefile --name "ChronoScraper" --icon "assets/app_icon.ico" --add-data "chrono;chrono" --paths "." --collect-all pandas --collect-all gspread --collect-all zendriver chrono/chrono_scrape.py
    ```
 
 3. **Locate the output:**
@@ -129,7 +138,7 @@ To bundle the application into standalone executables:
 
 ## Notes
 
-- **Backup Scaper**: The ChronoScraper uses a dedicated [globals_chrono.py](config/globals_chrono.py) for its target Sheet ID and club list.
+- **Portable Configs**: The `ChronoScraper.exe` first checks for a `chrono/` folder in the same directory as itself. This allows you to edit configurations (`globals_*.py`) and keys (`credentials.json`) without any technical setup.
 - To change the destination Google Sheet for the main app, update the `SHEET_ID` variable in `globals.py`.
 - The application automatically handles the deletion and recreation of sheets during export.
 

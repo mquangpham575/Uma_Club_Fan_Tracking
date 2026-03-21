@@ -7,11 +7,11 @@ from google.oauth2.service_account import Credentials
 from gspread.utils import rowcol_to_a1
 
 
-def get_gspread_client(base_path: str):
+def get_gspread_client(base_path: str, creds_folder: str = 'config'):
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
     try:
-        # Construct path to credentials.json in config folder
-        creds_path = os.path.join(base_path, 'config', 'credentials.json')
+        # Construct path to credentials.json in specified folder
+        creds_path = os.path.join(base_path, creds_folder, 'credentials.json')
         CREDS = Credentials.from_service_account_file(creds_path, scopes=SCOPES)
         GC = gspread.authorize(CREDS)
         return GC
