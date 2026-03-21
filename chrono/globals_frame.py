@@ -4,7 +4,7 @@ SHEET_ID = "1PMj2jvC-Wk5PLXdr6Oy3UyEJu0Kbfmii1ij7SwbVLd0"
 
 CLUBS = {
     "1": {
-        "title": "FrailFrame1111 March",
+        "title": "FrailFrame March",
         "club_id": "283921372",
         "THRESHOLD": 1000000,
     },

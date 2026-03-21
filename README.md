@@ -103,7 +103,7 @@ In cases where the standard API fetch is restricted or fails, use the **ChronoSc
 
 The ChronoScraper is designed to be highly portable:
 
-1. **Portable EXE**: Run the `ChronoScraper.exe` from the root folder. It looks for a `chrono/` folder next to itself (containing `credentials.json` and any `globals_*.py` files). You can edit these files freely.
+1. **Portable EXE**: Take the `ChronoScraper.exe` from the `dist/` folder and place it directly **inside** your `chrono/` folder (alongside your `credentials.json` and `globals_*.py` files).
 2. **Simplified Configs**: Each `globals_*.py` inside the `chrono/` folder should follow this format:
    ```python
    SHEET_ID = "YOUR_SPREADSHEET_ID"
@@ -138,7 +138,7 @@ To bundle the application into standalone executables:
 
 ## Notes
 
-- **Portable Configs**: The `ChronoScraper.exe` first checks for a `chrono/` folder in the same directory as itself. This allows you to edit configurations (`globals_*.py`) and keys (`credentials.json`) without any technical setup.
+- **Standalone EXE**: The `ChronoScraper.exe` is designed to be placed directly **inside** the `chrono/` folder. It will automatically detect any `globals_*.py` and `credentials.json` files in its immediate directory.
 - To change the destination Google Sheet for the main app, update the `SHEET_ID` variable in `globals.py`.
 - The application automatically handles the deletion and recreation of sheets during export.
 

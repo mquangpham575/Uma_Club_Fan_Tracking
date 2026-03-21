@@ -81,14 +81,16 @@ async def main():
     try:
         # Import Globals and Modules inside try to catch bundling issues
         if getattr(sys, 'frozen', False):
-            # When frozen (EXE), prioritize finding an external 'chrono' folder 
-            # next to the .exe for easy configuration by users.
+            # When frozen (EXE), prioritize finding globals_*.py in the SAME folder as the EXE.
             exe_dir = os.path.dirname(os.path.abspath(sys.executable))
-            external_chrono = os.path.join(exe_dir, 'chrono')
-            
-            if os.path.exists(external_chrono):
+            try:
+                external_globals = [f for f in os.listdir(exe_dir) if f.startswith("globals_") and f.endswith(".py")]
+            except Exception:
+                external_globals = []
+
+            if external_globals:
                 base_path = exe_dir
-                current_dir = external_chrono
+                current_dir = exe_dir
             else:
                 base_path = sys._MEIPASS
                 current_dir = os.path.join(base_path, 'chrono')
@@ -209,7 +211,9 @@ async def main():
                     df = build_dataframe(data)
                     
                     # Export to Sheets (blocking I/O)
-                    GC = get_gspread_client(base_path, 'chrono')
+                    # Resolve credentials location (same folder if standalone EXE, 'chrono' folder if root)
+                    creds_folder = 'chrono' if base_path != current_dir else '.'
+                    GC = get_gspread_client(base_path, creds_folder)
                     loop = asyncio.get_running_loop()
                     await loop.run_in_executor(
                         None, 
