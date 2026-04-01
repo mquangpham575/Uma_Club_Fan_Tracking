@@ -9,7 +9,19 @@ async def fetch_club_data(club_cfg: dict):
     circle_id = club_cfg.get("club_id", "")
     
     now = datetime.now()
-    url = f"https://uma.moe/api/v4/circles?circle_id={circle_id}&year={now.year}&month={now.month}"
+    # If today is the first day of the month, query the previous month (use 31 as day placeholder).
+    if now.day == 1:
+        if now.month == 1:
+            target_year = now.year - 1
+            target_month = 12
+        else:
+            target_year = now.year
+            target_month = now.month - 1
+    else:
+        target_year = now.year
+        target_month = now.month
+
+    url = f"https://uma.moe/api/v4/circles?circle_id={circle_id}&year={target_year}&month={target_month}"
     
     loop = asyncio.get_event_loop()
     try:
