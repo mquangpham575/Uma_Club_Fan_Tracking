@@ -123,7 +123,7 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
     end_a1 = rowcol_to_a1(end_row, end_col)
     ws.update(values, f"A1:{end_a1}")
 
-    sheet_id = ws._properties["sheetId"]
+    sheet_id = int(ws.id)  # Adjustment: cast to int for API
     last_data_row_1based = 1 + len(data_rows) 
 
     header_range = {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": end_col}
