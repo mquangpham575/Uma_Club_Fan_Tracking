@@ -9,8 +9,8 @@ async def fetch_club_data(club_cfg: dict):
     circle_id = club_cfg.get("club_id", "")
     
     now = datetime.now()
-    # If today is the first day of the month, query the previous month (use 31 as day placeholder).
-    if now.day == 1:
+    # If today is the 1st or 2nd day of the month, query the previous month to avoid incomplete data.
+    if now.day <= 2:
         if now.month == 1:
             target_year = now.year - 1
             target_month = 12
@@ -49,9 +49,19 @@ async def fetch_club_data(club_cfg: dict):
             if daily_fans[i] > 0:
                 last_active_idx = i
                 break
-                
+
+        # Edge case: only Day 1 exists (month just started), use raw value as gain since there's no prior day.
+        if last_active_idx == 0 and daily_fans[0] > 0:
+            club_friend_history.append({
+                "friend_viewer_id": friend_viewer_id,
+                "friend_name": friend_name,
+                "actual_date": "1",
+                "adjusted_interpolated_fan_gain": daily_fans[0]
+            })
+            continue
+
         # Calculate daily gain by comparing current and previous day values
-        # We stop processing strictly BEFORE the last_active_idx
+        # We stop processing strictly BEFORE the last_active_idx (still accumulating)
         for i in range(1, last_active_idx):
             prev = daily_fans[i-1]
             curr = daily_fans[i]
