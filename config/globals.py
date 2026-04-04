@@ -43,18 +43,18 @@ CLUBS = {
         "THRESHOLD": 2000000,
     },
     "8": {
+        "title": "ENDCRYPTED (A+)",
+        "club_id": "313985233",
+        "THRESHOLD": 1500000,
+    },
+    "9": {
         "title": "ENIGMA (A+)",
         "club_id": "166373193",
         "THRESHOLD": 1300000,
     },
-    "9": {
+    "10": {
         "title": "ENDYMION (A+)",
         "club_id": "636004975",
-        "THRESHOLD": 1300000,
-    },
-    "10": {
-        "title": "ENDCRYPTED (A+)",
-        "club_id": "313985233",
         "THRESHOLD": 1300000,
     },
     "11": {
