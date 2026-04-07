@@ -41,13 +41,9 @@ async def scrape_club_data(cfg: dict, zd):
                      except Exception:
                         pass
 
-        page = await browser.get("https://chronogenesis.net/")
+        page = await browser.get("https://chronogenesis.net/club_profile")
         await page.send(zd.cdp.network.enable())
         page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
-
-        club_profile_btn = await page.select_all(".home-menu-item", timeout=20)
-        await club_profile_btn[1].click() # "Clubs" link
-        await asyncio.sleep(2)
 
         search_box = await page.select(".club-id-input", timeout=20)
         await search_box.send_keys(search_id)
