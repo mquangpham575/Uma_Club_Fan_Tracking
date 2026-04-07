@@ -20,12 +20,14 @@ async def scrape_club_data(cfg: dict, zd):
     browser = await zd.start(
         browser=browser_type,
         browser_executable_path=executable,
-        headless=True,
+        headless=False,
         sandbox=False,
         browser_args=[
             "--disable-gpu",
             "--disable-dev-shm-usage",
-        ]
+        ],
+        browser_connection_timeout=1.0,
+        browser_connection_max_tries=30,
     )
 
     best_response = None

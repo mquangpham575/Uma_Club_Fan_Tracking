@@ -35,6 +35,9 @@ jobs:
           mkdir -p config
           echo "$GCP_CREDS" > config/credentials.json
 
+      - name: Install virtual display
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
       # Retry the tracker run upon failure to improve robustness
       - name: Run Tracker
         uses: nick-fields/retry@v3
@@ -42,4 +45,4 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 15
-          command: uv run python src/main.py --cron --engine chrono
+          command: xvfb-run --auto-servernum uv run python src/main.py --cron --engine chrono
