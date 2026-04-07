@@ -25,22 +25,22 @@ CLUBS = {
     "4": {
         "title": "ENDGOON (S)",
         "club_id": "125289696",
-        "THRESHOLD": 2000000,
+        "THRESHOLD": 2500000,
     },
     "5": {
         "title": "ENDGAME (S)",
         "club_id": "558806657",
-        "THRESHOLD": 2000000,
+        "THRESHOLD": 2500000,
     },
     "6": {
         "title": "ENDURANCE (S)",
         "club_id": "237354394",
-        "THRESHOLD": 2000000,
+        "THRESHOLD": 2500000,
     },
     "7": {
         "title": "ENDURE (S)",
         "club_id": "370447850",
-        "THRESHOLD": 2000000,
+        "THRESHOLD": 2500000,
     },
     "8": {
         "title": "ENDCRYPTED (A+)",
