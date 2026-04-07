@@ -214,7 +214,7 @@ async def main():
     if engine_choice == "UMOE":
         from src.umoe_scraper import fetch_club_data
 
-    BATCH_SIZE = 1 if engine_choice == "CHRONO" else 5
+    BATCH_SIZE = 3 if engine_choice == "CHRONO" else 5
     RETRY_DELAY = 5
     
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
