@@ -20,7 +20,9 @@ async def scrape_club_data(cfg: dict, zd):
     browser = await zd.start(
         browser=browser_type,
         browser_executable_path=executable,
-        display=False # Headless for CI
+        display=False, # Headless for CI
+        sandbox=False, # Required for GitHub Actions / Root users
+        browser_args=["--disable-gpu", "--disable-dev-shm-usage"]
     )
     
     captured_responses = {} # map request_id -> (url, body)
