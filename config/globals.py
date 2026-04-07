@@ -20,7 +20,7 @@ CLUBS = {
     "3": {
         "title": "ENDCORE (S+)",
         "club_id": "168472480",
-        "THRESHOLD": 3000000,
+        "THRESHOLD": 3500000,
     },
     "4": {
         "title": "ENDGOON (S)",
