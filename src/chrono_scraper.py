@@ -20,15 +20,11 @@ async def scrape_club_data(cfg: dict, zd):
     browser = await zd.start(
         browser=browser_type,
         browser_executable_path=executable,
-        display=False, # Headless for CI
-        sandbox=False, # Official parameter
-        no_sandbox=True, # Error message literal parameter
+        headless=True,
+        sandbox=False,
         browser_args=[
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
             "--disable-gpu",
             "--disable-dev-shm-usage",
-            "--headless=new"
         ]
     )
     
