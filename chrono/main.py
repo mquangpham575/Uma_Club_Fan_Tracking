@@ -3,64 +3,6 @@ import os
 import sys
 import json
 
-async def scrape_club_data(cfg: dict, zd):
-    # Determine the best ID or term to use
-    search_id = cfg.get('club_id')
-
-    browser = await zd.start(
-        browser="edge",
-        browser_executable_path="C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
-    )
-    
-    captured_requests = []
-
-    async def resp_handler(*args, **kwargs):
-        if args and hasattr(args[0], 'response'):
-             url = args[0].response.url
-             if "api.chronogenesis.net/club_profile" in url:
-                 captured_requests.append(args[0].request_id)
-
-    page = await browser.get("https://chronogenesis.net/")
-    await page.send(zd.cdp.network.enable())
-    page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
-
-    club_profile = await page.select_all(".home-menu-item", timeout=20)
-    await club_profile[1].click()
-    await asyncio.sleep(2)
-
-    search_box = await page.select(".club-id-input", timeout=20)
-    await search_box.send_keys(search_id) # Use exact ID for backup accuracy
-    await search_box.send_keys(zd.SpecialKeys.ENTER)
-    await asyncio.sleep(3)
-
-    try:
-        results = await page.select_all(".club-results-row", timeout=10)
-        for result in results:
-            content = result.text_all.lower()
-            if search_id in content: # Match by ID
-                await result.click()
-                break
-    except Exception:
-        pass
-
-    await asyncio.sleep(8) 
-
-    largest_response = None
-    largest_size = 0
-    for req_id in captured_requests:
-        try:
-             response_body, _ = await page.send(
-                zd.cdp.network.get_response_body(request_id=req_id)
-            )
-             if len(response_body) > largest_size:
-                 largest_size = len(response_body)
-                 largest_response = response_body
-        except Exception:
-            pass
-
-    await browser.stop()
-    return largest_response
-
 def get_hotkey() -> str:
     # Captures a single keypress on Windows, or falls back to input()
     if sys.platform == 'win32':
@@ -105,6 +47,7 @@ async def main():
             
         import zendriver as zd
         import importlib.util
+        from chrono_scraper import scrape_club_data
         from src.processing import build_dataframe
         from src.sheets import export_to_gsheets, get_gspread_client
         from src.utils import clear_screen, setup_windows_console
@@ -206,6 +149,14 @@ async def main():
                     if not raw_data:
                         print(f"  FAILED to scrape {cfg['title']}", flush=True)
                         return False
+
+                    # Save raw JSON locally
+                    json_dir = os.path.join(current_dir, "json_data")
+                    os.makedirs(json_dir, exist_ok=True)
+                    json_path = os.path.join(json_dir, f"{cfg['title'].replace('/', '_').replace('\\', '_')}.json")
+                    with open(json_path, "w", encoding="utf-8") as f:
+                        f.write(raw_data)
+                    print(f"  Saved JSON: {os.path.basename(json_path)}", flush=True)
 
                     data = json.loads(raw_data)
                     df = build_dataframe(data)

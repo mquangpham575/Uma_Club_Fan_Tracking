@@ -25,12 +25,34 @@ except ImportError as e:
 
 # Import Modules
 from src.processing import build_dataframe
-from src.scraper import fetch_club_data
 from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
 from src.utils import clear_screen, setup_windows_console
 
 
 # Helper Functions
+def select_engine() -> str:
+    clear_screen()
+    print("Select Extraction Engine:")
+    print("-" * 30)
+    print("[1] UMOE (API - Faster, Default)")
+    print("[2] Chrono (Browser - Reliable Backup)")
+    print("-" * 30)
+    print("\nSelection: ", end="", flush=True)
+    
+    if sys.platform == 'win32':
+        import msvcrt
+        char = msvcrt.getwch()
+        if char == '2':
+            print("Chrono")
+            return "CHRONO"
+    else:
+        choice = input().strip()
+        if choice == "2":
+            return "CHRONO"
+    
+    print("UMOE")
+    return "UMOE"
+
 def pick_club() -> dict | str:
     clear_screen()
     print("Select Target Club:")
@@ -72,10 +94,7 @@ def pick_club() -> dict | str:
                     sys.stdout.flush()
                 continue
                 
-            # Handle numeric input only (since club keys are digits or 0)
-            # Actually, club keys are strings "1", "2", etc.
-            # We should allow any printable char really in case keys change, but digits are safer for now
-            # Let's just allow printable chars to fill buffer
+            # Handle numeric input only
             if char.isprintable():
                 buffer.append(char)
                 print(char, end="", flush=True)
@@ -93,9 +112,22 @@ def pick_club() -> dict | str:
     return CLUBS[list(CLUBS.keys())[0]]
 
 # Main Execution
-async def process_and_export_club(cfg: dict, gc_client, pre_fetched_data=None):
-    # Fetch data if not provided
-    data = await fetch_club_data(cfg) if pre_fetched_data is None else pre_fetched_data
+async def process_and_export_club(cfg: dict, gc_client, engine="UMOE", zd_module=None, pre_fetched_data=None):
+    # Fetch data if not provided (now engine-aware)
+    if pre_fetched_data is not None:
+        data = pre_fetched_data
+    else:
+        if engine == "CHRONO":
+            from src.chrono_scraper import scrape_club_data
+            import json
+            raw_data = await scrape_club_data(cfg, zd_module)
+            if not raw_data:
+                raise Exception("Chrono scrape failed to capture data")
+            data = json.loads(raw_data)
+        else:
+            from src.umoe_scraper import fetch_club_data
+            data = await fetch_club_data(cfg)
+
     if isinstance(data, Exception): 
         raise data
     
@@ -112,7 +144,7 @@ async def process_and_export_club(cfg: dict, gc_client, pre_fetched_data=None):
     )
     return True
 
-async def process_club_workflow(key: str, cfg: dict, gc_client, initial_result, retry_delay: int) -> bool:
+async def process_club_workflow(key: str, cfg: dict, gc_client, engine, zd_module, initial_result, retry_delay: int) -> bool:
     # Handles the retry loop and processing for a single club
     title = cfg["title"]
     
@@ -125,15 +157,15 @@ async def process_club_workflow(key: str, cfg: dict, gc_client, initial_result, 
             if attempt > 0:
                 await asyncio.sleep(retry_delay)
             
-            await process_and_export_club(cfg, gc_client, pre_fetched_data=data)
+            await process_and_export_club(cfg, gc_client, engine=engine, zd_module=zd_module, pre_fetched_data=data)
             print(f"  Success: {title}", flush=True)
             return True
             
-        except Exception:
-            # On failure, data becomes None for next loop -> triggers re-fetch
+        except Exception as e:
+            print(f"  Error on {title} (Attempt {attempt + 1}): {e}", flush=True)
             attempt += 1
-
-
+            if attempt >= 2: # Keep retries reasonable for integrated app
+                return False
 
 async def main():
     setup_windows_console(VERSION)
@@ -146,59 +178,82 @@ async def main():
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
     
+    # Engine Selection
     if is_cron:
+        engine_choice = "UMOE"
+        if "--engine" in sys.argv:
+            idx = sys.argv.index("--engine")
+            if idx + 1 < len(sys.argv):
+                engine_choice = sys.argv[idx + 1].upper()
         choice = "ALL"
     else:
+        # Check CLI args even if not cron
+        if "--engine" in sys.argv:
+            idx = sys.argv.index("--engine")
+            if idx + 1 < len(sys.argv):
+                engine_choice = sys.argv[idx + 1].upper()
+            else:
+                engine_choice = select_engine()
+        else:
+            engine_choice = select_engine()
+
         while True:
             choice = pick_club()
             clear_screen()
-            
             if choice == "EXIT":
                 sys.exit(0)
-                
-            break # Valid club selection made
+            break 
+
+    # Lazy-load dependencies for selected engine
+    zd = None
+    if engine_choice == "CHRONO":
+        import zendriver as zd_module
+        zd = zd_module
     
+    # Re-import UMOE scraper for the parallel fetch step
+    if engine_choice == "UMOE":
+        from src.umoe_scraper import fetch_club_data
+
     BATCH_SIZE = 5
-    # MAX_RETRIES = 3 # Removed for infinite retry
     RETRY_DELAY = 5
     
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
     club_keys = list(clubs_to_process.keys())
-
-        
     batches = [club_keys[i:i + BATCH_SIZE] for i in range(0, len(club_keys), BATCH_SIZE)]
 
-    print(f"\nProcessing {len(club_keys)} clubs...\n", flush=True)
+    print(f"\nProcessing {len(club_keys)} clubs (Engine: {engine_choice})...\n", flush=True)
     
     total_failures = 0
-    
     for batch_idx, batch_keys in enumerate(batches):
         print(f"Batch {batch_idx + 1}/{len(batches)}: Processing {len(batch_keys)} items...", flush=True)
         
         # Step 1: Parallel Fetch
-        fetch_tasks = {key: asyncio.create_task(fetch_club_data(CLUBS[key])) for key in batch_keys}
-        fetch_results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
-        results_map = dict(zip(batch_keys, fetch_results))
+        results_map = {}
+        if engine_choice == "UMOE":
+            fetch_tasks = {key: asyncio.create_task(fetch_club_data(CLUBS[key])) for key in batch_keys}
+            fetch_results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
+            results_map = dict(zip(batch_keys, fetch_results))
+        else:
+            # Chrono is best run one by one in some environments, but let's try parallel if resources allow
+            # However, for integrated app, let's just use raw data mapping later
+            results_map = {key: None for key in batch_keys}
 
         # Step 2: Parallel Export & Processing
         export_tasks = []
         for key in batch_keys:
             cfg = CLUBS[key]
-            result = results_map[key]
+            result = results_map.get(key)
             export_tasks.append(
                 asyncio.create_task(
-                    process_club_workflow(key, cfg, GC, result, RETRY_DELAY)
+                    process_club_workflow(key, cfg, GC, engine_choice, zd, result, RETRY_DELAY)
                 )
             )
             
         # Wait for all exports in this batch to finish
         batch_outcomes = await asyncio.gather(*export_tasks)
-        
-        # Count failures
         failures = batch_outcomes.count(False)
         total_failures += failures
-        
-        print("") # Spacer between batches
+        print("") 
 
     print("-" * 30)
     if total_failures > 0:

@@ -97,7 +97,7 @@ Each club will be generated as a separate worksheet within the specified Google 
 In cases where the standard API fetch is restricted or fails, use the **ChronoScraper**. This tool uses browser automation to simulate a real user and intercept the required network packets.
 
 - **Purpose**: A reliable backup for manual data extraction.
-- **Requirement**: Requires [Microsoft Edge](https://www.microsoft.com/edge) or a Chromium-based browser (configured in `chrono/chrono_scrape.py`).
+- **Requirement**: Requires [Microsoft Edge](https://www.microsoft.com/edge) or a Chromium-based browser (configured in `chrono/chrono_scraper.py`).
 
 #### Running the Scraper
 
@@ -114,7 +114,7 @@ The ChronoScraper is designed to be highly portable:
    ```
 3. **Via UV (Devs)**:
    ```bash
-   uv run chrono/chrono_scrape.py
+    uv run chrono/main.py
    ```
 
 ## Build Instructions (Windows)
@@ -130,7 +130,7 @@ To bundle the application into standalone executables:
 2. **Chrono Scraper (Backup):**
 
    ```bash
-   uv run pyinstaller --onefile --name "ChronoScraper" --icon "assets/app_icon.ico" --add-data "chrono;chrono" --paths "." --collect-all pandas --collect-all gspread --collect-all zendriver chrono/chrono_scrape.py
+    uv run pyinstaller --onefile --name "ChronoScraper" --icon "assets/app_icon.ico" --add-data "chrono;chrono" --paths "." --collect-all pandas --collect-all gspread --collect-all zendriver chrono/main.py
    ```
 
 3. **Locate the output:**

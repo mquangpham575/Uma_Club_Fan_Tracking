@@ -42,4 +42,4 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 15
-          command: uv run python src/main.py --cron
+          command: uv run python src/main.py --cron --engine chrono
