@@ -38,76 +38,71 @@ CLUBS = {
         "THRESHOLD": 2500000,
     },
     "7": {
-        "title": "ENDURE (S)",
-        "club_id": "370447850",
-        "THRESHOLD": 2500000,
-    },
-    "8": {
         "title": "ENDCRYPTED (A+)",
         "club_id": "313985233",
         "THRESHOLD": 1500000,
     },
-    "9": {
+    "8": {
         "title": "ENIGMA (A+)",
         "club_id": "166373193",
         "THRESHOLD": 1300000,
     },
-    "10": {
+    "9": {
         "title": "ENDYMION (A+)",
         "club_id": "636004975",
         "THRESHOLD": 1300000,
     },
-    "11": {
+    "10": {
         "title": "ENDWAVES (A+)",
         "club_id": "815680661",
         "THRESHOLD": 1000000,
     },
-    "12": {
+    "11": {
         "title": "ENDDOOKIE (A+)",
         "club_id": "532271884",
         "THRESHOLD": 1000000,
     },
-    "13": {
+    "12": {
         "title": "ENDFIELD (A)",
         "club_id": "653291031",
         "THRESHOLD": 700000,
     },
-    "14": {
+    "13": {
         "title": "ENDMOON (A)",
         "club_id": "327708043",
         "THRESHOLD": 700000,
     },
-    "15": {
+    "14": {
         "title": "ENDGRAVE (Casual)",
         "club_id": "647067019",
         "THRESHOLD": 0,
     },
-    "16": {
+    "15": {
         "title": "ENDVILE (Casual)",
         "club_id": "114502546",
         "THRESHOLD": 0,
     },
-    "17": {
+    "16": {
         "title": "UMA Vault (S)",
         "club_id": "150259101",
         "THRESHOLD": 2100000,
     },
-    "18": {
+    "17": {
         "title": "Dirt Idols (A+)",
         "club_id": "524890130",
         "THRESHOLD": 1000000,
     },
-    "19": {
+    "18": {
         "title": "Artisia (A+)",
         "club_id": "531543637",
         "THRESHOLD": 1000000,
     },
-    "20": {
+    "19": {
         "title": "MamboFanbo (A)",
         "club_id": "394737639",
         "THRESHOLD": 700000,
     },
-    "21": {
+    "20": {
         "title": "yurimusume (Casual)",
         "club_id": "415579817",
         "THRESHOLD": 0,
