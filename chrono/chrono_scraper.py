@@ -10,6 +10,8 @@ async def scrape_club_data(cfg: dict, zd):
     browser = await zd.start(
         browser="edge",
         browser_executable_path="C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
+        browser_connection_timeout=5.0,
+        browser_connection_max_tries=60,
     )
     
     captured_responses = {} # map request_id -> (url, body)
@@ -29,18 +31,18 @@ async def scrape_club_data(cfg: dict, zd):
     await page.send(zd.cdp.network.enable())
     page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
 
-    club_profile_btn = await page.select_all(".home-menu-item", timeout=20)
+    club_profile_btn = await page.select_all(".home-menu-item", timeout=45)
     await club_profile_btn[1].click() # "Clubs" link
     await asyncio.sleep(2)
 
-    search_box = await page.select(".club-id-input", timeout=20)
+    search_box = await page.select(".club-id-input", timeout=45)
     await search_box.send_keys(search_id)
     await search_box.send_keys(zd.SpecialKeys.ENTER)
     await asyncio.sleep(3)
 
     # Click the result to ensure full club data is loaded
     try:
-        results = await page.select_all(".club-results-row", timeout=10)
+        results = await page.select_all(".club-results-row", timeout=20)
         for result in results:
             content = result.text_all.lower()
             if search_id in content:

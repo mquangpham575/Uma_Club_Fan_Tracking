@@ -26,8 +26,8 @@ async def scrape_club_data(cfg: dict, zd):
             "--disable-gpu",
             "--disable-dev-shm-usage",
         ],
-        browser_connection_timeout=1.0,
-        browser_connection_max_tries=30,
+        browser_connection_timeout=5.0,
+        browser_connection_max_tries=60,
     )
 
     best_response = None
@@ -47,14 +47,14 @@ async def scrape_club_data(cfg: dict, zd):
         await page.send(zd.cdp.network.enable())
         page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
 
-        search_box = await page.select(".club-id-input", timeout=20)
+        search_box = await page.select(".club-id-input", timeout=45)
         await search_box.send_keys(search_id)
         await search_box.send_keys(zd.SpecialKeys.ENTER)
         await asyncio.sleep(3)
 
         # Click the result to ensure full club data is loaded
         try:
-            results = await page.select_all(".club-results-row", timeout=10)
+            results = await page.select_all(".club-results-row", timeout=20)
             for result in results:
                 content = result.text_all.lower()
                 if search_id in content:

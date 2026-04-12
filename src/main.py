@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import random
 
 # Import Globals
 try:
@@ -149,6 +150,10 @@ async def process_club_workflow(key: str, cfg: dict, gc_client, engine, zd_modul
     title = cfg["title"]
     
     attempt = 0
+    # Staggered start to prevent thundering herd when starting browsers in parallel
+    if engine == "CHRONO":
+        await asyncio.sleep(random.uniform(0, 5))
+    
     while True:
         try:
             # consistency: use initial_result only on first attempt if it's valid

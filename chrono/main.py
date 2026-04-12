@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import json
+import random
 
 def get_hotkey() -> str:
     # Captures a single keypress on Windows, or falls back to input()
@@ -143,6 +144,8 @@ async def main():
 
             async def _run_and_export(key):
                 cfg = CLUBS[key]
+                # Staggered start to prevent thundering herd when starting browsers in parallel
+                await asyncio.sleep(random.uniform(0, 5))
                 print(f"\n>>> Processing: {cfg['title']}...", flush=True)
                 try:
                     raw_data = await scrape_club_data(cfg, zd)
