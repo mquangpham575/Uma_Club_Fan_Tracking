@@ -177,13 +177,15 @@ async def process_and_export_club(cfg: dict, gc_client, engine="UMOE", zd_module
         await sync_raw_json_to_db(circle_id, raw_to_sync)
 
     # Export to Google Sheets (Blocking I/O - Run in Thread)
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(
-        None, 
-        export_to_gsheets, 
-        gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-        data.get("club_daily_history")
-    )
+    # Using the global SHEETS_LOCK to prevent concurrent structural modifications (del/add worksheet)
+    async with SHEETS_LOCK:
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(
+            None, 
+            export_to_gsheets, 
+            gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+            data.get("club_daily_history")
+        )
     return True
 
 async def process_club_workflow(key: str, cfg: dict, gc_client, engine, zd_module, initial_result, retry_delay: int) -> bool:
@@ -203,9 +205,7 @@ async def process_club_workflow(key: str, cfg: dict, gc_client, engine, zd_modul
             if attempt > 0:
                 await asyncio.sleep(retry_delay)
             
-            # Wrap the export in a lock to prevent concurrent Google Sheets API conflicts
-            async with SHEETS_LOCK:
-                await process_and_export_club(cfg, gc_client, engine=engine, zd_module=zd_module, pre_fetched_data=data)
+            await process_and_export_club(cfg, gc_client, engine=engine, zd_module=zd_module, pre_fetched_data=data)
             print(f"  Success: {title}", flush=True)
             return True
             
