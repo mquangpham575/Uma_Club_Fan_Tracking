@@ -50,7 +50,7 @@ async def scrape_club_data(cfg: dict, zd):
         try:
             search_box = await page.select(".club-id-input", timeout=45)
         except asyncio.TimeoutError:
-            title = await page.get_title()
+            title = page.title
             url = page.url
             print(f"  [Scraper Error] search_box timeout at {url} (Title: {title})", flush=True)
             raise
