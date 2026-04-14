@@ -62,15 +62,30 @@ async def _ensure_table_exists(conn: asyncpg.Connection):
             )
         """)
         
-        # Migration: Ensure club_id exists (fix for 'column does not exist' error)
+        # Migration: Ensure all required columns exist
         await conn.execute("""
             DO $$ 
             BEGIN
-                IF NOT EXISTS (
-                    SELECT 1 FROM information_schema.columns 
-                    WHERE table_name='raw_scraped_data' AND column_name='club_id'
-                ) THEN
+                -- Fix club_id
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='raw_scraped_data' AND column_name='club_id') THEN
                     ALTER TABLE raw_scraped_data ADD COLUMN club_id UUID REFERENCES clubs(club_id) ON DELETE CASCADE;
+                END IF;
+                
+                -- Fix date
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='raw_scraped_data' AND column_name='date') THEN
+                    ALTER TABLE raw_scraped_data ADD COLUMN date DATE;
+                    UPDATE raw_scraped_data SET date = NOW()::DATE WHERE date IS NULL;
+                    ALTER TABLE raw_scraped_data ALTER COLUMN date SET NOT NULL;
+                END IF;
+
+                -- Fix raw_json
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='raw_scraped_data' AND column_name='raw_json') THEN
+                    ALTER TABLE raw_scraped_data ADD COLUMN raw_json JSONB;
+                END IF;
+
+                -- Ensure unique constraint
+                IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE table_name='raw_scraped_data' AND constraint_type='UNIQUE') THEN
+                    ALTER TABLE raw_scraped_data ADD CONSTRAINT unique_club_date UNIQUE (club_id, date);
                 END IF;
             END $$;
         """)
