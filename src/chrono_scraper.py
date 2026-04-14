@@ -47,7 +47,14 @@ async def scrape_club_data(cfg: dict, zd):
         await page.send(zd.cdp.network.enable())
         page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
 
-        search_box = await page.select(".club-id-input", timeout=45)
+        try:
+            search_box = await page.select(".club-id-input", timeout=45)
+        except asyncio.TimeoutError:
+            title = await page.get_title()
+            url = page.url
+            print(f"  [Scraper Error] search_box timeout at {url} (Title: {title})", flush=True)
+            raise
+
         await search_box.send_keys(search_id)
         await search_box.send_keys(zd.SpecialKeys.ENTER)
         await asyncio.sleep(3)
