@@ -52,8 +52,11 @@ async def scrape_club_data(cfg: dict, zd):
         await page.send(zd.cdp.network.enable())
         page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
 
+        # Give the page extra time to render slow UI components on limited-resource CI
+        await asyncio.sleep(10)
+        
         try:
-            search_box = await page.select(".club-id-input", timeout=45)
+            search_box = await page.select(".club-id-input", timeout=60)
         except asyncio.TimeoutError:
             try:
                 title = await page.evaluate("document.title")

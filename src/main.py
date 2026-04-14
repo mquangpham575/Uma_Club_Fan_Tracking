@@ -279,7 +279,11 @@ async def main():
     if engine_choice == "UMOE":
         from src.umoe_scraper import fetch_club_data
 
-    BATCH_SIZE = 4 if engine_choice == "CHRONO" else 5
+    # Optimization: Use smaller batches on GitHub Actions (2 cores) to prevent CPU exhaustion
+    if os.getenv("GITHUB_ACTIONS"):
+        BATCH_SIZE = 2
+    else:
+        BATCH_SIZE = 4 if engine_choice == "CHRONO" else 5
     RETRY_DELAY = 5
     
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
