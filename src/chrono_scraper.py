@@ -88,19 +88,34 @@ async def scrape_club_data(cfg: dict, zd):
                 is_valid_url = url.startswith(target_url_prefix)
                 has_history = "club_friend_history" in response_body
                 
-                # 3. Preference: Favor responses that definitely have history data
+                # 3. Best effort selection
                 if is_valid_url or has_history:
-                    # If we haven't found anything yet, or if this one is "better" (has history)
-                    if best_response is None or (has_history and "club_friend_history" not in best_response):
-                        # Ensure it's valid JSON before saving
+                    # Preference: 1. Has history, 2. Has profile, 3. Any valid JSON from correct URL
+                    try:
                         import json
-                        try:
-                            parsed = json.loads(response_body)
-                            if "club_friend_history" in parsed or "club_profile" in parsed:
+                        parsed = json.loads(response_body)
+                        
+                        # Rank the response
+                        score = 0
+                        if "club_friend_history" in parsed: score = 10
+                        elif "club_profile" in parsed: score = 5
+                        elif is_valid_url: score = 1
+                        
+                        if score > 0:
+                            current_best_score = 0
+                            if best_response:
+                                try:
+                                    best_parsed = json.loads(best_response)
+                                    if "club_friend_history" in best_parsed: current_best_score = 10
+                                    elif "club_profile" in best_parsed: current_best_score = 5
+                                    else: current_best_score = 1
+                                except: pass
+                            
+                            if score >= current_best_score:
                                 best_response = response_body
-                                print(f"  [Scraper] Valid response captured: {url}", flush=True)
-                        except:
-                            continue 
+                                print(f"  [Scraper] Captured valid data (Score: {score})", flush=True)
+                    except:
+                        continue 
             except Exception:
                 pass
     finally:
