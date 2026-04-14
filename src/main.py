@@ -61,6 +61,8 @@ from src.utils import clear_screen, setup_windows_console
 from src.sync import sync_raw_json_to_db # New database sync logic
 
 
+# Global lock to prevent concurrent Google Sheets structural modifications
+SHEETS_LOCK = asyncio.Lock()
 # Helper Functions
 def select_engine() -> str:
     clear_screen()
@@ -201,7 +203,9 @@ async def process_club_workflow(key: str, cfg: dict, gc_client, engine, zd_modul
             if attempt > 0:
                 await asyncio.sleep(retry_delay)
             
-            await process_and_export_club(cfg, gc_client, engine=engine, zd_module=zd_module, pre_fetched_data=data)
+            # Wrap the export in a lock to prevent concurrent Google Sheets API conflicts
+            async with SHEETS_LOCK:
+                await process_and_export_club(cfg, gc_client, engine=engine, zd_module=zd_module, pre_fetched_data=data)
             print(f"  Success: {title}", flush=True)
             return True
             
