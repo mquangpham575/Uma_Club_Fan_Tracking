@@ -47,6 +47,36 @@ async def get_club_uuid(conn: asyncpg.Connection, circle_id: str) -> Optional[st
         logger.error(f"Error looking up club UUID: {e}")
         return None
 
+async def _ensure_table_exists(conn: asyncpg.Connection):
+    """Ensure the raw_scraped_data table exists with the correct columns"""
+    try:
+        # Create table if not exists with correct schema
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS raw_scraped_data (
+                id SERIAL PRIMARY KEY,
+                club_id UUID NOT NULL REFERENCES clubs(club_id) ON DELETE CASCADE,
+                date DATE NOT NULL,
+                raw_json JSONB NOT NULL,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE(club_id, date)
+            )
+        """)
+        
+        # Migration: Ensure club_id exists (fix for 'column does not exist' error)
+        await conn.execute("""
+            DO $$ 
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name='raw_scraped_data' AND column_name='club_id'
+                ) THEN
+                    ALTER TABLE raw_scraped_data ADD COLUMN club_id UUID REFERENCES clubs(club_id) ON DELETE CASCADE;
+                END IF;
+            END $$;
+        """)
+    except Exception as e:
+        logger.error(f"Failed to ensure raw_scraped_data table schema: {e}")
+
 async def sync_raw_json_to_db(circle_id: str, raw_data: any):
     """
     Push raw scraped JSON to the UmaCore database so the bot can 'claim' it.
@@ -61,6 +91,9 @@ async def sync_raw_json_to_db(circle_id: str, raw_data: any):
         return
 
     try:
+        # 0. Ensure table and columns exist (Self-healing)
+        await _ensure_table_exists(conn)
+
         # 1. Get the UUID
         club_uuid = await get_club_uuid(conn, circle_id)
         if not club_uuid:
