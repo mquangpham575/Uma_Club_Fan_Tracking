@@ -1,0 +1,3752 @@
+{
+  "club": [
+    {
+      "circle_id": 971029133,
+      "leader_viewer_id": 849536860698,
+      "name": "ENDER",
+      "comment": "ENDLESS FAMILY －－＞｜discord．gg／endlessuma｜＜－－ Top10｜＞5m daily",
+      "member_num": 30,
+      "join_style": 3,
+      "policy": 11,
+      "make_time": "2025-07-31T05:48:09",
+      "circle_user_array": [
+        437911971412,
+        735139606156,
+        734055263060,
+        242653917905,
+        485179579661,
+        845795848654,
+        227372663005,
+        311086343725,
+        475450015524,
+        530408841705,
+        616526388090,
+        554040362962,
+        823187760558,
+        820239550206,
+        336548211432,
+        849520276205,
+        703948614084,
+        697949751033,
+        396133065145,
+        824849152463,
+        849002666046,
+        551672380897,
+        446669895601,
+        279119909897,
+        719865137694,
+        696318998000,
+        305909733067,
+        849536860698,
+        180635158091,
+        498002326870
+      ],
+      "daily_average": 155993090,
+      "monthly_average": 3365165563,
+      "fan_count": 2126918824,
+      "rank": 12,
+      "updated_at": "2026-04-13T19:02:11.198081",
+      "is_active": true,
+      "rank_diff": -2,
+      "names": [
+        "ENDER"
+      ]
+    }
+  ],
+  "club_daily_history": [
+    {
+      "rank": 12,
+      "rank_gain": 0,
+      "interpolated_fan_count": 2126588727,
+      "interpolated_fan_gain": 224540439,
+      "actual_date": 12
+    },
+    {
+      "rank": 12,
+      "rank_gain": 0,
+      "interpolated_fan_count": 1902048288,
+      "interpolated_fan_gain": 227270299,
+      "actual_date": 11
+    },
+    {
+      "rank": 12,
+      "rank_gain": 0,
+      "interpolated_fan_count": 1674777989,
+      "interpolated_fan_gain": 232876066,
+      "actual_date": 10
+    },
+    {
+      "rank": 12,
+      "rank_gain": 0,
+      "interpolated_fan_count": 1441901923,
+      "interpolated_fan_gain": 190489991,
+      "actual_date": 9
+    },
+    {
+      "rank": 12,
+      "rank_gain": 0,
+      "interpolated_fan_count": 1251411932,
+      "interpolated_fan_gain": 181855993,
+      "actual_date": 8
+    },
+    {
+      "rank": 12,
+      "rank_gain": -1,
+      "interpolated_fan_count": 1069555939,
+      "interpolated_fan_gain": 129904041,
+      "actual_date": 7
+    },
+    {
+      "rank": 11,
+      "rank_gain": 0,
+      "interpolated_fan_count": 939651898,
+      "interpolated_fan_gain": 165433109,
+      "actual_date": 6
+    },
+    {
+      "rank": 11,
+      "rank_gain": 0,
+      "interpolated_fan_count": 774218789,
+      "interpolated_fan_gain": 141957725,
+      "actual_date": 5
+    },
+    {
+      "rank": 11,
+      "rank_gain": 1,
+      "interpolated_fan_count": 632261064,
+      "interpolated_fan_gain": 168078949,
+      "actual_date": 4
+    },
+    {
+      "rank": 12,
+      "rank_gain": 0,
+      "interpolated_fan_count": 464182115,
+      "interpolated_fan_gain": 180561758,
+      "actual_date": 3
+    },
+    {
+      "rank": 12,
+      "rank_gain": -2,
+      "interpolated_fan_count": 283620357,
+      "interpolated_fan_gain": 150126281,
+      "actual_date": 2
+    },
+    {
+      "rank": 10,
+      "rank_gain": 0,
+      "interpolated_fan_count": 133494076,
+      "interpolated_fan_gain": 133494076,
+      "actual_date": 1
+    }
+  ],
+  "club_monthly_history": [
+    {
+      "rank": 10,
+      "rank_gain": 0,
+      "fan_count": 4945049462,
+      "monthly_fan_gain": 1022803950,
+      "year_month": 202603
+    },
+    {
+      "rank": 10,
+      "rank_gain": 0,
+      "fan_count": 3922245512,
+      "monthly_fan_gain": 12535247,
+      "year_month": 202602
+    },
+    {
+      "rank": 10,
+      "rank_gain": 5,
+      "fan_count": 3909710265,
+      "monthly_fan_gain": -660243464,
+      "year_month": 202601
+    },
+    {
+      "rank": 5,
+      "rank_gain": -8,
+      "fan_count": 4569953729,
+      "monthly_fan_gain": 1573523690,
+      "year_month": 202512
+    },
+    {
+      "rank": 13,
+      "rank_gain": -4,
+      "fan_count": 2996430039,
+      "monthly_fan_gain": 203628075,
+      "year_month": 202511
+    },
+    {
+      "rank": 17,
+      "rank_gain": -1,
+      "fan_count": 2792801964,
+      "monthly_fan_gain": 536129223,
+      "year_month": 202510
+    },
+    {
+      "rank": 18,
+      "rank_gain": -101,
+      "fan_count": 2256672741,
+      "monthly_fan_gain": 728211946,
+      "year_month": 202509
+    },
+    {
+      "rank": 119,
+      "rank_gain": 0,
+      "fan_count": 1528460795,
+      "monthly_fan_gain": 0,
+      "year_month": 202508
+    },
+    {
+      "rank": 0,
+      "rank_gain": 0,
+      "fan_count": 0,
+      "monthly_fan_gain": 0,
+      "year_month": 202507
+    },
+    {
+      "rank": 0,
+      "rank_gain": 0,
+      "fan_count": 0,
+      "monthly_fan_gain": 0,
+      "year_month": 202506
+    }
+  ],
+  "club_friend_profile": [
+    {
+      "friend_viewer_id": 491873872876,
+      "name": "KingKobro",
+      "leader_chara_id": 1026,
+      "membership": 1,
+      "daily_average": 2661494,
+      "monthly_average": 0,
+      "join_time": "2026-01-03T20:59:44",
+      "fan_count": 388144346,
+      "honor_id": 104502,
+      "last_login_time": "2026-04-03T23:05:32",
+      "leader_chara_dress_id": 102613,
+      "support_card_id": 30078,
+      "team_evaluation_point": 239899,
+      "updated_at": "2026-04-04T19:01:49.441418",
+      "names": [
+        "KingKobro"
+      ]
+    },
+    {
+      "friend_viewer_id": 674020390861,
+      "name": "Galateea",
+      "leader_chara_id": 1013,
+      "membership": 1,
+      "daily_average": 1446269,
+      "monthly_average": 1196246,
+      "join_time": "2025-08-01T23:04:42",
+      "fan_count": 29829170,
+      "honor_id": 100150,
+      "last_login_time": "2025-08-10T18:26:12",
+      "leader_chara_dress_id": 101302,
+      "support_card_id": 30028,
+      "team_evaluation_point": 156106,
+      "updated_at": "2025-08-11T20:00:31.424661",
+      "names": [
+        "Galateea"
+      ]
+    },
+    {
+      "friend_viewer_id": 574060196432,
+      "name": "enzio",
+      "leader_chara_id": 1003,
+      "membership": 1,
+      "daily_average": 2103933,
+      "monthly_average": 2163171,
+      "join_time": "2025-07-31T16:34:59",
+      "fan_count": 89012212,
+      "honor_id": 405101,
+      "last_login_time": "2025-09-01T12:48:17",
+      "leader_chara_dress_id": 100302,
+      "support_card_id": 20013,
+      "team_evaluation_point": 145538,
+      "updated_at": "2025-09-01T22:25:11.489984",
+      "names": [
+        "enzio"
+      ]
+    },
+    {
+      "friend_viewer_id": 723545096358,
+      "name": "Akroma",
+      "leader_chara_id": 1038,
+      "membership": 1,
+      "daily_average": 444845,
+      "monthly_average": 0,
+      "join_time": "2025-08-02T10:05:26",
+      "fan_count": 44648153,
+      "honor_id": 100120,
+      "last_login_time": "2025-08-30T14:26:39",
+      "leader_chara_dress_id": 103801,
+      "support_card_id": 30029,
+      "team_evaluation_point": 160257,
+      "updated_at": "2025-09-01T22:25:11.489984",
+      "names": [
+        "Akroma"
+      ]
+    },
+    {
+      "friend_viewer_id": 129752783750,
+      "name": "Elliomon",
+      "leader_chara_id": 1050,
+      "membership": 1,
+      "daily_average": 1432481,
+      "monthly_average": 516482,
+      "join_time": "2025-09-02T17:21:23",
+      "fan_count": 92484294,
+      "honor_id": 406101,
+      "last_login_time": "2025-10-01T02:20:37",
+      "leader_chara_dress_id": 105001,
+      "support_card_id": 30016,
+      "team_evaluation_point": 172268,
+      "updated_at": "2025-10-01T19:06:30.079584",
+      "names": [
+        "Elliomon"
+      ]
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "name": "Umagon",
+      "leader_chara_id": 1071,
+      "membership": 1,
+      "daily_average": 5080276,
+      "monthly_average": 0,
+      "join_time": "2026-03-06T03:35:10",
+      "fan_count": 869816140,
+      "honor_id": 100184,
+      "last_login_time": "2026-04-13T05:30:15",
+      "leader_chara_dress_id": 107101,
+      "support_card_id": 30020,
+      "team_evaluation_point": 255087,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Umagon"
+      ]
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "name": "Nagi－kun",
+      "leader_chara_id": 1045,
+      "membership": 1,
+      "daily_average": 3632132,
+      "monthly_average": 0,
+      "join_time": "2026-04-03T06:50:19",
+      "fan_count": 287878802,
+      "honor_id": 104001,
+      "last_login_time": "2026-04-13T09:38:29",
+      "leader_chara_dress_id": 104540,
+      "support_card_id": 30021,
+      "team_evaluation_point": 276306,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Nagi－kun"
+      ]
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "name": "Daruo324",
+      "leader_chara_id": 1068,
+      "membership": 1,
+      "daily_average": 8413838,
+      "monthly_average": 0,
+      "join_time": "2025-12-01T20:44:10",
+      "fan_count": 1234667407,
+      "honor_id": 106404,
+      "last_login_time": "2026-04-13T07:44:19",
+      "leader_chara_dress_id": 106801,
+      "support_card_id": 30010,
+      "team_evaluation_point": 273395,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Daruo324"
+      ]
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "name": "Irrelevant",
+      "leader_chara_id": 1052,
+      "membership": 1,
+      "daily_average": 3709477,
+      "monthly_average": 0,
+      "join_time": "2026-03-08T05:47:08",
+      "fan_count": 160157447,
+      "honor_id": 502205,
+      "last_login_time": "2026-04-13T02:12:47",
+      "leader_chara_dress_id": 105201,
+      "support_card_id": 30007,
+      "team_evaluation_point": 213685,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Irrelevant"
+      ]
+    },
+    {
+      "friend_viewer_id": 336548211432,
+      "name": "watercicle",
+      "leader_chara_id": 1032,
+      "membership": 1,
+      "daily_average": 3290880,
+      "monthly_average": 0,
+      "join_time": "2026-04-08T00:58:25",
+      "fan_count": 379781185,
+      "honor_id": 409101,
+      "last_login_time": "2026-04-13T03:36:25",
+      "leader_chara_dress_id": 102,
+      "support_card_id": 30012,
+      "team_evaluation_point": 274620,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "watercicle"
+      ]
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "name": "Smile",
+      "leader_chara_id": 1026,
+      "membership": 1,
+      "daily_average": 7517358,
+      "monthly_average": 0,
+      "join_time": "2025-12-01T20:35:00",
+      "fan_count": 1179057017,
+      "honor_id": 104504,
+      "last_login_time": "2026-04-13T05:27:41",
+      "leader_chara_dress_id": 102613,
+      "support_card_id": 30054,
+      "team_evaluation_point": 265483,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Smile"
+      ]
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "name": "DarkHeavy",
+      "leader_chara_id": 1026,
+      "membership": 1,
+      "daily_average": 4701382,
+      "monthly_average": 0,
+      "join_time": "2026-02-02T22:42:02",
+      "fan_count": 427295065,
+      "honor_id": 101804,
+      "last_login_time": "2026-04-13T06:14:45",
+      "leader_chara_dress_id": 102613,
+      "support_card_id": 30010,
+      "team_evaluation_point": 210551,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "DarkHeavy"
+      ]
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "name": "Mipha",
+      "leader_chara_id": 1017,
+      "membership": 2,
+      "daily_average": 5950146,
+      "monthly_average": 0,
+      "join_time": "2026-01-01T20:17:11",
+      "fan_count": 1399251221,
+      "honor_id": 101805,
+      "last_login_time": "2026-04-13T07:03:58",
+      "leader_chara_dress_id": 101701,
+      "support_card_id": 30028,
+      "team_evaluation_point": 272159,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Mipha"
+      ]
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "name": "＾＿＾",
+      "leader_chara_id": 1038,
+      "membership": 1,
+      "daily_average": 4071443,
+      "monthly_average": 0,
+      "join_time": "2025-12-03T22:49:38",
+      "fan_count": 743337490,
+      "honor_id": 100191,
+      "last_login_time": "2026-04-13T08:08:21",
+      "leader_chara_dress_id": 103801,
+      "support_card_id": 30010,
+      "team_evaluation_point": 262379,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "＾＿＾"
+      ]
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "name": "Soft",
+      "leader_chara_id": 1006,
+      "membership": 1,
+      "daily_average": 10029792,
+      "monthly_average": 0,
+      "join_time": "2025-12-01T21:54:50",
+      "fan_count": 1358976912,
+      "honor_id": 403101,
+      "last_login_time": "2026-04-13T08:54:21",
+      "leader_chara_dress_id": 100646,
+      "support_card_id": 30078,
+      "team_evaluation_point": 256790,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Soft"
+      ]
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "name": "Ririryu",
+      "leader_chara_id": 1006,
+      "membership": 1,
+      "daily_average": 4719854,
+      "monthly_average": 0,
+      "join_time": "2026-04-01T17:22:22",
+      "fan_count": 599586834,
+      "honor_id": 407101,
+      "last_login_time": "2026-04-13T07:04:38",
+      "leader_chara_dress_id": 100646,
+      "support_card_id": 30016,
+      "team_evaluation_point": 258997,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Ririryu"
+      ]
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "name": "Azuka",
+      "leader_chara_id": 1056,
+      "membership": 1,
+      "daily_average": 6527319,
+      "monthly_average": 0,
+      "join_time": "2026-04-01T15:52:22",
+      "fan_count": 435981698,
+      "honor_id": 504103,
+      "last_login_time": "2026-04-13T09:56:58",
+      "leader_chara_dress_id": 105623,
+      "support_card_id": 30007,
+      "team_evaluation_point": 268978,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Azuka"
+      ]
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "name": "nashu",
+      "leader_chara_id": 1032,
+      "membership": 1,
+      "daily_average": 5340326,
+      "monthly_average": 0,
+      "join_time": "2025-12-10T03:40:25",
+      "fan_count": 768669383,
+      "honor_id": 101803,
+      "last_login_time": "2026-04-13T08:23:43",
+      "leader_chara_dress_id": 103201,
+      "support_card_id": 30016,
+      "team_evaluation_point": 255241,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "nashu"
+      ]
+    },
+    {
+      "friend_viewer_id": 820239550206,
+      "name": "DarkMaxGG",
+      "leader_chara_id": 1018,
+      "membership": 1,
+      "daily_average": 1613848,
+      "monthly_average": 0,
+      "join_time": "2026-04-07T03:56:27",
+      "fan_count": 205069095,
+      "honor_id": 411201,
+      "last_login_time": "2026-04-13T04:01:13",
+      "leader_chara_dress_id": 101826,
+      "support_card_id": 30028,
+      "team_evaluation_point": 225231,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "DarkMaxGG"
+      ]
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "name": "Oblivion",
+      "leader_chara_id": 1006,
+      "membership": 1,
+      "daily_average": 3103267,
+      "monthly_average": 0,
+      "join_time": "2026-04-03T07:01:32",
+      "fan_count": 462815561,
+      "honor_id": 310111,
+      "last_login_time": "2026-04-13T08:19:35",
+      "leader_chara_dress_id": 102,
+      "support_card_id": 30028,
+      "team_evaluation_point": 220936,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Oblivion"
+      ]
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "name": "andrd",
+      "leader_chara_id": 1068,
+      "membership": 2,
+      "daily_average": 7559173,
+      "monthly_average": 0,
+      "join_time": "2025-08-03T10:16:39",
+      "fan_count": 1153697534,
+      "honor_id": 403101,
+      "last_login_time": "2026-04-12T22:35:43",
+      "leader_chara_dress_id": 106801,
+      "support_card_id": 30054,
+      "team_evaluation_point": 284448,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "andrd"
+      ]
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "name": "Rei",
+      "leader_chara_id": 1025,
+      "membership": 1,
+      "daily_average": 6313676,
+      "monthly_average": 0,
+      "join_time": "2026-02-01T15:25:21",
+      "fan_count": 769710561,
+      "honor_id": 100101,
+      "last_login_time": "2026-04-13T07:41:03",
+      "leader_chara_dress_id": 102501,
+      "support_card_id": 30028,
+      "team_evaluation_point": 242011,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Rei"
+      ]
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "name": "louay2",
+      "leader_chara_id": 1068,
+      "membership": 1,
+      "daily_average": 5685348,
+      "monthly_average": 0,
+      "join_time": "2026-03-10T12:34:03",
+      "fan_count": 479261048,
+      "honor_id": 412201,
+      "last_login_time": "2026-04-13T07:01:50",
+      "leader_chara_dress_id": 106801,
+      "support_card_id": 30016,
+      "team_evaluation_point": 252340,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "louay2"
+      ]
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "name": "Artemissyal",
+      "leader_chara_id": 1058,
+      "membership": 1,
+      "daily_average": 2834964,
+      "monthly_average": 0,
+      "join_time": "2026-04-01T21:34:05",
+      "fan_count": 1097332857,
+      "honor_id": 100187,
+      "last_login_time": "2026-04-13T08:31:39",
+      "leader_chara_dress_id": 104,
+      "support_card_id": 30010,
+      "team_evaluation_point": 234211,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Artemissyal",
+        "7nate9"
+      ]
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "name": "Noir",
+      "leader_chara_id": 1068,
+      "membership": 1,
+      "daily_average": 5380431,
+      "monthly_average": 0,
+      "join_time": "2025-11-11T10:44:19",
+      "fan_count": 1097366932,
+      "honor_id": 100106,
+      "last_login_time": "2026-04-13T08:22:25",
+      "leader_chara_dress_id": 106801,
+      "support_card_id": 30016,
+      "team_evaluation_point": 272702,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Noir"
+      ]
+    },
+    {
+      "friend_viewer_id": 475450015524,
+      "name": "Tsurugi",
+      "leader_chara_id": 1061,
+      "membership": 1,
+      "daily_average": 5165398,
+      "monthly_average": 0,
+      "join_time": "2026-04-08T01:12:33",
+      "fan_count": 726973905,
+      "honor_id": 100180,
+      "last_login_time": "2026-04-13T08:41:35",
+      "leader_chara_dress_id": 106101,
+      "support_card_id": 30016,
+      "team_evaluation_point": 244788,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Tsurugi"
+      ]
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "name": "Linird",
+      "leader_chara_id": 1020,
+      "membership": 1,
+      "daily_average": 4061033,
+      "monthly_average": 0,
+      "join_time": "2025-12-01T22:29:01",
+      "fan_count": 1135724780,
+      "honor_id": 100803,
+      "last_login_time": "2026-04-13T04:13:20",
+      "leader_chara_dress_id": 102001,
+      "support_card_id": 30078,
+      "team_evaluation_point": 253570,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Linird"
+      ]
+    },
+    {
+      "friend_viewer_id": 913098442382,
+      "name": "Dicey",
+      "leader_chara_id": 1004,
+      "membership": 1,
+      "daily_average": 3071893,
+      "monthly_average": 2446170,
+      "join_time": "2025-12-02T01:33:37",
+      "fan_count": 533963583,
+      "honor_id": 407101,
+      "last_login_time": "2026-01-04T09:21:06",
+      "leader_chara_dress_id": 100430,
+      "support_card_id": 30029,
+      "team_evaluation_point": 199939,
+      "updated_at": "2026-01-04T19:06:24.438104",
+      "names": [
+        "Dicey"
+      ]
+    },
+    {
+      "friend_viewer_id": 446669895601,
+      "name": "777",
+      "leader_chara_id": 1006,
+      "membership": 1,
+      "daily_average": 4542608,
+      "monthly_average": 0,
+      "join_time": "2026-04-07T19:56:25",
+      "fan_count": 553944389,
+      "honor_id": 103003,
+      "last_login_time": "2026-04-13T05:13:13",
+      "leader_chara_dress_id": 100646,
+      "support_card_id": 30010,
+      "team_evaluation_point": 189851,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "777"
+      ]
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "name": "Cyn",
+      "leader_chara_id": 1015,
+      "membership": 3,
+      "daily_average": 6084659,
+      "monthly_average": 0,
+      "join_time": "2025-09-01T21:12:39",
+      "fan_count": 1142978354,
+      "honor_id": 403101,
+      "last_login_time": "2026-04-13T06:27:01",
+      "leader_chara_dress_id": 101501,
+      "support_card_id": 30078,
+      "team_evaluation_point": 267142,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Cyn"
+      ]
+    },
+    {
+      "friend_viewer_id": 572605228720,
+      "name": "panlin",
+      "leader_chara_id": 1060,
+      "membership": 1,
+      "daily_average": 2930285,
+      "monthly_average": 1514275,
+      "join_time": "2025-09-02T15:55:01",
+      "fan_count": 322785803,
+      "honor_id": 408101,
+      "last_login_time": "2025-11-21T05:44:14",
+      "leader_chara_dress_id": 2,
+      "support_card_id": 30028,
+      "team_evaluation_point": 176177,
+      "updated_at": "2025-12-02T00:03:50.022838",
+      "names": [
+        "panlin"
+      ]
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "name": "Shelfaniel",
+      "leader_chara_id": 1068,
+      "membership": 1,
+      "daily_average": 7285038,
+      "monthly_average": 0,
+      "join_time": "2026-01-02T16:07:58",
+      "fan_count": 1193914786,
+      "honor_id": 106404,
+      "last_login_time": "2026-04-13T07:07:55",
+      "leader_chara_dress_id": 106801,
+      "support_card_id": 30086,
+      "team_evaluation_point": 276757,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Shelfaniel"
+      ]
+    },
+    {
+      "friend_viewer_id": 115358509783,
+      "name": "矗",
+      "leader_chara_id": 1028,
+      "membership": 1,
+      "daily_average": 3545183,
+      "monthly_average": 2954609,
+      "join_time": "2025-11-01T15:15:52",
+      "fan_count": 637419265,
+      "honor_id": 100613,
+      "last_login_time": "2026-01-15T01:46:53",
+      "leader_chara_dress_id": 102801,
+      "support_card_id": 30036,
+      "team_evaluation_point": 213419,
+      "updated_at": "2026-01-15T19:37:07.274565",
+      "names": [
+        "Game Ampas"
+      ]
+    },
+    {
+      "friend_viewer_id": 877922970911,
+      "name": "Haruka",
+      "leader_chara_id": 1010,
+      "membership": 1,
+      "daily_average": 8002097,
+      "monthly_average": 0,
+      "join_time": "2026-03-01T17:44:12",
+      "fan_count": 1134389713,
+      "honor_id": 100104,
+      "last_login_time": "2026-04-07T01:17:03",
+      "leader_chara_dress_id": 5,
+      "support_card_id": 30028,
+      "team_evaluation_point": 249028,
+      "updated_at": "2026-04-07T19:01:48.093698",
+      "names": [
+        "Haruka"
+      ]
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "name": "Kantyash",
+      "leader_chara_id": 1020,
+      "membership": 1,
+      "daily_average": 6289802,
+      "monthly_average": 0,
+      "join_time": "2025-11-03T01:17:57",
+      "fan_count": 1294155423,
+      "honor_id": 401101,
+      "last_login_time": "2026-04-13T00:04:22",
+      "leader_chara_dress_id": 102001,
+      "support_card_id": 30028,
+      "team_evaluation_point": 258923,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Kantyash"
+      ]
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "name": "Akuma Anakisuto",
+      "leader_chara_id": 1017,
+      "membership": 1,
+      "daily_average": 4012563,
+      "monthly_average": 0,
+      "join_time": "2026-02-01T16:36:31",
+      "fan_count": 707328392,
+      "honor_id": 103004,
+      "last_login_time": "2026-04-13T02:00:02",
+      "leader_chara_dress_id": 104,
+      "support_card_id": 30016,
+      "team_evaluation_point": 267663,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Akuma Anakisuto"
+      ]
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "name": "SIGMAGIGACHAD",
+      "leader_chara_id": 1017,
+      "membership": 1,
+      "daily_average": 7166380,
+      "monthly_average": 0,
+      "join_time": "2026-03-01T15:09:40",
+      "fan_count": 770666038,
+      "honor_id": 106304,
+      "last_login_time": "2026-04-13T08:10:35",
+      "leader_chara_dress_id": 104,
+      "support_card_id": 30054,
+      "team_evaluation_point": 280714,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "SIGMAGIGACHAD"
+      ]
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "name": "PatG",
+      "leader_chara_id": 1052,
+      "membership": 1,
+      "daily_average": 5195052,
+      "monthly_average": 0,
+      "join_time": "2026-04-05T02:23:47",
+      "fan_count": 261276888,
+      "honor_id": 100106,
+      "last_login_time": "2026-04-13T05:50:36",
+      "leader_chara_dress_id": 105210,
+      "support_card_id": 30078,
+      "team_evaluation_point": 272691,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "PatG"
+      ]
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "name": "Doofy",
+      "leader_chara_id": 1023,
+      "membership": 1,
+      "daily_average": 5927202,
+      "monthly_average": 0,
+      "join_time": "2025-12-01T23:55:58",
+      "fan_count": 1428082378,
+      "honor_id": 100101,
+      "last_login_time": "2026-04-13T00:08:08",
+      "leader_chara_dress_id": 5,
+      "support_card_id": 30028,
+      "team_evaluation_point": 204451,
+      "updated_at": "2026-04-13T19:02:13.943104",
+      "names": [
+        "Doofy"
+      ]
+    }
+  ],
+  "club_friend_history": [
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 1,
+      "interpolated_fan_count": 700662782,
+      "adjusted_interpolated_fan_gain": 3767962,
+      "adjusted_fan_gain_cumulative": 3767962
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 2,
+      "interpolated_fan_count": 705283335,
+      "adjusted_interpolated_fan_gain": 4620553,
+      "adjusted_fan_gain_cumulative": 8388515
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 3,
+      "interpolated_fan_count": 710962082,
+      "adjusted_interpolated_fan_gain": 5678747,
+      "adjusted_fan_gain_cumulative": 14067262
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 4,
+      "interpolated_fan_count": 716108774,
+      "adjusted_interpolated_fan_gain": 5146692,
+      "adjusted_fan_gain_cumulative": 19213954
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 5,
+      "interpolated_fan_count": 723097105,
+      "adjusted_interpolated_fan_gain": 6988331,
+      "adjusted_fan_gain_cumulative": 26202285
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 6,
+      "interpolated_fan_count": 727882155,
+      "adjusted_interpolated_fan_gain": 4785050,
+      "adjusted_fan_gain_cumulative": 30987335
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 7,
+      "interpolated_fan_count": 733478740,
+      "adjusted_interpolated_fan_gain": 5596585,
+      "adjusted_fan_gain_cumulative": 36583920
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 8,
+      "interpolated_fan_count": 739454106,
+      "adjusted_interpolated_fan_gain": 5975366,
+      "adjusted_fan_gain_cumulative": 42559286
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 9,
+      "interpolated_fan_count": 745596540,
+      "adjusted_interpolated_fan_gain": 6142434,
+      "adjusted_fan_gain_cumulative": 48701720
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 10,
+      "interpolated_fan_count": 752694951,
+      "adjusted_interpolated_fan_gain": 7098411,
+      "adjusted_fan_gain_cumulative": 55800131
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 11,
+      "interpolated_fan_count": 760585393,
+      "adjusted_interpolated_fan_gain": 7890442,
+      "adjusted_fan_gain_cumulative": 63690573
+    },
+    {
+      "friend_viewer_id": 180635158091,
+      "friend_name": "Rei",
+      "actual_date": 12,
+      "interpolated_fan_count": 769696639,
+      "adjusted_interpolated_fan_gain": 9111246,
+      "adjusted_fan_gain_cumulative": 72801819
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 1,
+      "interpolated_fan_count": 1035368162,
+      "adjusted_interpolated_fan_gain": 6789661,
+      "adjusted_fan_gain_cumulative": 6789661
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 2,
+      "interpolated_fan_count": 1041138224,
+      "adjusted_interpolated_fan_gain": 5770062,
+      "adjusted_fan_gain_cumulative": 12559723
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 3,
+      "interpolated_fan_count": 1047764220,
+      "adjusted_interpolated_fan_gain": 6625996,
+      "adjusted_fan_gain_cumulative": 19185719
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 4,
+      "interpolated_fan_count": 1053021749,
+      "adjusted_interpolated_fan_gain": 5257529,
+      "adjusted_fan_gain_cumulative": 24443248
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 5,
+      "interpolated_fan_count": 1058562085,
+      "adjusted_interpolated_fan_gain": 5540336,
+      "adjusted_fan_gain_cumulative": 29983584
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 6,
+      "interpolated_fan_count": 1063713580,
+      "adjusted_interpolated_fan_gain": 5151495,
+      "adjusted_fan_gain_cumulative": 35135079
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 7,
+      "interpolated_fan_count": 1069089642,
+      "adjusted_interpolated_fan_gain": 5376062,
+      "adjusted_fan_gain_cumulative": 40511141
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 8,
+      "interpolated_fan_count": 1074529930,
+      "adjusted_interpolated_fan_gain": 5440288,
+      "adjusted_fan_gain_cumulative": 45951429
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 9,
+      "interpolated_fan_count": 1076353138,
+      "adjusted_interpolated_fan_gain": 1823208,
+      "adjusted_fan_gain_cumulative": 47774637
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 10,
+      "interpolated_fan_count": 1081591288,
+      "adjusted_interpolated_fan_gain": 5238150,
+      "adjusted_fan_gain_cumulative": 53012787
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 11,
+      "interpolated_fan_count": 1088980650,
+      "adjusted_interpolated_fan_gain": 7389362,
+      "adjusted_fan_gain_cumulative": 60402149
+    },
+    {
+      "friend_viewer_id": 227372663005,
+      "friend_name": "Noir",
+      "actual_date": 12,
+      "interpolated_fan_count": 1097354138,
+      "adjusted_interpolated_fan_gain": 8373488,
+      "adjusted_fan_gain_cumulative": 68775637
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 1,
+      "interpolated_fan_count": 1224491177,
+      "adjusted_interpolated_fan_gain": 6512443,
+      "adjusted_fan_gain_cumulative": 6512443
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 2,
+      "interpolated_fan_count": 1232178336,
+      "adjusted_interpolated_fan_gain": 7687159,
+      "adjusted_fan_gain_cumulative": 14199602
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 3,
+      "interpolated_fan_count": 1239100904,
+      "adjusted_interpolated_fan_gain": 6922568,
+      "adjusted_fan_gain_cumulative": 21122170
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 4,
+      "interpolated_fan_count": 1251054885,
+      "adjusted_interpolated_fan_gain": 11953981,
+      "adjusted_fan_gain_cumulative": 33076151
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 5,
+      "interpolated_fan_count": 1262037875,
+      "adjusted_interpolated_fan_gain": 10982990,
+      "adjusted_fan_gain_cumulative": 44059141
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 6,
+      "interpolated_fan_count": 1267013317,
+      "adjusted_interpolated_fan_gain": 4975442,
+      "adjusted_fan_gain_cumulative": 49034583
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 7,
+      "interpolated_fan_count": 1276915338,
+      "adjusted_interpolated_fan_gain": 9902021,
+      "adjusted_fan_gain_cumulative": 58936604
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 8,
+      "interpolated_fan_count": 1288927335,
+      "adjusted_interpolated_fan_gain": 12011997,
+      "adjusted_fan_gain_cumulative": 70948601
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 9,
+      "interpolated_fan_count": 1297017099,
+      "adjusted_interpolated_fan_gain": 8089764,
+      "adjusted_fan_gain_cumulative": 79038365
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 10,
+      "interpolated_fan_count": 1317424292,
+      "adjusted_interpolated_fan_gain": 20407193,
+      "adjusted_fan_gain_cumulative": 99445558
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 11,
+      "interpolated_fan_count": 1338782918,
+      "adjusted_interpolated_fan_gain": 21358626,
+      "adjusted_fan_gain_cumulative": 120804184
+    },
+    {
+      "friend_viewer_id": 242653917905,
+      "friend_name": "Soft",
+      "actual_date": 12,
+      "interpolated_fan_count": 1358946110,
+      "adjusted_interpolated_fan_gain": 20163192,
+      "adjusted_fan_gain_cumulative": 140967376
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 1,
+      "interpolated_fan_count": 1329416496,
+      "adjusted_interpolated_fan_gain": 5813979,
+      "adjusted_fan_gain_cumulative": 5813979
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 2,
+      "interpolated_fan_count": 1332272886,
+      "adjusted_interpolated_fan_gain": 2856390,
+      "adjusted_fan_gain_cumulative": 8670369
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 3,
+      "interpolated_fan_count": 1335200880,
+      "adjusted_interpolated_fan_gain": 2927994,
+      "adjusted_fan_gain_cumulative": 11598363
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 4,
+      "interpolated_fan_count": 1341324901,
+      "adjusted_interpolated_fan_gain": 6124021,
+      "adjusted_fan_gain_cumulative": 17722384
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 5,
+      "interpolated_fan_count": 1346899991,
+      "adjusted_interpolated_fan_gain": 5575090,
+      "adjusted_fan_gain_cumulative": 23297474
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 6,
+      "interpolated_fan_count": 1351214982,
+      "adjusted_interpolated_fan_gain": 4314991,
+      "adjusted_fan_gain_cumulative": 27612465
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 7,
+      "interpolated_fan_count": 1365206746,
+      "adjusted_interpolated_fan_gain": 13991764,
+      "adjusted_fan_gain_cumulative": 41604229
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 8,
+      "interpolated_fan_count": 1372666923,
+      "adjusted_interpolated_fan_gain": 7460177,
+      "adjusted_fan_gain_cumulative": 49064406
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 9,
+      "interpolated_fan_count": 1377813324,
+      "adjusted_interpolated_fan_gain": 5146401,
+      "adjusted_fan_gain_cumulative": 54210807
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 10,
+      "interpolated_fan_count": 1385179024,
+      "adjusted_interpolated_fan_gain": 7365700,
+      "adjusted_fan_gain_cumulative": 61576507
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 11,
+      "interpolated_fan_count": 1391713150,
+      "adjusted_interpolated_fan_gain": 6534126,
+      "adjusted_fan_gain_cumulative": 68110633
+    },
+    {
+      "friend_viewer_id": 279119909897,
+      "friend_name": "Mipha",
+      "actual_date": 12,
+      "interpolated_fan_count": 1399239721,
+      "adjusted_interpolated_fan_gain": 7526571,
+      "adjusted_fan_gain_cumulative": 75637204
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 1,
+      "interpolated_fan_count": 1050762659,
+      "adjusted_interpolated_fan_gain": 6634873,
+      "adjusted_fan_gain_cumulative": 6634873
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 2,
+      "interpolated_fan_count": 1056851359,
+      "adjusted_interpolated_fan_gain": 6088700,
+      "adjusted_fan_gain_cumulative": 12723573
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 3,
+      "interpolated_fan_count": 1066565689,
+      "adjusted_interpolated_fan_gain": 9714330,
+      "adjusted_fan_gain_cumulative": 22437903
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 4,
+      "interpolated_fan_count": 1073709736,
+      "adjusted_interpolated_fan_gain": 7144047,
+      "adjusted_fan_gain_cumulative": 29581950
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 5,
+      "interpolated_fan_count": 1079940719,
+      "adjusted_interpolated_fan_gain": 6230983,
+      "adjusted_fan_gain_cumulative": 35812933
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 6,
+      "interpolated_fan_count": 1087591090,
+      "adjusted_interpolated_fan_gain": 7650371,
+      "adjusted_fan_gain_cumulative": 43463304
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 7,
+      "interpolated_fan_count": 1094780353,
+      "adjusted_interpolated_fan_gain": 7189263,
+      "adjusted_fan_gain_cumulative": 50652567
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 8,
+      "interpolated_fan_count": 1103146010,
+      "adjusted_interpolated_fan_gain": 8365657,
+      "adjusted_fan_gain_cumulative": 59018224
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 9,
+      "interpolated_fan_count": 1112728973,
+      "adjusted_interpolated_fan_gain": 9582963,
+      "adjusted_fan_gain_cumulative": 68601187
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 10,
+      "interpolated_fan_count": 1128199748,
+      "adjusted_interpolated_fan_gain": 15470775,
+      "adjusted_fan_gain_cumulative": 84071962
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 11,
+      "interpolated_fan_count": 1140378451,
+      "adjusted_interpolated_fan_gain": 12178703,
+      "adjusted_fan_gain_cumulative": 96250665
+    },
+    {
+      "friend_viewer_id": 305909733067,
+      "friend_name": "andrd",
+      "actual_date": 12,
+      "interpolated_fan_count": 1153677215,
+      "adjusted_interpolated_fan_gain": 13298764,
+      "adjusted_fan_gain_cumulative": 109549429
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "friend_name": "PatG",
+      "actual_date": 4,
+      "interpolated_fan_count": 205459862,
+      "adjusted_interpolated_fan_gain": 4714361,
+      "adjusted_fan_gain_cumulative": 4714361
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "friend_name": "PatG",
+      "actual_date": 5,
+      "interpolated_fan_count": 211769376,
+      "adjusted_interpolated_fan_gain": 6309514,
+      "adjusted_fan_gain_cumulative": 11023875
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "friend_name": "PatG",
+      "actual_date": 6,
+      "interpolated_fan_count": 217692098,
+      "adjusted_interpolated_fan_gain": 5922722,
+      "adjusted_fan_gain_cumulative": 16946597
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "friend_name": "PatG",
+      "actual_date": 7,
+      "interpolated_fan_count": 224240260,
+      "adjusted_interpolated_fan_gain": 6548162,
+      "adjusted_fan_gain_cumulative": 23494759
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "friend_name": "PatG",
+      "actual_date": 8,
+      "interpolated_fan_count": 230781379,
+      "adjusted_interpolated_fan_gain": 6541119,
+      "adjusted_fan_gain_cumulative": 30035878
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "friend_name": "PatG",
+      "actual_date": 9,
+      "interpolated_fan_count": 237673274,
+      "adjusted_interpolated_fan_gain": 6891895,
+      "adjusted_fan_gain_cumulative": 36927773
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "friend_name": "PatG",
+      "actual_date": 10,
+      "interpolated_fan_count": 243960610,
+      "adjusted_interpolated_fan_gain": 6287336,
+      "adjusted_fan_gain_cumulative": 43215109
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "friend_name": "PatG",
+      "actual_date": 11,
+      "interpolated_fan_count": 252048570,
+      "adjusted_interpolated_fan_gain": 8087960,
+      "adjusted_fan_gain_cumulative": 51303069
+    },
+    {
+      "friend_viewer_id": 311086343725,
+      "friend_name": "PatG",
+      "actual_date": 12,
+      "interpolated_fan_count": 261262809,
+      "adjusted_interpolated_fan_gain": 9214239,
+      "adjusted_fan_gain_cumulative": 60517308
+    },
+    {
+      "friend_viewer_id": 336548211432,
+      "friend_name": "watercicle",
+      "actual_date": 7,
+      "interpolated_fan_count": 352689029,
+      "adjusted_interpolated_fan_gain": 2209382,
+      "adjusted_fan_gain_cumulative": 2209382
+    },
+    {
+      "friend_viewer_id": 336548211432,
+      "friend_name": "watercicle",
+      "actual_date": 8,
+      "interpolated_fan_count": 357462064,
+      "adjusted_interpolated_fan_gain": 4773035,
+      "adjusted_fan_gain_cumulative": 6982417
+    },
+    {
+      "friend_viewer_id": 336548211432,
+      "friend_name": "watercicle",
+      "actual_date": 9,
+      "interpolated_fan_count": 362555147,
+      "adjusted_interpolated_fan_gain": 5093083,
+      "adjusted_fan_gain_cumulative": 12075500
+    },
+    {
+      "friend_viewer_id": 336548211432,
+      "friend_name": "watercicle",
+      "actual_date": 10,
+      "interpolated_fan_count": 368249457,
+      "adjusted_interpolated_fan_gain": 5694310,
+      "adjusted_fan_gain_cumulative": 17769810
+    },
+    {
+      "friend_viewer_id": 336548211432,
+      "friend_name": "watercicle",
+      "actual_date": 11,
+      "interpolated_fan_count": 374324769,
+      "adjusted_interpolated_fan_gain": 6075312,
+      "adjusted_fan_gain_cumulative": 23845122
+    },
+    {
+      "friend_viewer_id": 336548211432,
+      "friend_name": "watercicle",
+      "actual_date": 12,
+      "interpolated_fan_count": 379772863,
+      "adjusted_interpolated_fan_gain": 5448094,
+      "adjusted_fan_gain_cumulative": 29293216
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 1,
+      "interpolated_fan_count": 1091119679,
+      "adjusted_interpolated_fan_gain": 7715208,
+      "adjusted_fan_gain_cumulative": 7715208
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 2,
+      "interpolated_fan_count": 1096880581,
+      "adjusted_interpolated_fan_gain": 5760902,
+      "adjusted_fan_gain_cumulative": 13476110
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 3,
+      "interpolated_fan_count": 1107183262,
+      "adjusted_interpolated_fan_gain": 10302681,
+      "adjusted_fan_gain_cumulative": 23778791
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 4,
+      "interpolated_fan_count": 1120515908,
+      "adjusted_interpolated_fan_gain": 13332646,
+      "adjusted_fan_gain_cumulative": 37111437
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 5,
+      "interpolated_fan_count": 1128378341,
+      "adjusted_interpolated_fan_gain": 7862433,
+      "adjusted_fan_gain_cumulative": 44973870
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 6,
+      "interpolated_fan_count": 1136452552,
+      "adjusted_interpolated_fan_gain": 8074211,
+      "adjusted_fan_gain_cumulative": 53048081
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 7,
+      "interpolated_fan_count": 1142951370,
+      "adjusted_interpolated_fan_gain": 6498818,
+      "adjusted_fan_gain_cumulative": 59546899
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 8,
+      "interpolated_fan_count": 1151357108,
+      "adjusted_interpolated_fan_gain": 8405738,
+      "adjusted_fan_gain_cumulative": 67952637
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 9,
+      "interpolated_fan_count": 1157859153,
+      "adjusted_interpolated_fan_gain": 6502045,
+      "adjusted_fan_gain_cumulative": 74454682
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 10,
+      "interpolated_fan_count": 1163405706,
+      "adjusted_interpolated_fan_gain": 5546553,
+      "adjusted_fan_gain_cumulative": 80001235
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 11,
+      "interpolated_fan_count": 1170564570,
+      "adjusted_interpolated_fan_gain": 7158864,
+      "adjusted_fan_gain_cumulative": 87160099
+    },
+    {
+      "friend_viewer_id": 396133065145,
+      "friend_name": "Smile",
+      "actual_date": 12,
+      "interpolated_fan_count": 1179044060,
+      "adjusted_interpolated_fan_gain": 8479490,
+      "adjusted_fan_gain_cumulative": 95639589
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 1,
+      "interpolated_fan_count": 1360537680,
+      "adjusted_interpolated_fan_gain": 12513,
+      "adjusted_fan_gain_cumulative": 12513
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 2,
+      "interpolated_fan_count": 1362122734,
+      "adjusted_interpolated_fan_gain": 1585054,
+      "adjusted_fan_gain_cumulative": 1597567
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 3,
+      "interpolated_fan_count": 1369107273,
+      "adjusted_interpolated_fan_gain": 6984539,
+      "adjusted_fan_gain_cumulative": 8582106
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 4,
+      "interpolated_fan_count": 1377885441,
+      "adjusted_interpolated_fan_gain": 8778168,
+      "adjusted_fan_gain_cumulative": 17360274
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 5,
+      "interpolated_fan_count": 1387487463,
+      "adjusted_interpolated_fan_gain": 9602022,
+      "adjusted_fan_gain_cumulative": 26962296
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 6,
+      "interpolated_fan_count": 1391228059,
+      "adjusted_interpolated_fan_gain": 3740596,
+      "adjusted_fan_gain_cumulative": 30702892
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 7,
+      "interpolated_fan_count": 1400810289,
+      "adjusted_interpolated_fan_gain": 9582230,
+      "adjusted_fan_gain_cumulative": 40285122
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 8,
+      "interpolated_fan_count": 1411562597,
+      "adjusted_interpolated_fan_gain": 10752308,
+      "adjusted_fan_gain_cumulative": 51037430
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 9,
+      "interpolated_fan_count": 1412573940,
+      "adjusted_interpolated_fan_gain": 1011343,
+      "adjusted_fan_gain_cumulative": 52048773
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 10,
+      "interpolated_fan_count": 1421481178,
+      "adjusted_interpolated_fan_gain": 8907238,
+      "adjusted_fan_gain_cumulative": 60956011
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 11,
+      "interpolated_fan_count": 1421488353,
+      "adjusted_interpolated_fan_gain": 7175,
+      "adjusted_fan_gain_cumulative": 60963186
+    },
+    {
+      "friend_viewer_id": 437911971412,
+      "friend_name": "Doofy",
+      "actual_date": 12,
+      "interpolated_fan_count": 1428072309,
+      "adjusted_interpolated_fan_gain": 6583956,
+      "adjusted_fan_gain_cumulative": 67547142
+    },
+    {
+      "friend_viewer_id": 446669895601,
+      "friend_name": "777",
+      "actual_date": 7,
+      "interpolated_fan_count": 495606083,
+      "adjusted_interpolated_fan_gain": 5913288,
+      "adjusted_fan_gain_cumulative": 5913288
+    },
+    {
+      "friend_viewer_id": 446669895601,
+      "friend_name": "777",
+      "actual_date": 8,
+      "interpolated_fan_count": 505373045,
+      "adjusted_interpolated_fan_gain": 9766962,
+      "adjusted_fan_gain_cumulative": 15680250
+    },
+    {
+      "friend_viewer_id": 446669895601,
+      "friend_name": "777",
+      "actual_date": 9,
+      "interpolated_fan_count": 516754501,
+      "adjusted_interpolated_fan_gain": 11381456,
+      "adjusted_fan_gain_cumulative": 27061706
+    },
+    {
+      "friend_viewer_id": 446669895601,
+      "friend_name": "777",
+      "actual_date": 10,
+      "interpolated_fan_count": 529147057,
+      "adjusted_interpolated_fan_gain": 12392556,
+      "adjusted_fan_gain_cumulative": 39454262
+    },
+    {
+      "friend_viewer_id": 446669895601,
+      "friend_name": "777",
+      "actual_date": 11,
+      "interpolated_fan_count": 540032741,
+      "adjusted_interpolated_fan_gain": 10885684,
+      "adjusted_fan_gain_cumulative": 50339946
+    },
+    {
+      "friend_viewer_id": 446669895601,
+      "friend_name": "777",
+      "actual_date": 12,
+      "interpolated_fan_count": 553923163,
+      "adjusted_interpolated_fan_gain": 13890422,
+      "adjusted_fan_gain_cumulative": 64230368
+    },
+    {
+      "friend_viewer_id": 475450015524,
+      "friend_name": "Tsurugi",
+      "actual_date": 7,
+      "interpolated_fan_count": 696090081,
+      "adjusted_interpolated_fan_gain": 9895605,
+      "adjusted_fan_gain_cumulative": 9895605
+    },
+    {
+      "friend_viewer_id": 475450015524,
+      "friend_name": "Tsurugi",
+      "actual_date": 8,
+      "interpolated_fan_count": 699764399,
+      "adjusted_interpolated_fan_gain": 3674318,
+      "adjusted_fan_gain_cumulative": 13569923
+    },
+    {
+      "friend_viewer_id": 475450015524,
+      "friend_name": "Tsurugi",
+      "actual_date": 9,
+      "interpolated_fan_count": 711720025,
+      "adjusted_interpolated_fan_gain": 11955626,
+      "adjusted_fan_gain_cumulative": 25525549
+    },
+    {
+      "friend_viewer_id": 475450015524,
+      "friend_name": "Tsurugi",
+      "actual_date": 10,
+      "interpolated_fan_count": 714368644,
+      "adjusted_interpolated_fan_gain": 2648619,
+      "adjusted_fan_gain_cumulative": 28174168
+    },
+    {
+      "friend_viewer_id": 475450015524,
+      "friend_name": "Tsurugi",
+      "actual_date": 11,
+      "interpolated_fan_count": 721665853,
+      "adjusted_interpolated_fan_gain": 7297209,
+      "adjusted_fan_gain_cumulative": 35471377
+    },
+    {
+      "friend_viewer_id": 475450015524,
+      "friend_name": "Tsurugi",
+      "actual_date": 12,
+      "interpolated_fan_count": 726965811,
+      "adjusted_interpolated_fan_gain": 5299958,
+      "adjusted_fan_gain_cumulative": 40771335
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 1,
+      "interpolated_fan_count": 1084921141,
+      "adjusted_interpolated_fan_gain": 6866947,
+      "adjusted_fan_gain_cumulative": 6866947
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 2,
+      "interpolated_fan_count": 1093555390,
+      "adjusted_interpolated_fan_gain": 8634249,
+      "adjusted_fan_gain_cumulative": 15501196
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 3,
+      "interpolated_fan_count": 1101834866,
+      "adjusted_interpolated_fan_gain": 8279476,
+      "adjusted_fan_gain_cumulative": 23780672
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 4,
+      "interpolated_fan_count": 1121595115,
+      "adjusted_interpolated_fan_gain": 19760249,
+      "adjusted_fan_gain_cumulative": 43540921
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 5,
+      "interpolated_fan_count": 1143081538,
+      "adjusted_interpolated_fan_gain": 21486423,
+      "adjusted_fan_gain_cumulative": 65027344
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 6,
+      "interpolated_fan_count": 1159016997,
+      "adjusted_interpolated_fan_gain": 15935459,
+      "adjusted_fan_gain_cumulative": 80962803
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 7,
+      "interpolated_fan_count": 1167039389,
+      "adjusted_interpolated_fan_gain": 8022392,
+      "adjusted_fan_gain_cumulative": 88985195
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 8,
+      "interpolated_fan_count": 1172921645,
+      "adjusted_interpolated_fan_gain": 5882256,
+      "adjusted_fan_gain_cumulative": 94867451
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 9,
+      "interpolated_fan_count": 1188836689,
+      "adjusted_interpolated_fan_gain": 15915044,
+      "adjusted_fan_gain_cumulative": 110782495
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 10,
+      "interpolated_fan_count": 1198673501,
+      "adjusted_interpolated_fan_gain": 9836812,
+      "adjusted_fan_gain_cumulative": 120619307
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 11,
+      "interpolated_fan_count": 1219886245,
+      "adjusted_interpolated_fan_gain": 21212744,
+      "adjusted_fan_gain_cumulative": 141832051
+    },
+    {
+      "friend_viewer_id": 485179579661,
+      "friend_name": "Daruo324",
+      "actual_date": 12,
+      "interpolated_fan_count": 1234644870,
+      "adjusted_interpolated_fan_gain": 14758625,
+      "adjusted_fan_gain_cumulative": 156590676
+    },
+    {
+      "friend_viewer_id": 491873872876,
+      "friend_name": "KingKobro",
+      "actual_date": 1,
+      "interpolated_fan_count": 385324605,
+      "adjusted_interpolated_fan_gain": 1907447,
+      "adjusted_fan_gain_cumulative": 1907447
+    },
+    {
+      "friend_viewer_id": 491873872876,
+      "friend_name": "KingKobro",
+      "actual_date": 2,
+      "interpolated_fan_count": 385326415,
+      "adjusted_interpolated_fan_gain": 1810,
+      "adjusted_fan_gain_cumulative": 1909257
+    },
+    {
+      "friend_viewer_id": 491873872876,
+      "friend_name": "KingKobro",
+      "actual_date": 3,
+      "interpolated_fan_count": 388140812,
+      "adjusted_interpolated_fan_gain": 2814397,
+      "adjusted_fan_gain_cumulative": 4723654
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 1,
+      "interpolated_fan_count": 690486639,
+      "adjusted_interpolated_fan_gain": 6993766,
+      "adjusted_fan_gain_cumulative": 6993766
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 2,
+      "interpolated_fan_count": 694468977,
+      "adjusted_interpolated_fan_gain": 3982338,
+      "adjusted_fan_gain_cumulative": 10976104
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 3,
+      "interpolated_fan_count": 699765600,
+      "adjusted_interpolated_fan_gain": 5296623,
+      "adjusted_fan_gain_cumulative": 16272727
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 4,
+      "interpolated_fan_count": 702806275,
+      "adjusted_interpolated_fan_gain": 3040675,
+      "adjusted_fan_gain_cumulative": 19313402
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 5,
+      "interpolated_fan_count": 703095677,
+      "adjusted_interpolated_fan_gain": 289402,
+      "adjusted_fan_gain_cumulative": 19602804
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 6,
+      "interpolated_fan_count": 710050301,
+      "adjusted_interpolated_fan_gain": 6954624,
+      "adjusted_fan_gain_cumulative": 26557428
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 7,
+      "interpolated_fan_count": 715463304,
+      "adjusted_interpolated_fan_gain": 5413003,
+      "adjusted_fan_gain_cumulative": 31970431
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 8,
+      "interpolated_fan_count": 716867998,
+      "adjusted_interpolated_fan_gain": 1404694,
+      "adjusted_fan_gain_cumulative": 33375125
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 9,
+      "interpolated_fan_count": 723075183,
+      "adjusted_interpolated_fan_gain": 6207185,
+      "adjusted_fan_gain_cumulative": 39582310
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 10,
+      "interpolated_fan_count": 734009379,
+      "adjusted_interpolated_fan_gain": 10934196,
+      "adjusted_fan_gain_cumulative": 50516506
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 11,
+      "interpolated_fan_count": 737995386,
+      "adjusted_interpolated_fan_gain": 3986007,
+      "adjusted_fan_gain_cumulative": 54502513
+    },
+    {
+      "friend_viewer_id": 498002326870,
+      "friend_name": "＾＿＾",
+      "actual_date": 12,
+      "interpolated_fan_count": 743329339,
+      "adjusted_interpolated_fan_gain": 5333953,
+      "adjusted_fan_gain_cumulative": 59836466
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 1,
+      "interpolated_fan_count": 114638481,
+      "adjusted_interpolated_fan_gain": 846515,
+      "adjusted_fan_gain_cumulative": 846515
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 2,
+      "interpolated_fan_count": 115595033,
+      "adjusted_interpolated_fan_gain": 956552,
+      "adjusted_fan_gain_cumulative": 1803067
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 3,
+      "interpolated_fan_count": 124452010,
+      "adjusted_interpolated_fan_gain": 8856977,
+      "adjusted_fan_gain_cumulative": 10660044
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 4,
+      "interpolated_fan_count": 129067845,
+      "adjusted_interpolated_fan_gain": 4615835,
+      "adjusted_fan_gain_cumulative": 15275879
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 5,
+      "interpolated_fan_count": 132339580,
+      "adjusted_interpolated_fan_gain": 3271735,
+      "adjusted_fan_gain_cumulative": 18547614
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 6,
+      "interpolated_fan_count": 136215679,
+      "adjusted_interpolated_fan_gain": 3876099,
+      "adjusted_fan_gain_cumulative": 22423713
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 7,
+      "interpolated_fan_count": 137168786,
+      "adjusted_interpolated_fan_gain": 953107,
+      "adjusted_fan_gain_cumulative": 23376820
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 8,
+      "interpolated_fan_count": 137169809,
+      "adjusted_interpolated_fan_gain": 1023,
+      "adjusted_fan_gain_cumulative": 23377843
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 9,
+      "interpolated_fan_count": 141944803,
+      "adjusted_interpolated_fan_gain": 4774994,
+      "adjusted_fan_gain_cumulative": 28152837
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 10,
+      "interpolated_fan_count": 142876412,
+      "adjusted_interpolated_fan_gain": 931609,
+      "adjusted_fan_gain_cumulative": 29084446
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 11,
+      "interpolated_fan_count": 148802452,
+      "adjusted_interpolated_fan_gain": 5926040,
+      "adjusted_fan_gain_cumulative": 35010486
+    },
+    {
+      "friend_viewer_id": 530408841705,
+      "friend_name": "Irrelevant",
+      "actual_date": 12,
+      "interpolated_fan_count": 160140118,
+      "adjusted_interpolated_fan_gain": 11337666,
+      "adjusted_fan_gain_cumulative": 46348152
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 1,
+      "interpolated_fan_count": 367157733,
+      "adjusted_interpolated_fan_gain": 5282270,
+      "adjusted_fan_gain_cumulative": 5282270
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 2,
+      "interpolated_fan_count": 372253915,
+      "adjusted_interpolated_fan_gain": 5096182,
+      "adjusted_fan_gain_cumulative": 10378452
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 3,
+      "interpolated_fan_count": 377259316,
+      "adjusted_interpolated_fan_gain": 5005401,
+      "adjusted_fan_gain_cumulative": 15383853
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 4,
+      "interpolated_fan_count": 380150931,
+      "adjusted_interpolated_fan_gain": 2891615,
+      "adjusted_fan_gain_cumulative": 18275468
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 5,
+      "interpolated_fan_count": 390192281,
+      "adjusted_interpolated_fan_gain": 10041350,
+      "adjusted_fan_gain_cumulative": 28316818
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 6,
+      "interpolated_fan_count": 400292794,
+      "adjusted_interpolated_fan_gain": 10100513,
+      "adjusted_fan_gain_cumulative": 38417331
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 7,
+      "interpolated_fan_count": 411477250,
+      "adjusted_interpolated_fan_gain": 11184456,
+      "adjusted_fan_gain_cumulative": 49601787
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 8,
+      "interpolated_fan_count": 416625157,
+      "adjusted_interpolated_fan_gain": 5147907,
+      "adjusted_fan_gain_cumulative": 54749694
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 9,
+      "interpolated_fan_count": 417594597,
+      "adjusted_interpolated_fan_gain": 969440,
+      "adjusted_fan_gain_cumulative": 55719134
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 10,
+      "interpolated_fan_count": 417595536,
+      "adjusted_interpolated_fan_gain": 939,
+      "adjusted_fan_gain_cumulative": 55720073
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 11,
+      "interpolated_fan_count": 422455209,
+      "adjusted_interpolated_fan_gain": 4859673,
+      "adjusted_fan_gain_cumulative": 60579746
+    },
+    {
+      "friend_viewer_id": 551672380897,
+      "friend_name": "DarkHeavy",
+      "actual_date": 12,
+      "interpolated_fan_count": 427287682,
+      "adjusted_interpolated_fan_gain": 4832473,
+      "adjusted_fan_gain_cumulative": 65412219
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 1,
+      "interpolated_fan_count": 367882566,
+      "adjusted_interpolated_fan_gain": 4734552,
+      "adjusted_fan_gain_cumulative": 4734552
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 2,
+      "interpolated_fan_count": 376226237,
+      "adjusted_interpolated_fan_gain": 8343671,
+      "adjusted_fan_gain_cumulative": 13078223
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 3,
+      "interpolated_fan_count": 381931690,
+      "adjusted_interpolated_fan_gain": 5705453,
+      "adjusted_fan_gain_cumulative": 18783676
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 4,
+      "interpolated_fan_count": 388130590,
+      "adjusted_interpolated_fan_gain": 6198900,
+      "adjusted_fan_gain_cumulative": 24982576
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 5,
+      "interpolated_fan_count": 396102018,
+      "adjusted_interpolated_fan_gain": 7971428,
+      "adjusted_fan_gain_cumulative": 32954004
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 6,
+      "interpolated_fan_count": 403200948,
+      "adjusted_interpolated_fan_gain": 7098930,
+      "adjusted_fan_gain_cumulative": 40052934
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 7,
+      "interpolated_fan_count": 409610580,
+      "adjusted_interpolated_fan_gain": 6409632,
+      "adjusted_fan_gain_cumulative": 46462566
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 8,
+      "interpolated_fan_count": 411328414,
+      "adjusted_interpolated_fan_gain": 1717834,
+      "adjusted_fan_gain_cumulative": 48180400
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 9,
+      "interpolated_fan_count": 418046408,
+      "adjusted_interpolated_fan_gain": 6717994,
+      "adjusted_fan_gain_cumulative": 54898394
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 10,
+      "interpolated_fan_count": 424451180,
+      "adjusted_interpolated_fan_gain": 6404772,
+      "adjusted_fan_gain_cumulative": 61303166
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 11,
+      "interpolated_fan_count": 433302230,
+      "adjusted_interpolated_fan_gain": 8851050,
+      "adjusted_fan_gain_cumulative": 70154216
+    },
+    {
+      "friend_viewer_id": 554040362962,
+      "friend_name": "Azuka",
+      "actual_date": 12,
+      "interpolated_fan_count": 435977620,
+      "adjusted_interpolated_fan_gain": 2675390,
+      "adjusted_fan_gain_cumulative": 72829606
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 1,
+      "interpolated_fan_count": 539591587,
+      "adjusted_interpolated_fan_gain": 4671977,
+      "adjusted_fan_gain_cumulative": 4671977
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 2,
+      "interpolated_fan_count": 545314422,
+      "adjusted_interpolated_fan_gain": 5722835,
+      "adjusted_fan_gain_cumulative": 10394812
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 3,
+      "interpolated_fan_count": 550925518,
+      "adjusted_interpolated_fan_gain": 5611096,
+      "adjusted_fan_gain_cumulative": 16005908
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 4,
+      "interpolated_fan_count": 556318992,
+      "adjusted_interpolated_fan_gain": 5393474,
+      "adjusted_fan_gain_cumulative": 21399382
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 5,
+      "interpolated_fan_count": 561660769,
+      "adjusted_interpolated_fan_gain": 5341777,
+      "adjusted_fan_gain_cumulative": 26741159
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 6,
+      "interpolated_fan_count": 566443543,
+      "adjusted_interpolated_fan_gain": 4782774,
+      "adjusted_fan_gain_cumulative": 31523933
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 7,
+      "interpolated_fan_count": 572439688,
+      "adjusted_interpolated_fan_gain": 5996145,
+      "adjusted_fan_gain_cumulative": 37520078
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 8,
+      "interpolated_fan_count": 578408670,
+      "adjusted_interpolated_fan_gain": 5968982,
+      "adjusted_fan_gain_cumulative": 43489060
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 9,
+      "interpolated_fan_count": 584056835,
+      "adjusted_interpolated_fan_gain": 5648165,
+      "adjusted_fan_gain_cumulative": 49137225
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 10,
+      "interpolated_fan_count": 588788797,
+      "adjusted_interpolated_fan_gain": 4731962,
+      "adjusted_fan_gain_cumulative": 53869187
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 11,
+      "interpolated_fan_count": 595663626,
+      "adjusted_interpolated_fan_gain": 6874829,
+      "adjusted_fan_gain_cumulative": 60744016
+    },
+    {
+      "friend_viewer_id": 616526388090,
+      "friend_name": "Ririryu",
+      "actual_date": 12,
+      "interpolated_fan_count": 599580854,
+      "adjusted_interpolated_fan_gain": 3917228,
+      "adjusted_fan_gain_cumulative": 64661244
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 1,
+      "interpolated_fan_count": 1187037259,
+      "adjusted_interpolated_fan_gain": 4173029,
+      "adjusted_fan_gain_cumulative": 4173029
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 2,
+      "interpolated_fan_count": 1193945801,
+      "adjusted_interpolated_fan_gain": 6908542,
+      "adjusted_fan_gain_cumulative": 11081571
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 3,
+      "interpolated_fan_count": 1199939494,
+      "adjusted_interpolated_fan_gain": 5993693,
+      "adjusted_fan_gain_cumulative": 17075264
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 4,
+      "interpolated_fan_count": 1207166748,
+      "adjusted_interpolated_fan_gain": 7227254,
+      "adjusted_fan_gain_cumulative": 24302518
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 5,
+      "interpolated_fan_count": 1211956582,
+      "adjusted_interpolated_fan_gain": 4789834,
+      "adjusted_fan_gain_cumulative": 29092352
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 6,
+      "interpolated_fan_count": 1217026046,
+      "adjusted_interpolated_fan_gain": 5069464,
+      "adjusted_fan_gain_cumulative": 34161816
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 7,
+      "interpolated_fan_count": 1224900373,
+      "adjusted_interpolated_fan_gain": 7874327,
+      "adjusted_fan_gain_cumulative": 42036143
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 8,
+      "interpolated_fan_count": 1246178029,
+      "adjusted_interpolated_fan_gain": 21277656,
+      "adjusted_fan_gain_cumulative": 63313799
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 9,
+      "interpolated_fan_count": 1262063869,
+      "adjusted_interpolated_fan_gain": 15885840,
+      "adjusted_fan_gain_cumulative": 79199639
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 10,
+      "interpolated_fan_count": 1283138694,
+      "adjusted_interpolated_fan_gain": 21074825,
+      "adjusted_fan_gain_cumulative": 100274464
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 11,
+      "interpolated_fan_count": 1288195837,
+      "adjusted_interpolated_fan_gain": 5057143,
+      "adjusted_fan_gain_cumulative": 105331607
+    },
+    {
+      "friend_viewer_id": 696318998000,
+      "friend_name": "Kantyash",
+      "actual_date": 12,
+      "interpolated_fan_count": 1294146331,
+      "adjusted_interpolated_fan_gain": 5950494,
+      "adjusted_fan_gain_cumulative": 111282101
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 1,
+      "interpolated_fan_count": 420992865,
+      "adjusted_interpolated_fan_gain": 3361437,
+      "adjusted_fan_gain_cumulative": 3361437
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 2,
+      "interpolated_fan_count": 428057656,
+      "adjusted_interpolated_fan_gain": 7064791,
+      "adjusted_fan_gain_cumulative": 10426228
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 3,
+      "interpolated_fan_count": 435176769,
+      "adjusted_interpolated_fan_gain": 7119113,
+      "adjusted_fan_gain_cumulative": 17545341
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 4,
+      "interpolated_fan_count": 440380811,
+      "adjusted_interpolated_fan_gain": 5204042,
+      "adjusted_fan_gain_cumulative": 22749383
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 5,
+      "interpolated_fan_count": 443405322,
+      "adjusted_interpolated_fan_gain": 3024511,
+      "adjusted_fan_gain_cumulative": 25773894
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 6,
+      "interpolated_fan_count": 449339251,
+      "adjusted_interpolated_fan_gain": 5933929,
+      "adjusted_fan_gain_cumulative": 31707823
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 7,
+      "interpolated_fan_count": 454724419,
+      "adjusted_interpolated_fan_gain": 5385168,
+      "adjusted_fan_gain_cumulative": 37092991
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 8,
+      "interpolated_fan_count": 460124223,
+      "adjusted_interpolated_fan_gain": 5399804,
+      "adjusted_fan_gain_cumulative": 42492795
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 9,
+      "interpolated_fan_count": 464353947,
+      "adjusted_interpolated_fan_gain": 4229724,
+      "adjusted_fan_gain_cumulative": 46722519
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 10,
+      "interpolated_fan_count": 469796913,
+      "adjusted_interpolated_fan_gain": 5442966,
+      "adjusted_fan_gain_cumulative": 52165485
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 11,
+      "interpolated_fan_count": 474864776,
+      "adjusted_interpolated_fan_gain": 5067863,
+      "adjusted_fan_gain_cumulative": 57233348
+    },
+    {
+      "friend_viewer_id": 697949751033,
+      "friend_name": "louay2",
+      "actual_date": 12,
+      "interpolated_fan_count": 479254343,
+      "adjusted_interpolated_fan_gain": 4389567,
+      "adjusted_fan_gain_cumulative": 61622915
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 1,
+      "interpolated_fan_count": 814492503,
+      "adjusted_interpolated_fan_gain": 5347840,
+      "adjusted_fan_gain_cumulative": 5347840
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 2,
+      "interpolated_fan_count": 819881391,
+      "adjusted_interpolated_fan_gain": 5388888,
+      "adjusted_fan_gain_cumulative": 10736728
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 3,
+      "interpolated_fan_count": 824482715,
+      "adjusted_interpolated_fan_gain": 4601324,
+      "adjusted_fan_gain_cumulative": 15338052
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 4,
+      "interpolated_fan_count": 829711872,
+      "adjusted_interpolated_fan_gain": 5229157,
+      "adjusted_fan_gain_cumulative": 20567209
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 5,
+      "interpolated_fan_count": 833754009,
+      "adjusted_interpolated_fan_gain": 4042137,
+      "adjusted_fan_gain_cumulative": 24609346
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 6,
+      "interpolated_fan_count": 839088792,
+      "adjusted_interpolated_fan_gain": 5334783,
+      "adjusted_fan_gain_cumulative": 29944129
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 7,
+      "interpolated_fan_count": 842952033,
+      "adjusted_interpolated_fan_gain": 3863241,
+      "adjusted_fan_gain_cumulative": 33807370
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 8,
+      "interpolated_fan_count": 848420984,
+      "adjusted_interpolated_fan_gain": 5468951,
+      "adjusted_fan_gain_cumulative": 39276321
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 9,
+      "interpolated_fan_count": 852990215,
+      "adjusted_interpolated_fan_gain": 4569231,
+      "adjusted_fan_gain_cumulative": 43845552
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 10,
+      "interpolated_fan_count": 857299269,
+      "adjusted_interpolated_fan_gain": 4309054,
+      "adjusted_fan_gain_cumulative": 48154606
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 11,
+      "interpolated_fan_count": 863451795,
+      "adjusted_interpolated_fan_gain": 6152526,
+      "adjusted_fan_gain_cumulative": 54307132
+    },
+    {
+      "friend_viewer_id": 703948614084,
+      "friend_name": "Umagon",
+      "actual_date": 12,
+      "interpolated_fan_count": 869806428,
+      "adjusted_interpolated_fan_gain": 6354633,
+      "adjusted_fan_gain_cumulative": 60661765
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 1,
+      "interpolated_fan_count": 672908357,
+      "adjusted_interpolated_fan_gain": 7403320,
+      "adjusted_fan_gain_cumulative": 7403320
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 2,
+      "interpolated_fan_count": 682717152,
+      "adjusted_interpolated_fan_gain": 9808795,
+      "adjusted_fan_gain_cumulative": 17212115
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 3,
+      "interpolated_fan_count": 691364410,
+      "adjusted_interpolated_fan_gain": 8647258,
+      "adjusted_fan_gain_cumulative": 25859373
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 4,
+      "interpolated_fan_count": 700799835,
+      "adjusted_interpolated_fan_gain": 9435425,
+      "adjusted_fan_gain_cumulative": 35294798
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 5,
+      "interpolated_fan_count": 708733835,
+      "adjusted_interpolated_fan_gain": 7934000,
+      "adjusted_fan_gain_cumulative": 43228798
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 6,
+      "interpolated_fan_count": 717063710,
+      "adjusted_interpolated_fan_gain": 8329875,
+      "adjusted_fan_gain_cumulative": 51558673
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 7,
+      "interpolated_fan_count": 724285201,
+      "adjusted_interpolated_fan_gain": 7221491,
+      "adjusted_fan_gain_cumulative": 58780164
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 8,
+      "interpolated_fan_count": 729429749,
+      "adjusted_interpolated_fan_gain": 5144548,
+      "adjusted_fan_gain_cumulative": 63924712
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 9,
+      "interpolated_fan_count": 738641797,
+      "adjusted_interpolated_fan_gain": 9212048,
+      "adjusted_fan_gain_cumulative": 73136760
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 10,
+      "interpolated_fan_count": 748201649,
+      "adjusted_interpolated_fan_gain": 9559852,
+      "adjusted_fan_gain_cumulative": 82696612
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 11,
+      "interpolated_fan_count": 760963191,
+      "adjusted_interpolated_fan_gain": 12761542,
+      "adjusted_fan_gain_cumulative": 95458154
+    },
+    {
+      "friend_viewer_id": 719865137694,
+      "friend_name": "SIGMAGIGACHAD",
+      "actual_date": 12,
+      "interpolated_fan_count": 770651242,
+      "adjusted_interpolated_fan_gain": 9688051,
+      "adjusted_fan_gain_cumulative": 105146205
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 1,
+      "interpolated_fan_count": 1040931940,
+      "adjusted_interpolated_fan_gain": 718561,
+      "adjusted_fan_gain_cumulative": 718561
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 2,
+      "interpolated_fan_count": 1043176735,
+      "adjusted_interpolated_fan_gain": 2244795,
+      "adjusted_fan_gain_cumulative": 2963356
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 3,
+      "interpolated_fan_count": 1046734224,
+      "adjusted_interpolated_fan_gain": 3557489,
+      "adjusted_fan_gain_cumulative": 6520845
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 4,
+      "interpolated_fan_count": 1046738688,
+      "adjusted_interpolated_fan_gain": 4464,
+      "adjusted_fan_gain_cumulative": 6525309
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 5,
+      "interpolated_fan_count": 1049736527,
+      "adjusted_interpolated_fan_gain": 2997839,
+      "adjusted_fan_gain_cumulative": 9523148
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 6,
+      "interpolated_fan_count": 1051375218,
+      "adjusted_interpolated_fan_gain": 1638691,
+      "adjusted_fan_gain_cumulative": 11161839
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 7,
+      "interpolated_fan_count": 1053769268,
+      "adjusted_interpolated_fan_gain": 2394050,
+      "adjusted_fan_gain_cumulative": 13555889
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 8,
+      "interpolated_fan_count": 1056829381,
+      "adjusted_interpolated_fan_gain": 3060113,
+      "adjusted_fan_gain_cumulative": 16616002
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 9,
+      "interpolated_fan_count": 1059307062,
+      "adjusted_interpolated_fan_gain": 2477681,
+      "adjusted_fan_gain_cumulative": 19093683
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 10,
+      "interpolated_fan_count": 1084072143,
+      "adjusted_interpolated_fan_gain": 24765081,
+      "adjusted_fan_gain_cumulative": 43858764
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 11,
+      "interpolated_fan_count": 1095146527,
+      "adjusted_interpolated_fan_gain": 11074384,
+      "adjusted_fan_gain_cumulative": 54933148
+    },
+    {
+      "friend_viewer_id": 734055263060,
+      "friend_name": "Artemissyal",
+      "actual_date": 12,
+      "interpolated_fan_count": 1097329536,
+      "adjusted_interpolated_fan_gain": 2183009,
+      "adjusted_fan_gain_cumulative": 57116157
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 2,
+      "interpolated_fan_count": 241425723,
+      "adjusted_interpolated_fan_gain": 3824112,
+      "adjusted_fan_gain_cumulative": 3824112
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 3,
+      "interpolated_fan_count": 246505419,
+      "adjusted_interpolated_fan_gain": 5079696,
+      "adjusted_fan_gain_cumulative": 8903808
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 4,
+      "interpolated_fan_count": 253405406,
+      "adjusted_interpolated_fan_gain": 6899987,
+      "adjusted_fan_gain_cumulative": 15803795
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 5,
+      "interpolated_fan_count": 258942976,
+      "adjusted_interpolated_fan_gain": 5537570,
+      "adjusted_fan_gain_cumulative": 21341365
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 6,
+      "interpolated_fan_count": 261752011,
+      "adjusted_interpolated_fan_gain": 2809035,
+      "adjusted_fan_gain_cumulative": 24150400
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 7,
+      "interpolated_fan_count": 266874846,
+      "adjusted_interpolated_fan_gain": 5122835,
+      "adjusted_fan_gain_cumulative": 29273235
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 8,
+      "interpolated_fan_count": 269316840,
+      "adjusted_interpolated_fan_gain": 2441994,
+      "adjusted_fan_gain_cumulative": 31715229
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 9,
+      "interpolated_fan_count": 276878942,
+      "adjusted_interpolated_fan_gain": 7562102,
+      "adjusted_fan_gain_cumulative": 39277331
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 10,
+      "interpolated_fan_count": 279573843,
+      "adjusted_interpolated_fan_gain": 2694901,
+      "adjusted_fan_gain_cumulative": 41972232
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 11,
+      "interpolated_fan_count": 283119905,
+      "adjusted_interpolated_fan_gain": 3546062,
+      "adjusted_fan_gain_cumulative": 45518294
+    },
+    {
+      "friend_viewer_id": 735139606156,
+      "friend_name": "Nagi－kun",
+      "actual_date": 12,
+      "interpolated_fan_count": 287871541,
+      "adjusted_interpolated_fan_gain": 4751636,
+      "adjusted_fan_gain_cumulative": 50269930
+    },
+    {
+      "friend_viewer_id": 820239550206,
+      "friend_name": "DarkMaxGG",
+      "actual_date": 6,
+      "interpolated_fan_count": 188442420,
+      "adjusted_interpolated_fan_gain": 4026267,
+      "adjusted_fan_gain_cumulative": 4026267
+    },
+    {
+      "friend_viewer_id": 820239550206,
+      "friend_name": "DarkMaxGG",
+      "actual_date": 7,
+      "interpolated_fan_count": 191422030,
+      "adjusted_interpolated_fan_gain": 2979610,
+      "adjusted_fan_gain_cumulative": 7005877
+    },
+    {
+      "friend_viewer_id": 820239550206,
+      "friend_name": "DarkMaxGG",
+      "actual_date": 8,
+      "interpolated_fan_count": 194477603,
+      "adjusted_interpolated_fan_gain": 3055573,
+      "adjusted_fan_gain_cumulative": 10061450
+    },
+    {
+      "friend_viewer_id": 820239550206,
+      "friend_name": "DarkMaxGG",
+      "actual_date": 9,
+      "interpolated_fan_count": 197532220,
+      "adjusted_interpolated_fan_gain": 3054617,
+      "adjusted_fan_gain_cumulative": 13116067
+    },
+    {
+      "friend_viewer_id": 820239550206,
+      "friend_name": "DarkMaxGG",
+      "actual_date": 10,
+      "interpolated_fan_count": 203160682,
+      "adjusted_interpolated_fan_gain": 5628462,
+      "adjusted_fan_gain_cumulative": 18744529
+    },
+    {
+      "friend_viewer_id": 820239550206,
+      "friend_name": "DarkMaxGG",
+      "actual_date": 11,
+      "interpolated_fan_count": 205051603,
+      "adjusted_interpolated_fan_gain": 1890921,
+      "adjusted_fan_gain_cumulative": 20635450
+    },
+    {
+      "friend_viewer_id": 820239550206,
+      "friend_name": "DarkMaxGG",
+      "actual_date": 12,
+      "interpolated_fan_count": 205069071,
+      "adjusted_interpolated_fan_gain": 17468,
+      "adjusted_fan_gain_cumulative": 20652918
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 1,
+      "interpolated_fan_count": 710900210,
+      "adjusted_interpolated_fan_gain": 5320527,
+      "adjusted_fan_gain_cumulative": 5320527
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 2,
+      "interpolated_fan_count": 716766661,
+      "adjusted_interpolated_fan_gain": 5866451,
+      "adjusted_fan_gain_cumulative": 11186978
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 3,
+      "interpolated_fan_count": 722653856,
+      "adjusted_interpolated_fan_gain": 5887195,
+      "adjusted_fan_gain_cumulative": 17074173
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 4,
+      "interpolated_fan_count": 728131294,
+      "adjusted_interpolated_fan_gain": 5477438,
+      "adjusted_fan_gain_cumulative": 22551611
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 5,
+      "interpolated_fan_count": 734808726,
+      "adjusted_interpolated_fan_gain": 6677432,
+      "adjusted_fan_gain_cumulative": 29229043
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 6,
+      "interpolated_fan_count": 740330659,
+      "adjusted_interpolated_fan_gain": 5521933,
+      "adjusted_fan_gain_cumulative": 34750976
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 7,
+      "interpolated_fan_count": 746037419,
+      "adjusted_interpolated_fan_gain": 5706760,
+      "adjusted_fan_gain_cumulative": 40457736
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 8,
+      "interpolated_fan_count": 751481484,
+      "adjusted_interpolated_fan_gain": 5444065,
+      "adjusted_fan_gain_cumulative": 45901801
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 9,
+      "interpolated_fan_count": 757193478,
+      "adjusted_interpolated_fan_gain": 5711994,
+      "adjusted_fan_gain_cumulative": 51613795
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 10,
+      "interpolated_fan_count": 762907805,
+      "adjusted_interpolated_fan_gain": 5714327,
+      "adjusted_fan_gain_cumulative": 57328122
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 11,
+      "interpolated_fan_count": 762912404,
+      "adjusted_interpolated_fan_gain": 4599,
+      "adjusted_fan_gain_cumulative": 57332721
+    },
+    {
+      "friend_viewer_id": 823187760558,
+      "friend_name": "nashu",
+      "actual_date": 12,
+      "interpolated_fan_count": 768660592,
+      "adjusted_interpolated_fan_gain": 5748188,
+      "adjusted_fan_gain_cumulative": 63080909
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 1,
+      "interpolated_fan_count": 1078912514,
+      "adjusted_interpolated_fan_gain": 2019298,
+      "adjusted_fan_gain_cumulative": 2019298
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 2,
+      "interpolated_fan_count": 1083752436,
+      "adjusted_interpolated_fan_gain": 4839922,
+      "adjusted_fan_gain_cumulative": 6859220
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 3,
+      "interpolated_fan_count": 1087325778,
+      "adjusted_interpolated_fan_gain": 3573342,
+      "adjusted_fan_gain_cumulative": 10432562
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 4,
+      "interpolated_fan_count": 1091806744,
+      "adjusted_interpolated_fan_gain": 4480966,
+      "adjusted_fan_gain_cumulative": 14913528
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 5,
+      "interpolated_fan_count": 1095185576,
+      "adjusted_interpolated_fan_gain": 3378832,
+      "adjusted_fan_gain_cumulative": 18292360
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 6,
+      "interpolated_fan_count": 1101161358,
+      "adjusted_interpolated_fan_gain": 5975782,
+      "adjusted_fan_gain_cumulative": 24268142
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 7,
+      "interpolated_fan_count": 1106995400,
+      "adjusted_interpolated_fan_gain": 5834042,
+      "adjusted_fan_gain_cumulative": 30102184
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 8,
+      "interpolated_fan_count": 1113627250,
+      "adjusted_interpolated_fan_gain": 6631850,
+      "adjusted_fan_gain_cumulative": 36734034
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 9,
+      "interpolated_fan_count": 1118498651,
+      "adjusted_interpolated_fan_gain": 4871401,
+      "adjusted_fan_gain_cumulative": 41605435
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 10,
+      "interpolated_fan_count": 1123397492,
+      "adjusted_interpolated_fan_gain": 4898841,
+      "adjusted_fan_gain_cumulative": 46504276
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 11,
+      "interpolated_fan_count": 1128175396,
+      "adjusted_interpolated_fan_gain": 4777904,
+      "adjusted_fan_gain_cumulative": 51282180
+    },
+    {
+      "friend_viewer_id": 824849152463,
+      "friend_name": "Linird",
+      "actual_date": 12,
+      "interpolated_fan_count": 1135713260,
+      "adjusted_interpolated_fan_gain": 7537864,
+      "adjusted_fan_gain_cumulative": 58820044
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 1,
+      "interpolated_fan_count": 1104224530,
+      "adjusted_interpolated_fan_gain": 11641839,
+      "adjusted_fan_gain_cumulative": 11641839
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 2,
+      "interpolated_fan_count": 1111345304,
+      "adjusted_interpolated_fan_gain": 7120774,
+      "adjusted_fan_gain_cumulative": 18762613
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 3,
+      "interpolated_fan_count": 1122535431,
+      "adjusted_interpolated_fan_gain": 11190127,
+      "adjusted_fan_gain_cumulative": 29952740
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 4,
+      "interpolated_fan_count": 1124824728,
+      "adjusted_interpolated_fan_gain": 2289297,
+      "adjusted_fan_gain_cumulative": 32242037
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 5,
+      "interpolated_fan_count": 1137874045,
+      "adjusted_interpolated_fan_gain": 13049317,
+      "adjusted_fan_gain_cumulative": 45291354
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 6,
+      "interpolated_fan_count": 1147519340,
+      "adjusted_interpolated_fan_gain": 9645295,
+      "adjusted_fan_gain_cumulative": 54936649
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 7,
+      "interpolated_fan_count": 1154990600,
+      "adjusted_interpolated_fan_gain": 7471260,
+      "adjusted_fan_gain_cumulative": 62407909
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 8,
+      "interpolated_fan_count": 1161438885,
+      "adjusted_interpolated_fan_gain": 6448285,
+      "adjusted_fan_gain_cumulative": 68856194
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 9,
+      "interpolated_fan_count": 1167797898,
+      "adjusted_interpolated_fan_gain": 6359013,
+      "adjusted_fan_gain_cumulative": 75215207
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 10,
+      "interpolated_fan_count": 1175190451,
+      "adjusted_interpolated_fan_gain": 7392553,
+      "adjusted_fan_gain_cumulative": 82607760
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 11,
+      "interpolated_fan_count": 1184597858,
+      "adjusted_interpolated_fan_gain": 9407407,
+      "adjusted_fan_gain_cumulative": 92015167
+    },
+    {
+      "friend_viewer_id": 845795848654,
+      "friend_name": "Shelfaniel",
+      "actual_date": 12,
+      "interpolated_fan_count": 1193900574,
+      "adjusted_interpolated_fan_gain": 9302716,
+      "adjusted_fan_gain_cumulative": 101317883
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 1,
+      "interpolated_fan_count": 668168514,
+      "adjusted_interpolated_fan_gain": 4574516,
+      "adjusted_fan_gain_cumulative": 4574516
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 2,
+      "interpolated_fan_count": 672029418,
+      "adjusted_interpolated_fan_gain": 3860904,
+      "adjusted_fan_gain_cumulative": 8435420
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 3,
+      "interpolated_fan_count": 677595797,
+      "adjusted_interpolated_fan_gain": 5566379,
+      "adjusted_fan_gain_cumulative": 14001799
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 4,
+      "interpolated_fan_count": 679969295,
+      "adjusted_interpolated_fan_gain": 2373498,
+      "adjusted_fan_gain_cumulative": 16375297
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 5,
+      "interpolated_fan_count": 684946460,
+      "adjusted_interpolated_fan_gain": 4977165,
+      "adjusted_fan_gain_cumulative": 21352462
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 6,
+      "interpolated_fan_count": 688756991,
+      "adjusted_interpolated_fan_gain": 3810531,
+      "adjusted_fan_gain_cumulative": 25162993
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 7,
+      "interpolated_fan_count": 691533043,
+      "adjusted_interpolated_fan_gain": 2776052,
+      "adjusted_fan_gain_cumulative": 27939045
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 8,
+      "interpolated_fan_count": 694116933,
+      "adjusted_interpolated_fan_gain": 2583890,
+      "adjusted_fan_gain_cumulative": 30522935
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 9,
+      "interpolated_fan_count": 696931765,
+      "adjusted_interpolated_fan_gain": 2814832,
+      "adjusted_fan_gain_cumulative": 33337767
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 10,
+      "interpolated_fan_count": 699430471,
+      "adjusted_interpolated_fan_gain": 2498706,
+      "adjusted_fan_gain_cumulative": 35836473
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 11,
+      "interpolated_fan_count": 703446588,
+      "adjusted_interpolated_fan_gain": 4016117,
+      "adjusted_fan_gain_cumulative": 39852590
+    },
+    {
+      "friend_viewer_id": 849002666046,
+      "friend_name": "Akuma Anakisuto",
+      "actual_date": 12,
+      "interpolated_fan_count": 707322471,
+      "adjusted_interpolated_fan_gain": 3875883,
+      "adjusted_fan_gain_cumulative": 43728473
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 2,
+      "interpolated_fan_count": 429506273,
+      "adjusted_interpolated_fan_gain": 1246762,
+      "adjusted_fan_gain_cumulative": 1246762
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 3,
+      "interpolated_fan_count": 433663926,
+      "adjusted_interpolated_fan_gain": 4157653,
+      "adjusted_fan_gain_cumulative": 5404415
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 4,
+      "interpolated_fan_count": 435943748,
+      "adjusted_interpolated_fan_gain": 2279822,
+      "adjusted_fan_gain_cumulative": 7684237
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 5,
+      "interpolated_fan_count": 440123004,
+      "adjusted_interpolated_fan_gain": 4179256,
+      "adjusted_fan_gain_cumulative": 11863493
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 6,
+      "interpolated_fan_count": 441913316,
+      "adjusted_interpolated_fan_gain": 1790312,
+      "adjusted_fan_gain_cumulative": 13653805
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 7,
+      "interpolated_fan_count": 444637637,
+      "adjusted_interpolated_fan_gain": 2724321,
+      "adjusted_fan_gain_cumulative": 16378126
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 8,
+      "interpolated_fan_count": 448616591,
+      "adjusted_interpolated_fan_gain": 3978954,
+      "adjusted_fan_gain_cumulative": 20357080
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 9,
+      "interpolated_fan_count": 453142633,
+      "adjusted_interpolated_fan_gain": 4526042,
+      "adjusted_fan_gain_cumulative": 24883122
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 10,
+      "interpolated_fan_count": 454124558,
+      "adjusted_interpolated_fan_gain": 981925,
+      "adjusted_fan_gain_cumulative": 25865047
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 11,
+      "interpolated_fan_count": 460102564,
+      "adjusted_interpolated_fan_gain": 5978006,
+      "adjusted_fan_gain_cumulative": 31843053
+    },
+    {
+      "friend_viewer_id": 849520276205,
+      "friend_name": "Oblivion",
+      "actual_date": 12,
+      "interpolated_fan_count": 462811428,
+      "adjusted_interpolated_fan_gain": 2708864,
+      "adjusted_fan_gain_cumulative": 34551917
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 1,
+      "interpolated_fan_count": 1068368722,
+      "adjusted_interpolated_fan_gain": 4869183,
+      "adjusted_fan_gain_cumulative": 4869183
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 2,
+      "interpolated_fan_count": 1077795631,
+      "adjusted_interpolated_fan_gain": 9426909,
+      "adjusted_fan_gain_cumulative": 14296092
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 3,
+      "interpolated_fan_count": 1082959761,
+      "adjusted_interpolated_fan_gain": 5164130,
+      "adjusted_fan_gain_cumulative": 19460222
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 4,
+      "interpolated_fan_count": 1083943017,
+      "adjusted_interpolated_fan_gain": 983256,
+      "adjusted_fan_gain_cumulative": 20443478
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 5,
+      "interpolated_fan_count": 1085871073,
+      "adjusted_interpolated_fan_gain": 1928056,
+      "adjusted_fan_gain_cumulative": 22371534
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 6,
+      "interpolated_fan_count": 1094472617,
+      "adjusted_interpolated_fan_gain": 8601544,
+      "adjusted_fan_gain_cumulative": 30973078
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 7,
+      "interpolated_fan_count": 1099704314,
+      "adjusted_interpolated_fan_gain": 5231697,
+      "adjusted_fan_gain_cumulative": 36204775
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 8,
+      "interpolated_fan_count": 1107205629,
+      "adjusted_interpolated_fan_gain": 7501315,
+      "adjusted_fan_gain_cumulative": 43706090
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 9,
+      "interpolated_fan_count": 1113818093,
+      "adjusted_interpolated_fan_gain": 6612464,
+      "adjusted_fan_gain_cumulative": 50318554
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 10,
+      "interpolated_fan_count": 1122617359,
+      "adjusted_interpolated_fan_gain": 8799266,
+      "adjusted_fan_gain_cumulative": 59117820
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 11,
+      "interpolated_fan_count": 1132737300,
+      "adjusted_interpolated_fan_gain": 10119941,
+      "adjusted_fan_gain_cumulative": 69237761
+    },
+    {
+      "friend_viewer_id": 849536860698,
+      "friend_name": "Cyn",
+      "actual_date": 12,
+      "interpolated_fan_count": 1142962730,
+      "adjusted_interpolated_fan_gain": 10225430,
+      "adjusted_fan_gain_cumulative": 79463191
+    },
+    {
+      "friend_viewer_id": 877922970911,
+      "friend_name": "Haruka",
+      "actual_date": 1,
+      "interpolated_fan_count": 1091966655,
+      "adjusted_interpolated_fan_gain": 8940973,
+      "adjusted_fan_gain_cumulative": 8940973
+    },
+    {
+      "friend_viewer_id": 877922970911,
+      "friend_name": "Haruka",
+      "actual_date": 2,
+      "interpolated_fan_count": 1100912125,
+      "adjusted_interpolated_fan_gain": 8945470,
+      "adjusted_fan_gain_cumulative": 17886443
+    },
+    {
+      "friend_viewer_id": 877922970911,
+      "friend_name": "Haruka",
+      "actual_date": 3,
+      "interpolated_fan_count": 1109513073,
+      "adjusted_interpolated_fan_gain": 8600948,
+      "adjusted_fan_gain_cumulative": 26487391
+    },
+    {
+      "friend_viewer_id": 877922970911,
+      "friend_name": "Haruka",
+      "actual_date": 4,
+      "interpolated_fan_count": 1118156033,
+      "adjusted_interpolated_fan_gain": 8642960,
+      "adjusted_fan_gain_cumulative": 35130351
+    },
+    {
+      "friend_viewer_id": 877922970911,
+      "friend_name": "Haruka",
+      "actual_date": 5,
+      "interpolated_fan_count": 1127042298,
+      "adjusted_interpolated_fan_gain": 8886265,
+      "adjusted_fan_gain_cumulative": 44016616
+    },
+    {
+      "friend_viewer_id": 877922970911,
+      "friend_name": "Haruka",
+      "actual_date": 6,
+      "interpolated_fan_count": 1134380601,
+      "adjusted_interpolated_fan_gain": 7338303,
+      "adjusted_fan_gain_cumulative": 51354919
+    },
+    {
+      "friend_viewer_id": 912510958587,
+      "friend_name": "gilko",
+      "actual_date": 1,
+      "interpolated_fan_count": 963360264,
+      "adjusted_interpolated_fan_gain": 7744932,
+      "adjusted_fan_gain_cumulative": 7744932
+    },
+    {
+      "friend_viewer_id": 912510958587,
+      "friend_name": "gilko",
+      "actual_date": 2,
+      "interpolated_fan_count": 975782383,
+      "adjusted_interpolated_fan_gain": 12422119,
+      "adjusted_fan_gain_cumulative": 20167051
+    },
+    {
+      "friend_viewer_id": 912510958587,
+      "friend_name": "gilko",
+      "actual_date": 3,
+      "interpolated_fan_count": 984307530,
+      "adjusted_interpolated_fan_gain": 8525147,
+      "adjusted_fan_gain_cumulative": 28692198
+    },
+    {
+      "friend_viewer_id": 912510958587,
+      "friend_name": "gilko",
+      "actual_date": 4,
+      "interpolated_fan_count": 993375023,
+      "adjusted_interpolated_fan_gain": 9067493,
+      "adjusted_fan_gain_cumulative": 37759691
+    }
+  ],
+  "month_filter": [
+    {
+      "sdate": "2026-04-01"
+    },
+    {
+      "sdate": "2026-03-01"
+    },
+    {
+      "sdate": "2026-02-01"
+    },
+    {
+      "sdate": "2026-01-01"
+    },
+    {
+      "sdate": "2025-12-01"
+    },
+    {
+      "sdate": "2025-11-01"
+    },
+    {
+      "sdate": "2025-10-01"
+    },
+    {
+      "sdate": "2025-09-01"
+    },
+    {
+      "sdate": "2025-08-01"
+    },
+    {
+      "sdate": "2025-07-01"
+    }
+  ]
+}
