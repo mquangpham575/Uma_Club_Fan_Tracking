@@ -5,10 +5,8 @@ on:
     branches: ["main"]
   repository_dispatch:
     types: [external-cron]
-  schedule:
-    - cron: '2 15 * * *' # Runs at 15:02 UTC daily
-  workflow_dispatch: 
-  
+  workflow_dispatch:
+
 permissions:
   contents: write
 
@@ -53,7 +51,7 @@ jobs:
           max_attempts: 2
           retry_wait_seconds: 15
           command: xvfb-run --auto-servernum uv run python src/main.py --cron --engine chrono
-          
+
       - name: Commit and push data
         run: |
           git config --global user.name "github-actions[bot]"
