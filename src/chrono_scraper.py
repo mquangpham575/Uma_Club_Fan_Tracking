@@ -8,25 +8,29 @@ async def scrape_club_data(cfg: dict, zd):
     search_id = cfg.get('club_id')
 
     import sys
-    if sys.platform == "win32":
-        # Windows development environment
+    is_linux = sys.platform != "win32"
+    if not is_linux:
         executable = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
         browser_type = "edge"
+        is_headless = False
     else:
-        # Linux / GitHub Actions runner
         executable = "/usr/bin/google-chrome"
         browser_type = "chrome"
+        is_headless = True
 
     browser = await zd.start(
         browser=browser_type,
         browser_executable_path=executable,
-        headless=False,
+        headless=is_headless,
         sandbox=False,
         browser_args=[
             "--disable-gpu",
             "--disable-dev-shm-usage",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--password-store=basic",
         ],
-        browser_connection_timeout=5.0,
+        browser_connection_timeout=20.0,
         browser_connection_max_tries=60,
     )
 
@@ -50,7 +54,7 @@ async def scrape_club_data(cfg: dict, zd):
         try:
             search_box = await page.select(".club-id-input", timeout=45)
         except asyncio.TimeoutError:
-            title = page.title
+            title = await page.get_title()
             url = page.url
             print(f"  [Scraper Error] search_box timeout at {url} (Title: {title})", flush=True)
             raise
@@ -79,43 +83,13 @@ async def scrape_club_data(cfg: dict, zd):
 
         for req_id, url in captured_responses.items():
             try:
-                # 1. Fetch body from Chrome
-                response_body, _ = await page.send(
+                 response_body, _ = await page.send(
                     zd.cdp.network.get_response_body(request_id=req_id)
                 )
-                
-                # 2. Strict Validation: Does it look like a valid club response?
-                is_valid_url = url.startswith(target_url_prefix)
-                has_history = "club_friend_history" in response_body
-                
-                # 3. Best effort selection
-                if is_valid_url or has_history:
-                    # Preference: 1. Has history, 2. Has profile, 3. Any valid JSON from correct URL
-                    try:
-                        import json
-                        parsed = json.loads(response_body)
-                        
-                        # Rank the response
-                        score = 0
-                        if "club_friend_history" in parsed: score = 10
-                        elif "club_profile" in parsed: score = 5
-                        elif is_valid_url: score = 1
-                        
-                        if score > 0:
-                            current_best_score = 0
-                            if best_response:
-                                try:
-                                    best_parsed = json.loads(best_response)
-                                    if "club_friend_history" in best_parsed: current_best_score = 10
-                                    elif "club_profile" in best_parsed: current_best_score = 5
-                                    else: current_best_score = 1
-                                except: pass
-                            
-                            if score >= current_best_score:
-                                best_response = response_body
-                                print(f"  [Scraper] Captured valid data (Score: {score})", flush=True)
-                    except:
-                        continue 
+                 if url.startswith(target_url_prefix) or "club_friend_history" in response_body:
+                     if best_response is None or "club_friend_history" in response_body:
+                         best_response = response_body
+                         print(f"  [Scraper] Selecting response: {url}", flush=True)
             except Exception:
                 pass
     finally:

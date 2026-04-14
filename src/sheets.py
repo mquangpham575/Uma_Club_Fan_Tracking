@@ -109,45 +109,21 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
     if club_row:
         values.append(club_row)
 
-    import time
-    
-    for attempt in range(3):
-        try:
-            ss = gc_client.open_by_key(spreadsheet_id)
-            try:
-                ws = ss.worksheet(sheet_title)
-                # Instead of deleting, we now clear values and formatting for stability
-                ws.clear()
-                # Clear basic filters and banding if they exist (best effort)
-                try:
-                    ws.spreadsheet.batch_update({
-                        "requests": [
-                            {"clearBasicFilter": {"sheetId": int(ws.id)}},
-                            # We can't easily clear all banding without knowing IDs, 
-                            # but re-adding usually works if we avoid overlaps.
-                        ]
-                    })
-                except:
-                    pass
-            except gspread.WorksheetNotFound:
-                ws = ss.add_worksheet(title=sheet_title, rows=100, cols=20)
-            
-            # Update values
-            end_row = len(values)
-            end_col = len(header)
-            end_a1 = rowcol_to_a1(end_row, end_col)
-            
-            # Resize if needed
-            if ws.row_count < end_row or ws.col_count < end_col:
-                ws.resize(rows=max(end_row + 10, ws.row_count), cols=max(end_col + 5, ws.col_count))
-            
-            ws.update(values, f"A1:{end_a1}")
-            break # Success
-        except Exception as e:
-            if attempt == 2: raise e
-            time.sleep(2) # Backoff
-    
-    sheet_id = int(ws.id)
+    ss = gc_client.open_by_key(spreadsheet_id)
+    try:
+        ws = ss.worksheet(sheet_title)
+        ss.del_worksheet(ws)
+    except gspread.WorksheetNotFound:
+        pass
+        
+    ws = ss.add_worksheet(title=sheet_title, rows=max(len(values) + 50, 120), cols=max(len(header) + 10, 26))
+
+    end_row = len(values)
+    end_col = len(header)
+    end_a1 = rowcol_to_a1(end_row, end_col)
+    ws.update(values, f"A1:{end_a1}")
+
+    sheet_id = int(ws.id)  # Adjustment: cast to int for API
     last_data_row_1based = 1 + len(data_rows) 
 
     header_range = {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": end_col}
