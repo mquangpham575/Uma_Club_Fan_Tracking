@@ -79,5 +79,6 @@ async def fetch_club_data(club_cfg: dict):
                 
     return {
         "club_friend_history": club_friend_history,
-        "club_daily_history": []
+        "club_daily_history": [],
+        "raw_response": data # Return full raw JSON for UmaCore sync
     }

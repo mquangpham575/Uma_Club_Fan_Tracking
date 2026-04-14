@@ -28,6 +28,7 @@ except ImportError as e:
 from src.processing import build_dataframe
 from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
 from src.utils import clear_screen, setup_windows_console
+from src.sync import sync_raw_json_to_db # New database sync logic
 
 
 # Helper Functions
@@ -135,6 +136,14 @@ async def process_and_export_club(cfg: dict, gc_client, engine="UMOE", zd_module
     # Process DataFrame (CPU-bound, fast)
     df = build_dataframe(data)
     
+    # STEP: Database Sync (Push raw JSON to UmaCore DB)
+    circle_id = cfg.get("club_id")
+    if circle_id:
+        print(f"  Syncing raw JSON for {cfg['title']} ({circle_id}) to DB...", flush=True)
+        # For Chrono, it's a string. For UMOE, it's in raw_response.
+        raw_to_sync = pre_fetched_data if pre_fetched_data else (data.get("raw_response") if engine == "UMOE" else data)
+        await sync_raw_json_to_db(circle_id, raw_to_sync)
+
     # Export to Google Sheets (Blocking I/O - Run in Thread)
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(
