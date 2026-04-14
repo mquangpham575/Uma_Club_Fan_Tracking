@@ -79,13 +79,28 @@ async def scrape_club_data(cfg: dict, zd):
 
         for req_id, url in captured_responses.items():
             try:
-                 response_body, _ = await page.send(
+                # 1. Fetch body from Chrome
+                response_body, _ = await page.send(
                     zd.cdp.network.get_response_body(request_id=req_id)
                 )
-                 if url.startswith(target_url_prefix) or "club_friend_history" in response_body:
-                     if best_response is None or "club_friend_history" in response_body:
-                         best_response = response_body
-                         print(f"  [Scraper] Selecting response: {url}", flush=True)
+                
+                # 2. Strict Validation: Does it look like a valid club response?
+                is_valid_url = url.startswith(target_url_prefix)
+                has_history = "club_friend_history" in response_body
+                
+                # 3. Preference: Favor responses that definitely have history data
+                if is_valid_url or has_history:
+                    # If we haven't found anything yet, or if this one is "better" (has history)
+                    if best_response is None or (has_history and "club_friend_history" not in best_response):
+                        # Ensure it's valid JSON before saving
+                        import json
+                        try:
+                            parsed = json.loads(response_body)
+                            if "club_friend_history" in parsed or "club_profile" in parsed:
+                                best_response = response_body
+                                print(f"  [Scraper] Valid response captured: {url}", flush=True)
+                        except:
+                            continue 
             except Exception:
                 pass
     finally:
