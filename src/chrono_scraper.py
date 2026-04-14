@@ -12,25 +12,26 @@ async def scrape_club_data(cfg: dict, zd):
     if not is_linux:
         executable = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
         browser_type = "edge"
-        is_headless = False
     else:
         executable = "/usr/bin/google-chrome"
         browser_type = "chrome"
-        is_headless = True
 
+    # Optimization: Use headless=False even on Linux to leverage xvfb-run
+    # This is less likely to be detected as a bot by services like Cloudflare.
     browser = await zd.start(
         browser=browser_type,
         browser_executable_path=executable,
-        headless=is_headless,
+        headless=False, 
         sandbox=False,
         browser_args=[
             "--disable-gpu",
             "--disable-dev-shm-usage",
             "--no-first-run",
             "--no-default-browser-check",
-            "--password-store=basic",
+            "--window-size=1280,720",
+            "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
         ],
-        browser_connection_timeout=20.0,
+        browser_connection_timeout=30.0,
         browser_connection_max_tries=60,
     )
 
@@ -54,10 +55,14 @@ async def scrape_club_data(cfg: dict, zd):
         try:
             search_box = await page.select(".club-id-input", timeout=45)
         except asyncio.TimeoutError:
-            title = await page.get_title()
+            try:
+                title = await page.evaluate("document.title")
+            except:
+                title = "Unknown"
             url = page.url
             print(f"  [Scraper Error] search_box timeout at {url} (Title: {title})", flush=True)
             raise
+
 
         await search_box.send_keys(search_id)
         await search_box.send_keys(zd.SpecialKeys.ENTER)
