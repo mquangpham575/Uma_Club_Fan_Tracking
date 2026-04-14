@@ -2,6 +2,11 @@ import asyncio
 import os
 import sys
 import random
+import logging
+
+# Silence verbose browser logs
+logging.getLogger("zendriver").setLevel(logging.WARNING)
+logging.getLogger("uc").setLevel(logging.WARNING)
 
 # Import Globals
 try:
