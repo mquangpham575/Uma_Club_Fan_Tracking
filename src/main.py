@@ -59,7 +59,6 @@ except Exception as e:
 from src.processing import build_dataframe
 from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
 from src.utils import clear_screen, setup_windows_console
-from src.sync import sync_raw_json_to_db # New database sync logic
 
 
 # Global lock to prevent concurrent Google Sheets structural modifications
@@ -187,20 +186,12 @@ async def process_and_export_club(cfg: dict, gc_client, engine="UMOE", zd_module
     # Process DataFrame (CPU-bound, fast)
     df = build_dataframe(data)
     
-    # STEP: Database Sync (Keep as backup, but now we PRIMARY save to file)
+    # STEP: Save raw JSON to file (API approach)
     circle_id = cfg.get("club_id")
     if circle_id:
         # For Chrono, it's a string. For UMOE, it's in raw_response.
         raw_to_sync = pre_fetched_data if pre_fetched_data else (data.get("raw_response") if engine == "UMOE" else data)
-        
-        # 1. Save to local file (New API approach)
         save_raw_json_to_file(circle_id, raw_to_sync)
-        
-        # 2. Sync to DB (Optional backup)
-        try:
-            await sync_raw_json_to_db(circle_id, raw_to_sync)
-        except Exception:
-            pass
 
     # Export to Google Sheets (Blocking I/O - Run in Thread)
     # Using the global SHEETS_LOCK to prevent concurrent structural modifications (del/add worksheet)

@@ -7,7 +7,10 @@ on:
     types: [external-cron]
   schedule:
     - cron: '2 15 * * *' # Runs at 15:02 UTC daily
-  workflow_dispatch: # Allows running it manually from the UI and via API
+  workflow_dispatch: 
+  
+permissions:
+  contents: write
 
 jobs:
   run-tracker:
@@ -44,7 +47,6 @@ jobs:
       - name: Run Tracker
         uses: nick-fields/retry@v3
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
         with:
           timeout_minutes: 15
