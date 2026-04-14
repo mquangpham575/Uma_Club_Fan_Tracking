@@ -24,6 +24,31 @@ except ImportError as e:
     print(f"Error: 'globals.py' not found (Base path: {base_path}). Details: {e}")
     sys.exit(1)
 
+# --- PATCH FOR ZENDRIVER CDP COMPATIBILITY ---
+try:
+    import zendriver.cdp.network as network
+    
+    # Patch ClientSecurityState to handle missing 'privateNetworkRequestPolicy'
+    _orig_css_from_json = network.ClientSecurityState.from_json
+    def patched_css_from_json(json):
+        if "privateNetworkRequestPolicy" not in json:
+            json["privateNetworkRequestPolicy"] = "PreflightBlock" # Default value
+        return _orig_css_from_json(json)
+    network.ClientSecurityState.from_json = patched_css_from_json
+    
+    # Patch Cookie to handle missing 'sameParty'
+    _orig_cookie_from_json = network.Cookie.from_json
+    def patched_cookie_from_json(json):
+        if "sameParty" not in json:
+            json["sameParty"] = False
+        return _orig_cookie_from_json(json)
+    network.Cookie.from_json = patched_cookie_from_json
+    
+    print("Applied Zendriver compatibility patches for Chrome 146+")
+except Exception as e:
+    print(f"Note: Could not apply Zendriver patches: {e}")
+# ---------------------------------------------
+
 # Import Modules
 from src.processing import build_dataframe
 from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets

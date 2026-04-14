@@ -5,6 +5,8 @@ on:
     branches: ["main"]
   repository_dispatch:
     types: [external-cron]
+  schedule:
+    - cron: '2 15 * * *' # Runs at 15:02 UTC daily
   workflow_dispatch: # Allows running it manually from the UI and via API
 
 jobs:
@@ -41,6 +43,9 @@ jobs:
       # Retry the tracker run upon failure to improve robustness
       - name: Run Tracker
         uses: nick-fields/retry@v3
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
         with:
           timeout_minutes: 15
           max_attempts: 2
