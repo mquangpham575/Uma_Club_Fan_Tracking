@@ -3,6 +3,7 @@ import os
 import sys
 import random
 import logging
+import json
 
 # Silence verbose browser logs
 logging.getLogger("zendriver").setLevel(logging.WARNING)
@@ -63,6 +64,24 @@ from src.sync import sync_raw_json_to_db # New database sync logic
 
 # Global lock to prevent concurrent Google Sheets structural modifications
 SHEETS_LOCK = asyncio.Lock()
+
+def save_raw_json_to_file(circle_id: str, raw_data: any):
+    """Save raw JSON to a local file for GitHub Pages hosting"""
+    if not raw_data:
+        return
+    
+    os.makedirs("api_data", exist_ok=True)
+    file_path = f"api_data/{circle_id}.json"
+    
+    with open(file_path, "w", encoding="utf-8") as f:
+        # Ensure it's a dict before saving
+        if isinstance(raw_data, str):
+            try:
+                raw_data = json.loads(raw_data)
+            except Exception:
+                pass
+        json.dump(raw_data, f, indent=2, ensure_ascii=False)
+    print(f"  [API] Saved raw JSON to {file_path}", flush=True)
 # Helper Functions
 def select_engine() -> str:
     clear_screen()
@@ -168,13 +187,20 @@ async def process_and_export_club(cfg: dict, gc_client, engine="UMOE", zd_module
     # Process DataFrame (CPU-bound, fast)
     df = build_dataframe(data)
     
-    # STEP: Database Sync (Push raw JSON to UmaCore DB)
+    # STEP: Database Sync (Keep as backup, but now we PRIMARY save to file)
     circle_id = cfg.get("club_id")
     if circle_id:
-        print(f"  Syncing raw JSON for {cfg['title']} ({circle_id}) to DB...", flush=True)
         # For Chrono, it's a string. For UMOE, it's in raw_response.
         raw_to_sync = pre_fetched_data if pre_fetched_data else (data.get("raw_response") if engine == "UMOE" else data)
-        await sync_raw_json_to_db(circle_id, raw_to_sync)
+        
+        # 1. Save to local file (New API approach)
+        save_raw_json_to_file(circle_id, raw_to_sync)
+        
+        # 2. Sync to DB (Optional backup)
+        try:
+            await sync_raw_json_to_db(circle_id, raw_to_sync)
+        except Exception:
+            pass
 
     # Export to Google Sheets (Blocking I/O - Run in Thread)
     # Using the global SHEETS_LOCK to prevent concurrent structural modifications (del/add worksheet)
