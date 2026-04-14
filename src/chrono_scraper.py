@@ -1,4 +1,6 @@
 import asyncio
+import os
+import sys
 
 async def scrape_club_data(cfg: dict, zd):
     """
@@ -7,31 +9,25 @@ async def scrape_club_data(cfg: dict, zd):
     """
     search_id = cfg.get('club_id')
 
-    import sys
-    is_linux = sys.platform != "win32"
-    if not is_linux:
+    if sys.platform == "win32":
+        # Windows development environment
         executable = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
         browser_type = "edge"
     else:
+        # Linux / GitHub Actions runner
         executable = "/usr/bin/google-chrome"
         browser_type = "chrome"
 
-    # Optimization: Use headless=False even on Linux to leverage xvfb-run
-    # This is less likely to be detected as a bot by services like Cloudflare.
     browser = await zd.start(
         browser=browser_type,
         browser_executable_path=executable,
-        headless=False, 
+        headless=False,
         sandbox=False,
         browser_args=[
             "--disable-gpu",
             "--disable-dev-shm-usage",
-            "--no-first-run",
-            "--no-default-browser-check",
-            "--window-size=1280,720",
-            "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
         ],
-        browser_connection_timeout=30.0,
+        browser_connection_timeout=5.0,
         browser_connection_max_tries=60,
     )
 
@@ -52,20 +48,17 @@ async def scrape_club_data(cfg: dict, zd):
         await page.send(zd.cdp.network.enable())
         page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
 
-        # Give the page extra time to render slow UI components on limited-resource CI
-        await asyncio.sleep(10)
-        
+        # Standard selection logic (Clean and simple)
         try:
-            search_box = await page.select(".club-id-input", timeout=60)
+            search_box = await page.select(".club-id-input", timeout=20)
         except asyncio.TimeoutError:
+            # Safe diagnostic info
             try:
                 title = await page.evaluate("document.title")
             except:
                 title = "Unknown"
-            url = page.url
-            print(f"  [Scraper Error] search_box timeout at {url} (Title: {title})", flush=True)
+            print(f"  [Scraper Error] search_box timeout at {page.url} (Title: {title})", flush=True)
             raise
-
 
         await search_box.send_keys(search_id)
         await search_box.send_keys(zd.SpecialKeys.ENTER)
@@ -73,7 +66,7 @@ async def scrape_club_data(cfg: dict, zd):
 
         # Click the result to ensure full club data is loaded
         try:
-            results = await page.select_all(".club-results-row", timeout=20)
+            results = await page.select_all(".club-results-row", timeout=10)
             for result in results:
                 content = result.text_all.lower()
                 if search_id in content:
@@ -104,5 +97,3 @@ async def scrape_club_data(cfg: dict, zd):
         await browser.stop()
 
     return best_response
-
-
