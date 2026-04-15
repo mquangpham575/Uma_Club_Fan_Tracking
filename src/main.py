@@ -123,11 +123,7 @@ async def process_club_workflow(
     cfg: dict,
     gc_client,
     engine,
-    zd_module,
-    initial_result,
     retry_delay: int,
-    chrono_start_interval: float,
-    chrono_timeout_cooldown: int,
     max_attempts: int,
     per_club_timeout_seconds: int,
 ) -> bool:
@@ -137,19 +133,15 @@ async def process_club_workflow(
     
     while attempt < max_attempts:
         try:
-            # use initial_result only on first attempt if it's valid
-            data = initial_result if (attempt == 0 and not isinstance(initial_result, Exception)) else None
-
             # Phase 1: Fetch
-            if data is None:
-                from src.chrono_scraper import scrape_club_data
-                raw_data = await asyncio.wait_for(
-                    scrape_club_data(cfg),
-                    timeout=per_club_timeout_seconds
-                )
-                if not raw_data:
-                    raise Exception("Chrono API fetch failed")
-                data = json.loads(raw_data)
+            from src.chrono_scraper import scrape_club_data
+            raw_data = await asyncio.wait_for(
+                scrape_club_data(cfg),
+                timeout=per_club_timeout_seconds
+            )
+            if not raw_data:
+                raise Exception("API fetch failed")
+            data = json.loads(raw_data)
             
             if isinstance(data, Exception): 
                 raise data
@@ -187,16 +179,12 @@ async def process_club_workflow(
             attempt_no = attempt + 1
             prefix = colorize("[Error]", LogColor.ERROR)
             print(f"  {prefix} on {title} (Attempt {attempt_no}): {e}", flush=True)
-            is_selector_timeout = "club-id-input" in str(e) or "search_box timeout" in str(e)
 
             attempt += 1
             if attempt >= max_attempts:
                 return False
 
-            delay = retry_delay
-            if engine == "CHRONO" and is_selector_timeout:
-                delay = max(retry_delay, chrono_timeout_cooldown)
-            delay += random.uniform(1, 4)
+            delay = retry_delay + random.uniform(1, 4)
             prefix = colorize("[Retry]", LogColor.RETRY)
             print(f"  {prefix} {title}: sleeping {delay:.1f}s before attempt {attempt + 1}...", flush=True)
             await asyncio.sleep(delay)
@@ -231,78 +219,65 @@ async def main():
     # Lazy-loading Dependencies
     zd = None
 
-    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "3"))
-    CHRONO_START_INTERVAL = float(os.getenv("CHRONO_START_INTERVAL", "8"))
-    CHRONO_RETRY_DELAY = int(os.getenv("CHRONO_RETRY_DELAY", "15"))
-    CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "12"))
-    CHRONO_MAX_ATTEMPTS = int(os.getenv("CHRONO_MAX_ATTEMPTS", "3"))
-    CHRONO_PER_CLUB_TIMEOUT = int(os.getenv("CHRONO_PER_CLUB_TIMEOUT", "90"))
-    SKIP_FRESH_CHRONO = False
-    FRESH_MAX_AGE_HOURS = int(os.getenv("FRESH_MAX_AGE_HOURS", "1"))
-
-    BATCH_SIZE = CHRONO_BATCH_SIZE if engine_choice == "CHRONO" else 5
-    RETRY_DELAY = CHRONO_RETRY_DELAY if engine_choice == "CHRONO" else 5
-    
+    RETRY_DELAY = int(os.getenv("CHRONO_RETRY_DELAY", "5"))
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
 
-    if engine_choice == "CHRONO" and choice == "ALL" and SKIP_FRESH_CHRONO:
-        original_count = len(clubs_to_process)
-        clubs_to_process = {
-            k: v for k, v in clubs_to_process.items()
-            if not has_fresh_snapshot(v.get("club_id", ""), FRESH_MAX_AGE_HOURS)
-        }
-        skipped = original_count - len(clubs_to_process)
-        if skipped > 0:
-            print(
-                f"Skipping {skipped} clubs with fresh snapshots (<= {FRESH_MAX_AGE_HOURS}h old).",
-                flush=True,
-            )
-    club_keys = list(clubs_to_process.keys())
-    batches = [club_keys[i:i + BATCH_SIZE] for i in range(0, len(club_keys), BATCH_SIZE)]
+    # Redundancy check: Skip if today's data is already updated
+    if is_cron and choice == "ALL":
+        try:
+            # Chrono resets at 10:00 UTC. 
+            # The data available at 10:00 UTC reflects results from 'Yesterday'.
+            # e.g., On Day 15, after 10:00 UTC, we expect 'Day 14' to be present.
+            now_utc = datetime.now(timezone.utc)
+            reset_time = now_utc.replace(hour=10, minute=0, second=0, microsecond=0)
+            
+            # Target day number calculation
+            if now_utc >= reset_time:
+                target_day_num = now_utc.day - 1
+            else:
+                target_day_num = now_utc.day - 2
+                
+            # Handle start of month edge cases
+            if target_day_num > 0:
+                target_col_name = f"Day {target_day_num}"
+                
+                # Check the first club's sheet as a status indicator
+                first_club_title = list(CLUBS.values())[0]['title']
+                ss = GC.open_by_key(SHEET_ID)
+                try:
+                    ws = ss.worksheet(first_club_title)
+                    headers = ws.row_values(1)
+                    if target_col_name in headers:
+                        print(f"--- Skip: Sheet is already up to date with {target_col_name} ---")
+                        return
+                except Exception:
+                    pass # Proceed if sheet not found
+        except Exception as e:
+            print(f"Warning: Freshness check failed, proceeding anyway: {e}")
 
     total_failures = 0
-    if sync_only:
-        # Skip Scrape Phase
-        batches = []
-        print("\nSkipping Scraping Phase (--sync-only)...\n", flush=True)
-    else:
-        print(f"\nProcessing {len(club_keys)} clubs (Engine: {engine_choice})...\n", flush=True)
+    print(f"\nProcessing {len(clubs_to_process)} clubs (Engine: {engine_choice})...\n", flush=True)
 
-    for batch_idx, batch_keys in enumerate(batches):
-        batch_text = colorize(f"Batch {batch_idx + 1}/{len(batches)}", LogColor.BATCH)
-        print(f"{batch_text}: Processing {len(batch_keys)} items...", flush=True)
-        
-        # Step 1: Parallel Fetch (Mapping Phase)
-        results_map = {key: None for key in batch_keys}
-
-        # Step 2: Parallel Export & Processing
-        export_tasks = []
-        for key in batch_keys:
-            cfg = CLUBS[key]
-            result = results_map.get(key)
-            export_tasks.append(
-                asyncio.create_task(
-                    process_club_workflow(
-                        key,
-                        cfg,
-                        GC,
-                        engine_choice,
-                        zd,
-                        result,
-                        RETRY_DELAY,
-                        CHRONO_START_INTERVAL,
-                        CHRONO_TIMEOUT_COOLDOWN,
-                        CHRONO_MAX_ATTEMPTS,
-                        CHRONO_PER_CLUB_TIMEOUT
-                    )
+    # Launch all tasks simultaneously (Speed of API)
+    tasks = []
+    for key, cfg in clubs_to_process.items():
+        tasks.append(
+            asyncio.create_task(
+                process_club_workflow(
+                    key,
+                    cfg,
+                    GC,
+                    engine_choice,
+                    RETRY_DELAY,
+                    3,    # max_attempts
+                    90    # timeout
                 )
             )
+        )
             
-        # Wait for all exports in this batch to finish
-        batch_outcomes = await asyncio.gather(*export_tasks)
-        failures = batch_outcomes.count(False)
-        total_failures += failures
-        print("") 
+    # Wait for all club updates to finish
+    outcomes = await asyncio.gather(*tasks)
+    total_failures = outcomes.count(False)
 
     # Reordering is now always the final step after the parallel gather
     print("Reordering sheets...", flush=True)
