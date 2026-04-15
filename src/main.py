@@ -59,7 +59,7 @@ except Exception as e:
 # Import Modules
 from src.processing import build_dataframe
 from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
-from src.utils import clear_screen, setup_windows_console
+from src.utils import clear_screen, setup_windows_console, LogColor, colorize
 
 
 # Global lock to prevent concurrent Google Sheets structural modifications
@@ -78,7 +78,8 @@ async def throttle_chrono_start(min_interval_seconds: float):
         now = loop.time()
         wait_for = max(0.0, min_interval_seconds - (now - CHRONO_LAST_START_MONO))
         if wait_for > 0:
-            print(f"  [Cooldown] Waiting {wait_for:.1f}s before next Chrono request...", flush=True)
+            prefix = colorize("[Cooldown]", LogColor.COOLDOWN)
+            print(f"  {prefix} Waiting {wait_for:.1f}s before next Chrono request...", flush=True)
             await asyncio.sleep(wait_for)
         CHRONO_LAST_START_MONO = loop.time()
 
@@ -108,7 +109,8 @@ def save_raw_json_to_file(circle_id: str, raw_data: any):
             except Exception:
                 pass
         json.dump(raw_data, f, indent=2, ensure_ascii=False)
-    print(f"  [API] Saved raw JSON to {file_path}", flush=True)
+    prefix = colorize("[API]", LogColor.API)
+    print(f"  {prefix} Saved raw JSON to {file_path}", flush=True)
 # Helper Functions
 def select_engine() -> str:
     clear_screen()
@@ -272,12 +274,14 @@ async def process_club_workflow(
                 ),
                 timeout=per_club_timeout_seconds,
             )
-            print(f"  Success: {title}", flush=True)
+            prefix = colorize("[Success]", LogColor.SUCCESS)
+            print(f"  {prefix} {title}", flush=True)
             return True
             
         except Exception as e:
             attempt_no = attempt + 1
-            print(f"  Error on {title} (Attempt {attempt_no}): {e}", flush=True)
+            prefix = colorize("[Error]", LogColor.ERROR)
+            print(f"  {prefix} on {title} (Attempt {attempt_no}): {e}", flush=True)
             is_selector_timeout = "club-id-input" in str(e) or "search_box timeout" in str(e)
 
             attempt += 1
@@ -288,7 +292,8 @@ async def process_club_workflow(
             if engine == "CHRONO" and is_selector_timeout:
                 delay = max(retry_delay, chrono_timeout_cooldown)
             delay += random.uniform(1, 4)
-            print(f"  [Retry] {title}: sleeping {delay:.1f}s before attempt {attempt + 1}...", flush=True)
+            prefix = colorize("[Retry]", LogColor.RETRY)
+            print(f"  {prefix} {title}: sleeping {delay:.1f}s before attempt {attempt + 1}...", flush=True)
             await asyncio.sleep(delay)
 
 async def main():
@@ -344,7 +349,7 @@ async def main():
     CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "28"))
     CHRONO_MAX_ATTEMPTS = int(os.getenv("CHRONO_MAX_ATTEMPTS", "2"))
     CHRONO_PER_CLUB_TIMEOUT = int(os.getenv("CHRONO_PER_CLUB_TIMEOUT", "120"))
-    SKIP_FRESH_CHRONO = True  # Temporarily disabled for active testing
+    SKIP_FRESH_CHRONO = False  # Temporarily disabled for active testing
     FRESH_MAX_AGE_HOURS = int(os.getenv("FRESH_MAX_AGE_HOURS", "12"))
 
     BATCH_SIZE = CHRONO_BATCH_SIZE if engine_choice == "CHRONO" else 5
@@ -371,7 +376,8 @@ async def main():
     
     total_failures = 0
     for batch_idx, batch_keys in enumerate(batches):
-        print(f"Batch {batch_idx + 1}/{len(batches)}: Processing {len(batch_keys)} items...", flush=True)
+        batch_text = colorize(f"Batch {batch_idx + 1}/{len(batches)}", LogColor.BATCH)
+        print(f"{batch_text}: Processing {len(batch_keys)} items...", flush=True)
         
         # Step 1: Parallel Fetch
         results_map = {}

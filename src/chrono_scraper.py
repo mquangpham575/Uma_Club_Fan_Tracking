@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+from src.utils import LogColor, colorize
 
 async def scrape_club_data(cfg: dict, zd):
     """
@@ -57,7 +58,8 @@ async def scrape_club_data(cfg: dict, zd):
                 title = await page.evaluate("document.title")
             except:
                 title = "Unknown"
-            print(f"  [Scraper Error] search_box timeout at {page.url} (Title: {title})", flush=True)
+            prefix = colorize("[Scraper Error]", LogColor.ERROR)
+            print(f"  {prefix} search_box timeout at {page.url} (Title: {title})", flush=True)
             raise
 
         await search_box.send_keys(search_id)
@@ -79,8 +81,8 @@ async def scrape_club_data(cfg: dict, zd):
         await asyncio.sleep(8)
 
         target_url_prefix = f"https://api.chronogenesis.net/club_profile?circle_id={search_id}"
-
-        print(f"  [Scraper] Captured {len(captured_responses)} club_profile requests.", flush=True)
+        prefix = colorize("[Scraper]", LogColor.SCRAPER)
+        print(f"  {prefix} Captured {len(captured_responses)} club_profile requests.", flush=True)
 
         for req_id, url in captured_responses.items():
             try:
@@ -90,7 +92,8 @@ async def scrape_club_data(cfg: dict, zd):
                  if url.startswith(target_url_prefix) or "club_friend_history" in response_body:
                      if best_response is None or "club_friend_history" in response_body:
                          best_response = response_body
-                         print(f"  [Scraper] Selecting response: {url}", flush=True)
+                         prefix = colorize("[Scraper]", LogColor.SCRAPER)
+                         print(f"  {prefix} Selecting response: {url}", flush=True)
             except Exception:
                 pass
     finally:
