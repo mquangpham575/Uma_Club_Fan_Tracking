@@ -4,6 +4,7 @@ import sys
 import random
 import logging
 import json
+from datetime import datetime, timezone
 
 # Silence verbose browser logs
 logging.getLogger("zendriver").setLevel(logging.WARNING)
@@ -80,6 +81,16 @@ async def throttle_chrono_start(min_interval_seconds: float):
             print(f"  [Cooldown] Waiting {wait_for:.1f}s before next Chrono request...", flush=True)
             await asyncio.sleep(wait_for)
         CHRONO_LAST_START_MONO = loop.time()
+
+
+def has_fresh_snapshot(circle_id: str, max_age_hours: int) -> bool:
+    """Check whether a club already has a recent local snapshot in api_data/."""
+    path = os.path.join("api_data", f"{circle_id}.json")
+    if not os.path.exists(path):
+        return False
+    max_age_seconds = max_age_hours * 3600
+    age_seconds = datetime.now(timezone.utc).timestamp() - os.path.getmtime(path)
+    return age_seconds <= max_age_seconds
 
 def save_raw_json_to_file(circle_id: str, raw_data: any):
     """Save raw JSON to a local file for GitHub Pages hosting"""
@@ -233,6 +244,7 @@ async def process_club_workflow(
     chrono_start_interval: float,
     chrono_timeout_cooldown: int,
     max_attempts: int,
+    per_club_timeout_seconds: int,
 ) -> bool:
     # Handles the retry loop and processing for a single club
     title = cfg["title"]
@@ -250,7 +262,16 @@ async def process_club_workflow(
             if engine == "CHRONO":
                 await throttle_chrono_start(chrono_start_interval)
             
-            await process_and_export_club(cfg, gc_client, engine=engine, zd_module=zd_module, pre_fetched_data=data)
+            await asyncio.wait_for(
+                process_and_export_club(
+                    cfg,
+                    gc_client,
+                    engine=engine,
+                    zd_module=zd_module,
+                    pre_fetched_data=data,
+                ),
+                timeout=per_club_timeout_seconds,
+            )
             print(f"  Success: {title}", flush=True)
             return True
             
@@ -317,16 +338,32 @@ async def main():
     if engine_choice == "UMOE":
         from src.umoe_scraper import fetch_club_data
 
-    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "2"))
+    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "4"))
     CHRONO_START_INTERVAL = float(os.getenv("CHRONO_START_INTERVAL", "6"))
     CHRONO_RETRY_DELAY = int(os.getenv("CHRONO_RETRY_DELAY", "8"))
-    CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "40"))
-    CHRONO_MAX_ATTEMPTS = int(os.getenv("CHRONO_MAX_ATTEMPTS", "3"))
+    CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "28"))
+    CHRONO_MAX_ATTEMPTS = int(os.getenv("CHRONO_MAX_ATTEMPTS", "2"))
+    CHRONO_PER_CLUB_TIMEOUT = int(os.getenv("CHRONO_PER_CLUB_TIMEOUT", "120"))
+    SKIP_FRESH_CHRONO = os.getenv("SKIP_FRESH_CHRONO", "1") == "1"
+    FRESH_MAX_AGE_HOURS = int(os.getenv("FRESH_MAX_AGE_HOURS", "12"))
 
     BATCH_SIZE = CHRONO_BATCH_SIZE if engine_choice == "CHRONO" else 5
     RETRY_DELAY = CHRONO_RETRY_DELAY if engine_choice == "CHRONO" else 5
     
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
+
+    if engine_choice == "CHRONO" and choice == "ALL" and SKIP_FRESH_CHRONO:
+        original_count = len(clubs_to_process)
+        clubs_to_process = {
+            k: v for k, v in clubs_to_process.items()
+            if not has_fresh_snapshot(v.get("club_id", ""), FRESH_MAX_AGE_HOURS)
+        }
+        skipped = original_count - len(clubs_to_process)
+        if skipped > 0:
+            print(
+                f"Skipping {skipped} clubs with fresh snapshots (<= {FRESH_MAX_AGE_HOURS}h old).",
+                flush=True,
+            )
     club_keys = list(clubs_to_process.keys())
     batches = [club_keys[i:i + BATCH_SIZE] for i in range(0, len(club_keys), BATCH_SIZE)]
 
@@ -365,6 +402,7 @@ async def main():
                         CHRONO_START_INTERVAL,
                         CHRONO_TIMEOUT_COOLDOWN,
                         CHRONO_MAX_ATTEMPTS,
+                        CHRONO_PER_CLUB_TIMEOUT,
                     )
                 )
             )
