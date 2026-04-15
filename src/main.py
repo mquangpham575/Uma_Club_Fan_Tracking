@@ -235,6 +235,8 @@ async def process_club_workflow(
                     if not raw_data:
                         raise Exception("Chrono scrape failed to capture data")
                     data = json.loads(raw_data)
+                    if isinstance(data, dict) and data.get("detail") == "Error":
+                        raise Exception("Chrono captured API error: detail: Error")
                 else:
                     from src.umoe_scraper import fetch_club_data
                     data = await asyncio.wait_for(
@@ -371,7 +373,7 @@ async def main():
     CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "15"))
     CHRONO_MAX_ATTEMPTS = int(os.getenv("CHRONO_MAX_ATTEMPTS", "3"))
     CHRONO_PER_CLUB_TIMEOUT = int(os.getenv("CHRONO_PER_CLUB_TIMEOUT", "90"))
-    SKIP_FRESH_CHRONO = "--force" not in sys.argv
+    SKIP_FRESH_CHRONO = False
     FRESH_MAX_AGE_HOURS = int(os.getenv("FRESH_MAX_AGE_HOURS", "1"))
 
     BATCH_SIZE = CHRONO_BATCH_SIZE if engine_choice == "CHRONO" else 5

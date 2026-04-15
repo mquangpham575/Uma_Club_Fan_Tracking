@@ -89,6 +89,9 @@ async def scrape_club_data(cfg: dict, zd):
                  response_body, _ = await page.send(
                     zd.cdp.network.get_response_body(request_id=req_id)
                 )
+                 if '"detail": "Error"' in response_body or '"detail":"Error"' in response_body:
+                     continue
+
                  if url.startswith(target_url_prefix) or "club_friend_history" in response_body:
                      if best_response is None or "club_friend_history" in response_body:
                          best_response = response_body

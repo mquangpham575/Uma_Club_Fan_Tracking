@@ -31,6 +31,8 @@ async def fetch_club_data(club_cfg: dict):
             raise Exception(f"API Error {response.status_code}")
             
         data = response.json()
+        if data.get("detail") == "Error":
+            raise Exception("API returned detail: Error")
     except Exception as e:
         raise Exception(f"Failed to fetch {url}: {e}")
         
