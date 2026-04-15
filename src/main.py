@@ -344,7 +344,7 @@ async def main():
     CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "28"))
     CHRONO_MAX_ATTEMPTS = int(os.getenv("CHRONO_MAX_ATTEMPTS", "2"))
     CHRONO_PER_CLUB_TIMEOUT = int(os.getenv("CHRONO_PER_CLUB_TIMEOUT", "120"))
-    SKIP_FRESH_CHRONO = os.getenv("SKIP_FRESH_CHRONO", "1") == "1"
+    SKIP_FRESH_CHRONO = False  # Temporarily disabled for active testing
     FRESH_MAX_AGE_HOURS = int(os.getenv("FRESH_MAX_AGE_HOURS", "12"))
 
     BATCH_SIZE = CHRONO_BATCH_SIZE if engine_choice == "CHRONO" else 5
