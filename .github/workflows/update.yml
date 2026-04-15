@@ -41,8 +41,8 @@ jobs:
       - name: Install virtual display
         run: sudo apt-get update && sudo apt-get install -y xvfb
 
-      # Retry the tracker run upon failure to improve robustness
-      - name: Run Tracker
+      # Phase 1: Browser Scraping (The heavy work)
+      - name: Scrape via Chrono
         uses: nick-fields/retry@v3
         env:
           GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
@@ -50,7 +50,13 @@ jobs:
           timeout_minutes: 15
           max_attempts: 2
           retry_wait_seconds: 15
-          command: xvfb-run --auto-servernum uv run python src/main.py --cron --engine chrono
+          command: xvfb-run --auto-servernum uv run python src/main.py --cron --engine chrono --scrape-only
+
+      # Phase 2: Sheet Synchronization (The safe work)
+      - name: Sync to Google Sheets
+        env:
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+        run: uv run python src/main.py --cron --engine chrono --sync-only
 
       - name: Commit and push data
         run: |

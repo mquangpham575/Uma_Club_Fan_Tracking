@@ -194,47 +194,6 @@ def pick_club() -> dict | str:
     return CLUBS[list(CLUBS.keys())[0]]
 
 # Main Execution
-async def process_and_export_club(cfg: dict, gc_client, engine="UMOE", zd_module=None, pre_fetched_data=None):
-    # Fetch data if not provided (now engine-aware)
-    if pre_fetched_data is not None:
-        data = pre_fetched_data
-    else:
-        if engine == "CHRONO":
-            from src.chrono_scraper import scrape_club_data
-            import json
-            raw_data = await scrape_club_data(cfg, zd_module)
-            if not raw_data:
-                raise Exception("Chrono scrape failed to capture data")
-            data = json.loads(raw_data)
-        else:
-            from src.umoe_scraper import fetch_club_data
-            data = await fetch_club_data(cfg)
-
-    if isinstance(data, Exception): 
-        raise data
-    
-    # Process DataFrame (CPU-bound, fast)
-    df = build_dataframe(data)
-    
-    # STEP: Save raw JSON to file (API approach)
-    circle_id = cfg.get("club_id")
-    if circle_id:
-        # For Chrono, it's a string. For UMOE, it's in raw_response.
-        raw_to_sync = pre_fetched_data if pre_fetched_data else (data.get("raw_response") if engine == "UMOE" else data)
-        save_raw_json_to_file(circle_id, raw_to_sync)
-
-    # Export to Google Sheets (Blocking I/O - Run in Thread)
-    # Using the global SHEETS_LOCK to prevent concurrent structural modifications (del/add worksheet)
-    async with SHEETS_LOCK:
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(
-            None, 
-            export_to_gsheets, 
-            gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-            data.get("club_daily_history")
-        )
-    return True
-
 async def process_club_workflow(
     key: str,
     cfg: dict,
@@ -247,6 +206,7 @@ async def process_club_workflow(
     chrono_timeout_cooldown: int,
     max_attempts: int,
     per_club_timeout_seconds: int,
+    skip_sheets: bool = False,
 ) -> bool:
     # Handles the retry loop and processing for a single club
     title = cfg["title"]
@@ -264,16 +224,44 @@ async def process_club_workflow(
             if engine == "CHRONO":
                 await throttle_chrono_start(chrono_start_interval)
             
-            await asyncio.wait_for(
-                process_and_export_club(
-                    cfg,
-                    gc_client,
-                    engine=engine,
-                    zd_module=zd_module,
-                    pre_fetched_data=data,
-                ),
-                timeout=per_club_timeout_seconds,
-            )
+            # Phase 1: Fetch and Save Locally
+            if data is None:
+                if engine == "CHRONO":
+                    from src.chrono_scraper import scrape_club_data
+                    raw_data = await asyncio.wait_for(
+                        scrape_club_data(cfg, zd_module),
+                        timeout=per_club_timeout_seconds
+                    )
+                    if not raw_data:
+                        raise Exception("Chrono scrape failed to capture data")
+                    data = json.loads(raw_data)
+                else:
+                    from src.umoe_scraper import fetch_club_data
+                    data = await asyncio.wait_for(
+                        fetch_club_data(cfg),
+                        timeout=per_club_timeout_seconds
+                    )
+            
+            if isinstance(data, Exception): raise data
+
+            # STEP: Save raw JSON to file
+            circle_id = cfg.get("club_id")
+            if circle_id:
+                raw_to_sync = data.get("raw_response") if engine == "UMOE" else data
+                save_raw_json_to_file(circle_id, raw_to_sync)
+
+            # Phase 2: Export to Sheets (Optionally skip during parallel run)
+            if not skip_sheets:
+                df = build_dataframe(data)
+                async with SHEETS_LOCK:
+                    loop = asyncio.get_running_loop()
+                    await loop.run_in_executor(
+                        None, 
+                        export_to_gsheets, 
+                        gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+                        data.get("club_daily_history")
+                    )
+            
             prefix = colorize("[Success]", LogColor.SUCCESS)
             print(f"  {prefix} {title}", flush=True)
             return True
@@ -296,9 +284,43 @@ async def process_club_workflow(
             print(f"  {prefix} {title}: sleeping {delay:.1f}s before attempt {attempt + 1}...", flush=True)
             await asyncio.sleep(delay)
 
+def sync_local_json_to_sheets(clubs_to_sync: dict, gc_client):
+    """Phase 2: Sequentially process saved JSON and export to Google Sheets."""
+    print(f"\n--- Phase 2: Syncing Local Data to Google Sheets ---", flush=True)
+    
+    for key, cfg in clubs_to_sync.items():
+        title = cfg["title"]
+        circle_id = cfg.get("club_id")
+        path = os.path.join("api_data", f"{circle_id}.json")
+        
+        if not os.path.exists(path):
+            prefix = colorize("[Skip]", LogColor.RETRY)
+            print(f"  {prefix} {title}: No local JSON found at {path}", flush=True)
+            continue
+            
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            
+            # Process DataFrame
+            df = build_dataframe(data)
+            
+            # Sequential Export
+            export_to_gsheets(
+                gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+                data.get("club_daily_history")
+            )
+            prefix = colorize("[Sync]", LogColor.SUCCESS)
+            print(f"  {prefix} {title}: Updated Sheets from local JSON", flush=True)
+        except Exception as e:
+            prefix = colorize("[Failed]", LogColor.ERROR)
+            print(f"  {prefix} {title}: Sync failed: {e}", flush=True)
+
 async def main():
     setup_windows_console(VERSION)
     is_cron = "--cron" in sys.argv
+    scrape_only = "--scrape-only" in sys.argv
+    sync_only = "--sync-only" in sys.argv
     
     # Startup
     if not is_cron:
@@ -372,9 +394,14 @@ async def main():
     club_keys = list(clubs_to_process.keys())
     batches = [club_keys[i:i + BATCH_SIZE] for i in range(0, len(club_keys), BATCH_SIZE)]
 
-    print(f"\nProcessing {len(club_keys)} clubs (Engine: {engine_choice})...\n", flush=True)
-    
     total_failures = 0
+    if sync_only:
+        # Skip Scrape Phase
+        batches = []
+        print("\nSkipping Scraping Phase (--sync-only)...\n", flush=True)
+    else:
+        print(f"\nProcessing {len(club_keys)} clubs (Engine: {engine_choice})...\n", flush=True)
+
     for batch_idx, batch_keys in enumerate(batches):
         batch_text = colorize(f"Batch {batch_idx + 1}/{len(batches)}", LogColor.BATCH)
         print(f"{batch_text}: Processing {len(batch_keys)} items...", flush=True)
@@ -409,6 +436,7 @@ async def main():
                         CHRONO_TIMEOUT_COOLDOWN,
                         CHRONO_MAX_ATTEMPTS,
                         CHRONO_PER_CLUB_TIMEOUT,
+                        skip_sheets=True # Only scrape during Phase 1
                     )
                 )
             )
@@ -418,6 +446,10 @@ async def main():
         failures = batch_outcomes.count(False)
         total_failures += failures
         print("") 
+
+    # Phase 2: Sequential Sync
+    if not scrape_only:
+        sync_local_json_to_sheets(clubs_to_process, GC)
 
     print("-" * 30)
     if total_failures > 0:
