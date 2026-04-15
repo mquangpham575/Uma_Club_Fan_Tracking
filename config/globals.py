@@ -1,3 +1,4 @@
+import os
 # globals.py
 
 VERSION = "1.1"
@@ -5,6 +6,7 @@ GITHUB_REPO_URL = "https://github.com/mquangpham575/Uma_Club_Fan_Tracking"
 GITHUB_API_URL = "https://api.github.com/repos/mquangpham575/Uma_Club_Fan_Tracking/releases/latest"
 
 SHEET_ID = "1O09PM-hYo-H05kWWqMg71GelEpfaGrePQWzdDCKOqyU"
+CHRONO_API_KEY = os.getenv("CHRONO_API_KEY", "YOUR_LOCAL_KEY_HERE")
 
 CLUBS = {
     "1": {

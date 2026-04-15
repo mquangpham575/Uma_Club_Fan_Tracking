@@ -12,6 +12,7 @@ dependencies = [
     "zendriver>=0.15.2",
     "requests>=2.31.0",
     "pyinstaller>=6.19.0",
+    "python-dotenv",
 ]
 
 [dependency-groups]

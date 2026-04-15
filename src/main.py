@@ -5,6 +5,10 @@ import random
 import logging
 import json
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+# Load local environment variables from .env if present
+load_dotenv()
 
 # Silence verbose browser logs
 logging.getLogger("zendriver").setLevel(logging.WARNING)
@@ -31,30 +35,7 @@ except ImportError as e:
     print(f"Error: 'globals.py' not found (Base path: {base_path}). Details: {e}")
     sys.exit(1)
 
-# --- PATCH FOR ZENDRIVER CDP COMPATIBILITY ---
-try:
-    import zendriver.cdp.network as network
-    
-    # Patch ClientSecurityState to handle missing 'privateNetworkRequestPolicy'
-    _orig_css_from_json = network.ClientSecurityState.from_json
-    def patched_css_from_json(json):
-        if "privateNetworkRequestPolicy" not in json:
-            json["privateNetworkRequestPolicy"] = "PreflightBlock" # Default value
-        return _orig_css_from_json(json)
-    network.ClientSecurityState.from_json = patched_css_from_json
-    
-    # Patch Cookie to handle missing 'sameParty'
-    _orig_cookie_from_json = network.Cookie.from_json
-    def patched_cookie_from_json(json):
-        if "sameParty" not in json:
-            json["sameParty"] = False
-        return _orig_cookie_from_json(json)
-    network.Cookie.from_json = patched_cookie_from_json
-    
-    print("Applied Zendriver compatibility patches for Chrome 146+")
-except Exception as e:
-    print(f"Note: Could not apply Zendriver patches: {e}")
-# ---------------------------------------------
+# Zendriver compatibility patches removed (Chrono now uses direct API)
 
 # Import Modules
 from src.processing import build_dataframe
@@ -65,75 +46,18 @@ from src.utils import clear_screen, setup_windows_console, LogColor, colorize
 # Global lock to prevent concurrent Google Sheets structural modifications
 SHEETS_LOCK = asyncio.Lock()
 
-# Global pacing state for Chrono scraping to avoid triggering anti-bot throttles.
-CHRONO_START_LOCK = asyncio.Lock()
-CHRONO_LAST_START_MONO = 0.0
-
-
-async def throttle_chrono_start(min_interval_seconds: float):
-    """Ensure a minimum interval between Chrono scrape starts across all tasks."""
-    global CHRONO_LAST_START_MONO
-    loop = asyncio.get_running_loop()
-    async with CHRONO_START_LOCK:
-        now = loop.time()
-        wait_for = max(0.0, min_interval_seconds - (now - CHRONO_LAST_START_MONO))
-        if wait_for > 0:
-            prefix = colorize("[Cooldown]", LogColor.COOLDOWN)
-            print(f"  {prefix} Waiting {wait_for:.1f}s before next Chrono request...", flush=True)
-            await asyncio.sleep(wait_for)
-        CHRONO_LAST_START_MONO = loop.time()
+# Throttling logic removed (Chrono now uses direct API)
 
 
 def has_fresh_snapshot(circle_id: str, max_age_hours: int) -> bool:
-    """Check whether a club already has a recent local snapshot in api_data/."""
-    path = os.path.join("api_data", f"{circle_id}.json")
-    if not os.path.exists(path):
-        return False
-    max_age_seconds = max_age_hours * 3600
-    age_seconds = datetime.now(timezone.utc).timestamp() - os.path.getmtime(path)
-    return age_seconds <= max_age_seconds
+    """Check whether a club already has a recent local snapshot (logic naturally returning False since JSONs are removed)."""
+    return False
 
-def save_raw_json_to_file(circle_id: str, raw_data: any):
-    """Save raw JSON to a local file for GitHub Pages hosting"""
-    if not raw_data:
-        return
-    
-    os.makedirs("api_data", exist_ok=True)
-    file_path = f"api_data/{circle_id}.json"
-    
-    with open(file_path, "w", encoding="utf-8") as f:
-        # Ensure it's a dict before saving
-        if isinstance(raw_data, str):
-            try:
-                raw_data = json.loads(raw_data)
-            except Exception:
-                pass
-        json.dump(raw_data, f, indent=2, ensure_ascii=False)
-    prefix = colorize("[API]", LogColor.API)
-    print(f"  {prefix} Saved raw JSON to {file_path}", flush=True)
+# JSON saving removed (Now syncs directly to Google Sheets)
 # Helper Functions
 def select_engine() -> str:
-    clear_screen()
-    print("Select Extraction Engine:")
-    print("-" * 30)
-    print("[1] UMOE (API - Faster, Default)")
-    print("[2] Chrono (Browser - Reliable Backup)")
-    print("-" * 30)
-    print("\nSelection: ", end="", flush=True)
-    
-    if sys.platform == 'win32':
-        import msvcrt
-        char = msvcrt.getwch()
-        if char == '2':
-            print("Chrono")
-            return "CHRONO"
-    else:
-        choice = input().strip()
-        if choice == "2":
-            return "CHRONO"
-    
-    print("UMOE")
-    return "UMOE"
+    # UMOE removed, defaulting to Chrono
+    return "CHRONO"
 
 def pick_club() -> dict | str:
     clear_screen()
@@ -206,63 +130,54 @@ async def process_club_workflow(
     chrono_timeout_cooldown: int,
     max_attempts: int,
     per_club_timeout_seconds: int,
-    skip_sheets: bool = False,
 ) -> bool:
     # Handles the retry loop and processing for a single club
     title = cfg["title"]
-    
     attempt = 0
-    # Staggered start to prevent thundering herd when starting browsers in parallel
-    if engine == "CHRONO":
-        await asyncio.sleep(random.uniform(0, 5))
     
     while attempt < max_attempts:
         try:
-            # consistency: use initial_result only on first attempt if it's valid
+            # use initial_result only on first attempt if it's valid
             data = initial_result if (attempt == 0 and not isinstance(initial_result, Exception)) else None
 
-            if engine == "CHRONO":
-                await throttle_chrono_start(chrono_start_interval)
-            
-            # Phase 1: Fetch and Save Locally
+            # Phase 1: Fetch
             if data is None:
-                if engine == "CHRONO":
-                    from src.chrono_scraper import scrape_club_data
-                    raw_data = await asyncio.wait_for(
-                        scrape_club_data(cfg, zd_module),
-                        timeout=per_club_timeout_seconds
-                    )
-                    if not raw_data:
-                        raise Exception("Chrono scrape failed to capture data")
-                    data = json.loads(raw_data)
-                    if isinstance(data, dict) and data.get("detail") == "Error":
-                        raise Exception("Chrono captured API error: detail: Error")
-                else:
-                    from src.umoe_scraper import fetch_club_data
-                    data = await asyncio.wait_for(
-                        fetch_club_data(cfg),
-                        timeout=per_club_timeout_seconds
-                    )
+                from src.chrono_scraper import scrape_club_data
+                raw_data = await asyncio.wait_for(
+                    scrape_club_data(cfg),
+                    timeout=per_club_timeout_seconds
+                )
+                if not raw_data:
+                    raise Exception("Chrono API fetch failed")
+                data = json.loads(raw_data)
             
-            if isinstance(data, Exception): raise data
+            if isinstance(data, Exception): 
+                raise data
 
-            # STEP: Save raw JSON to file
-            circle_id = cfg.get("club_id")
-            if circle_id:
-                raw_to_sync = data.get("raw_response") if engine == "UMOE" else data
-                save_raw_json_to_file(circle_id, raw_to_sync)
-
-            # Phase 2: Export to Sheets (Optionally skip during parallel run)
-            if not skip_sheets:
-                df = build_dataframe(data)
-                async with SHEETS_LOCK:
-                    loop = asyncio.get_running_loop()
+            # Phase 2: Export to Sheets with 429 Retry logic
+            df = build_dataframe(data)
+            async with SHEETS_LOCK:
+                loop = asyncio.get_running_loop()
+                try:
                     await loop.run_in_executor(
                         None, 
                         export_to_gsheets, 
                         gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
                         data.get("club_daily_history")
                     )
+                except Exception as e:
+                    if "429" in str(e):
+                        prefix = colorize("[Quota]", LogColor.RETRY)
+                        print(f"  {prefix} {title}: Quota exceeded (429). Waiting 60s for reset...", flush=True)
+                        await asyncio.sleep(60) 
+                        await loop.run_in_executor(
+                            None, 
+                            export_to_gsheets, 
+                            gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+                            data.get("club_daily_history")
+                        )
+                    else:
+                        raise e
             
             prefix = colorize("[Success]", LogColor.SUCCESS)
             print(f"  {prefix} {title}", flush=True)
@@ -286,51 +201,7 @@ async def process_club_workflow(
             print(f"  {prefix} {title}: sleeping {delay:.1f}s before attempt {attempt + 1}...", flush=True)
             await asyncio.sleep(delay)
 
-def sync_local_json_to_sheets(clubs_to_sync: dict, gc_client):
-    """Phase 2: Sequentially process saved JSON and export to Google Sheets."""
-    print(f"\n--- Phase 2: Syncing Local Data to Google Sheets ---", flush=True)
-    
-    for key, cfg in clubs_to_sync.items():
-        title = cfg["title"]
-        circle_id = cfg.get("club_id")
-        path = os.path.join("api_data", f"{circle_id}.json")
-        
-        if not os.path.exists(path):
-            prefix = colorize("[Skip]", LogColor.RETRY)
-            print(f"  {prefix} {title}: No local JSON found at {path}", flush=True)
-            continue
-            
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            
-            # Process DataFrame
-            df = build_dataframe(data)
-            
-            # Sequential Export with 429 Retry
-            try:
-                export_to_gsheets(
-                    gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                    data.get("club_daily_history")
-                )
-            except Exception as e:
-                if "429" in str(e):
-                    prefix = colorize("[Quota]", LogColor.RETRY)
-                    print(f"  {prefix} {title}: Quota exceeded (429). Waiting 60s for reset...", flush=True)
-                    import time
-                    time.sleep(60)
-                    export_to_gsheets(
-                        gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                        data.get("club_daily_history")
-                    )
-                else:
-                    raise e
-
-            prefix = colorize("[Sync]", LogColor.SUCCESS)
-            print(f"  {prefix} {title}: Updated Sheets from local JSON", flush=True)
-        except Exception as e:
-            prefix = colorize("[Failed]", LogColor.ERROR)
-            print(f"  {prefix} {title}: Sync failed: {e}", flush=True)
+# Phase 2 removal (Consolidated into process_club_workflow)
 
 async def main():
     setup_windows_console(VERSION)
@@ -345,25 +216,11 @@ async def main():
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
     
-    # Engine Selection
+    # Engine is now exclusively Chrono
+    engine_choice = "CHRONO"
     if is_cron:
-        engine_choice = "UMOE"
-        if "--engine" in sys.argv:
-            idx = sys.argv.index("--engine")
-            if idx + 1 < len(sys.argv):
-                engine_choice = sys.argv[idx + 1].upper()
         choice = "ALL"
     else:
-        # Check CLI args even if not cron
-        if "--engine" in sys.argv:
-            idx = sys.argv.index("--engine")
-            if idx + 1 < len(sys.argv):
-                engine_choice = sys.argv[idx + 1].upper()
-            else:
-                engine_choice = select_engine()
-        else:
-            engine_choice = select_engine()
-
         while True:
             choice = pick_club()
             clear_screen()
@@ -371,15 +228,8 @@ async def main():
                 sys.exit(0)
             break 
 
-    # Lazy-load dependencies for selected engine
+    # Lazy-loading Dependencies
     zd = None
-    if engine_choice == "CHRONO":
-        import zendriver as zd_module
-        zd = zd_module
-    
-    # Re-import UMOE scraper for the parallel fetch step
-    if engine_choice == "UMOE":
-        from src.umoe_scraper import fetch_club_data
 
     CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "3"))
     CHRONO_START_INTERVAL = float(os.getenv("CHRONO_START_INTERVAL", "8"))
@@ -422,16 +272,8 @@ async def main():
         batch_text = colorize(f"Batch {batch_idx + 1}/{len(batches)}", LogColor.BATCH)
         print(f"{batch_text}: Processing {len(batch_keys)} items...", flush=True)
         
-        # Step 1: Parallel Fetch
-        results_map = {}
-        if engine_choice == "UMOE":
-            fetch_tasks = {key: asyncio.create_task(fetch_club_data(CLUBS[key])) for key in batch_keys}
-            fetch_results = await asyncio.gather(*fetch_tasks.values(), return_exceptions=True)
-            results_map = dict(zip(batch_keys, fetch_results))
-        else:
-            # Chrono is best run one by one in some environments, but let's try parallel if resources allow
-            # However, for integrated app, let's just use raw data mapping later
-            results_map = {key: None for key in batch_keys}
+        # Step 1: Parallel Fetch (Mapping Phase)
+        results_map = {key: None for key in batch_keys}
 
         # Step 2: Parallel Export & Processing
         export_tasks = []
@@ -451,8 +293,7 @@ async def main():
                         CHRONO_START_INTERVAL,
                         CHRONO_TIMEOUT_COOLDOWN,
                         CHRONO_MAX_ATTEMPTS,
-                        CHRONO_PER_CLUB_TIMEOUT,
-                        skip_sheets=True # Only scrape during Phase 1
+                        CHRONO_PER_CLUB_TIMEOUT
                     )
                 )
             )
@@ -463,23 +304,19 @@ async def main():
         total_failures += failures
         print("") 
 
-    # Phase 2: Sequential Sync
-    if not scrape_only:
-        sync_local_json_to_sheets(clubs_to_process, GC)
-        
-        print("Reordering sheets...", flush=True)
-        ordered_titles = [CLUBS[k]['title'] for k in CLUBS]
-        try:
+    # Reordering is now always the final step after the parallel gather
+    print("Reordering sheets...", flush=True)
+    ordered_titles = [CLUBS[k]['title'] for k in CLUBS]
+    try:
+        reorder_sheets(GC, SHEET_ID, ordered_titles)
+    except Exception as e:
+        if "429" in str(e):
+            print("  [Quota] Reordering hit limit. Waiting 60s...", flush=True)
+            await asyncio.sleep(60)
             reorder_sheets(GC, SHEET_ID, ordered_titles)
-        except Exception as e:
-            if "429" in str(e):
-                print("  [Quota] Reordering hit limit. Waiting 60s...", flush=True)
-                import time
-                time.sleep(60)
-                reorder_sheets(GC, SHEET_ID, ordered_titles)
-            else:
-                print(f"Warning: Failed to reorder sheets: {e}")
-        print("Sheets reordered.", flush=True)
+        else:
+            print(f"Warning: Failed to reorder sheets: {e}")
+    print("Sheets reordered.", flush=True)
 
     print("-" * 30)
     if total_failures > 0:

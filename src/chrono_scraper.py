@@ -1,109 +1,51 @@
 import asyncio
-import os
-import sys
+import requests
+import json
 from src.utils import LogColor, colorize
+from config.globals import CHRONO_API_KEY
 
-async def scrape_club_data(cfg: dict, zd):
+async def scrape_club_data(cfg: dict, zd=None):
     """
-    Automates the browser to search for a club by ID on ChronoGenesis
-    and captures the club_profile API response.
+    Fetches club data from ChronoGenesis API directly using the Authorization key.
+    This replaces the old zendriver/browser-based scraping logic.
     """
-    search_id = cfg.get('club_id')
-
-    if sys.platform == "win32":
-        # Windows development environment
-        executable = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
-        browser_type = "edge"
-        prefix = colorize("[Local]", LogColor.SUCCESS)
-        print(f"  {prefix} Using local Brave browser...", flush=True)
-    else:
-        # Linux / GitHub Actions runner
-        executable = "/usr/bin/brave-browser"
-        browser_type = "chrome"
-
-    browser = await zd.start(
-        browser=browser_type,
-        browser_executable_path=executable,
-        headless=False,
-        sandbox=False,
-        browser_args=[
-            "--disable-gpu",
-            "--disable-dev-shm-usage",
-        ],
-        browser_connection_timeout=5.0,
-        browser_connection_max_tries=60,
-    )
-
-    best_response = None
+    club_id = cfg.get('club_id')
+    url = f"https://api.chronogenesis.net/club_profile?circle_id={club_id}"
+    
+    headers = {
+        "Authorization": CHRONO_API_KEY,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
+    prefix = colorize("[Chrono API]", LogColor.SCRAPER)
+    
     try:
-        captured_responses = {} # map request_id -> (url, body)
-
-        async def resp_handler(*args, **kwargs):
-            if args and hasattr(args[0], 'response'):
-                 url = args[0].response.url
-                 if "api.chronogenesis.net/club_profile" in url:
-                     try:
-                        captured_responses[args[0].request_id] = url
-                     except Exception:
-                        pass
-
-        # Navigate directly to the club profile with ID
-        prefix = colorize("[Scraper]", LogColor.SCRAPER)
-        print(f"  {prefix} Navigating to: https://chronogenesis.net/club_profile?circle_id={search_id}", flush=True)
+        # Using asyncio.to_thread to run the blocking requests.get in a separate thread
+        response = await asyncio.to_thread(
+            requests.get, 
+            url, 
+            headers=headers, 
+            timeout=15
+        )
         
-        page = await browser.get(f"https://chronogenesis.net/club_profile?circle_id={search_id}")
-        await page.send(zd.cdp.network.enable())
-        page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
-
-        # Wait dynamically until the desired request is captured
-        target_url_prefix = f"https://api.chronogenesis.net/club_profile?circle_id={search_id}"
-        print(f"  {prefix} Waiting for data capture...", flush=True)
+        if response.status_code == 200:
+            # Check if the response actually contains club data or an error message
+            res_json = response.json()
+            if isinstance(res_json, dict) and res_json.get("detail") == "Error":
+                 print(f"  {prefix} API returned error for ID {club_id}", flush=True)
+                 return None
+            
+            return response.text
         
-        timeout = 60
-        start_time = asyncio.get_event_loop().time()
-        while asyncio.get_event_loop().time() - start_time < timeout:
-            if any(url.startswith(target_url_prefix) for url in captured_responses.values()):
-                print(f"  {prefix} Data captured successfully.", flush=True)
-                break
-            await asyncio.sleep(0.5)
-        
-        # Short final delay to ensure body is fully ready for Fetch
-        await asyncio.sleep(1)
+        elif response.status_code == 403:
+            print(f"  {prefix} Forbidden (403). Your API key might be invalid or restricted.", flush=True)
+        elif response.status_code == 429:
+            print(f"  {prefix} Rate limited (429).", flush=True)
+        else:
+            print(f"  {prefix} Failed with status {response.status_code}", flush=True)
+            
+        return None
 
-        # Click the result to ensure full club data is loaded
-        try:
-            results = await page.select_all(".club-results-row", timeout=10)
-            for result in results:
-                content = result.text_all.lower()
-                if search_id in content:
-                    await result.click()
-                    break
-        except Exception:
-            pass
-
-        # Wait for background requests to complete
-        await asyncio.sleep(8)
-
-        target_url_prefix = f"https://api.chronogenesis.net/club_profile?circle_id={search_id}"
-        prefix = colorize("[Scraper]", LogColor.SCRAPER)
-        print(f"  {prefix} Captured {len(captured_responses)} club_profile requests.", flush=True)
-
-        for req_id, url in captured_responses.items():
-            try:
-                 response_body, _ = await page.send(
-                    zd.cdp.network.get_response_body(request_id=req_id)
-                )
-                 if '"detail": "Error"' in response_body or '"detail":"Error"' in response_body:
-                     continue
-
-                 if url.startswith(target_url_prefix) or "club_friend_history" in response_body:
-                     if best_response is None or "club_friend_history" in response_body:
-                         best_response = response_body
-                         prefix = colorize("[Scraper]", LogColor.SCRAPER)
-                         print(f"  {prefix} Selecting response: {url}", flush=True)
-            except Exception:
-                pass
-    finally:
-        await browser.stop()
-
-    return best_response
+    except Exception as e:
+        print(f"  {prefix} Connection error: {e}", flush=True)
+        return None
