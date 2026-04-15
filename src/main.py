@@ -64,6 +64,23 @@ from src.utils import clear_screen, setup_windows_console
 # Global lock to prevent concurrent Google Sheets structural modifications
 SHEETS_LOCK = asyncio.Lock()
 
+# Global pacing state for Chrono scraping to avoid triggering anti-bot throttles.
+CHRONO_START_LOCK = asyncio.Lock()
+CHRONO_LAST_START_MONO = 0.0
+
+
+async def throttle_chrono_start(min_interval_seconds: float):
+    """Ensure a minimum interval between Chrono scrape starts across all tasks."""
+    global CHRONO_LAST_START_MONO
+    loop = asyncio.get_running_loop()
+    async with CHRONO_START_LOCK:
+        now = loop.time()
+        wait_for = max(0.0, min_interval_seconds - (now - CHRONO_LAST_START_MONO))
+        if wait_for > 0:
+            print(f"  [Cooldown] Waiting {wait_for:.1f}s before next Chrono request...", flush=True)
+            await asyncio.sleep(wait_for)
+        CHRONO_LAST_START_MONO = loop.time()
+
 def save_raw_json_to_file(circle_id: str, raw_data: any):
     """Save raw JSON to a local file for GitHub Pages hosting"""
     if not raw_data:
@@ -205,7 +222,18 @@ async def process_and_export_club(cfg: dict, gc_client, engine="UMOE", zd_module
         )
     return True
 
-async def process_club_workflow(key: str, cfg: dict, gc_client, engine, zd_module, initial_result, retry_delay: int) -> bool:
+async def process_club_workflow(
+    key: str,
+    cfg: dict,
+    gc_client,
+    engine,
+    zd_module,
+    initial_result,
+    retry_delay: int,
+    chrono_start_interval: float,
+    chrono_timeout_cooldown: int,
+    max_attempts: int,
+) -> bool:
     # Handles the retry loop and processing for a single club
     title = cfg["title"]
     
@@ -214,23 +242,33 @@ async def process_club_workflow(key: str, cfg: dict, gc_client, engine, zd_modul
     if engine == "CHRONO":
         await asyncio.sleep(random.uniform(0, 5))
     
-    while True:
+    while attempt < max_attempts:
         try:
             # consistency: use initial_result only on first attempt if it's valid
             data = initial_result if (attempt == 0 and not isinstance(initial_result, Exception)) else None
-            
-            if attempt > 0:
-                await asyncio.sleep(retry_delay)
+
+            if engine == "CHRONO":
+                await throttle_chrono_start(chrono_start_interval)
             
             await process_and_export_club(cfg, gc_client, engine=engine, zd_module=zd_module, pre_fetched_data=data)
             print(f"  Success: {title}", flush=True)
             return True
             
         except Exception as e:
-            print(f"  Error on {title} (Attempt {attempt + 1}): {e}", flush=True)
+            attempt_no = attempt + 1
+            print(f"  Error on {title} (Attempt {attempt_no}): {e}", flush=True)
+            is_selector_timeout = "club-id-input" in str(e) or "search_box timeout" in str(e)
+
             attempt += 1
-            if attempt >= 2: # Keep retries reasonable for integrated app
+            if attempt >= max_attempts:
                 return False
+
+            delay = retry_delay
+            if engine == "CHRONO" and is_selector_timeout:
+                delay = max(retry_delay, chrono_timeout_cooldown)
+            delay += random.uniform(1, 4)
+            print(f"  [Retry] {title}: sleeping {delay:.1f}s before attempt {attempt + 1}...", flush=True)
+            await asyncio.sleep(delay)
 
 async def main():
     setup_windows_console(VERSION)
@@ -279,8 +317,14 @@ async def main():
     if engine_choice == "UMOE":
         from src.umoe_scraper import fetch_club_data
 
-    BATCH_SIZE = 4 if engine_choice == "CHRONO" else 5
-    RETRY_DELAY = 5
+    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "2"))
+    CHRONO_START_INTERVAL = float(os.getenv("CHRONO_START_INTERVAL", "6"))
+    CHRONO_RETRY_DELAY = int(os.getenv("CHRONO_RETRY_DELAY", "8"))
+    CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "40"))
+    CHRONO_MAX_ATTEMPTS = int(os.getenv("CHRONO_MAX_ATTEMPTS", "3"))
+
+    BATCH_SIZE = CHRONO_BATCH_SIZE if engine_choice == "CHRONO" else 5
+    RETRY_DELAY = CHRONO_RETRY_DELAY if engine_choice == "CHRONO" else 5
     
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
     club_keys = list(clubs_to_process.keys())
@@ -310,7 +354,18 @@ async def main():
             result = results_map.get(key)
             export_tasks.append(
                 asyncio.create_task(
-                    process_club_workflow(key, cfg, GC, engine_choice, zd, result, RETRY_DELAY)
+                    process_club_workflow(
+                        key,
+                        cfg,
+                        GC,
+                        engine_choice,
+                        zd,
+                        result,
+                        RETRY_DELAY,
+                        CHRONO_START_INTERVAL,
+                        CHRONO_TIMEOUT_COOLDOWN,
+                        CHRONO_MAX_ATTEMPTS,
+                    )
                 )
             )
             
