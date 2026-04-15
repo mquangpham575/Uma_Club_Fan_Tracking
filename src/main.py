@@ -381,10 +381,10 @@ async def main():
     if engine_choice == "UMOE":
         from src.umoe_scraper import fetch_club_data
 
-    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "3"))
-    CHRONO_START_INTERVAL = float(os.getenv("CHRONO_START_INTERVAL", "15"))
+    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "4"))
+    CHRONO_START_INTERVAL = float(os.getenv("CHRONO_START_INTERVAL", "8"))
     CHRONO_RETRY_DELAY = int(os.getenv("CHRONO_RETRY_DELAY", "15"))
-    CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "15"))
+    CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "12"))
     CHRONO_MAX_ATTEMPTS = int(os.getenv("CHRONO_MAX_ATTEMPTS", "3"))
     CHRONO_PER_CLUB_TIMEOUT = int(os.getenv("CHRONO_PER_CLUB_TIMEOUT", "90"))
     SKIP_FRESH_CHRONO = False
@@ -466,26 +466,27 @@ async def main():
     # Phase 2: Sequential Sync
     if not scrape_only:
         sync_local_json_to_sheets(clubs_to_process, GC)
+        
+        print("Reordering sheets...", flush=True)
+        ordered_titles = [CLUBS[k]['title'] for k in CLUBS]
+        try:
+            reorder_sheets(GC, SHEET_ID, ordered_titles)
+        except Exception as e:
+            if "429" in str(e):
+                print("  [Quota] Reordering hit limit. Waiting 60s...", flush=True)
+                import time
+                time.sleep(60)
+                reorder_sheets(GC, SHEET_ID, ordered_titles)
+            else:
+                print(f"Warning: Failed to reorder sheets: {e}")
+        print("Sheets reordered.", flush=True)
 
     print("-" * 30)
     if total_failures > 0:
         print(f"Completed with errors: {total_failures} failed.", flush=True)
     else:
         print("All operations complete.", flush=True)
-        
-    print("Reordering sheets...", flush=True)
-    ordered_titles = [CLUBS[k]['title'] for k in CLUBS]
-    try:
-        reorder_sheets(GC, SHEET_ID, ordered_titles)
-    except Exception as e:
-        if "429" in str(e):
-            print("  [Quota] Reordering hit limit. Waiting 60s...", flush=True)
-            import time
-            time.sleep(60)
-            reorder_sheets(GC, SHEET_ID, ordered_titles)
-        else:
-            print(f"Warning: Failed to reorder sheets: {e}")
-    print("Sheets reordered.", flush=True)
+    
     print("-" * 30)
     
     if not is_cron:
