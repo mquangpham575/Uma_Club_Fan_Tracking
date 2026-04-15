@@ -14,9 +14,11 @@ async def scrape_club_data(cfg: dict, zd):
         # Windows development environment
         executable = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
         browser_type = "edge"
+        prefix = colorize("[Local]", LogColor.SUCCESS)
+        print(f"  {prefix} Using local Brave browser...", flush=True)
     else:
         # Linux / GitHub Actions runner
-        executable = "/usr/bin/google-chrome"
+        executable = "/usr/bin/brave-browser"
         browser_type = "chrome"
 
     browser = await zd.start(
@@ -45,26 +47,28 @@ async def scrape_club_data(cfg: dict, zd):
                      except Exception:
                         pass
 
-        page = await browser.get("https://chronogenesis.net/club_profile")
+        # Navigate directly to the club profile with ID
+        prefix = colorize("[Scraper]", LogColor.SCRAPER)
+        print(f"  {prefix} Navigating to: https://chronogenesis.net/club_profile?circle_id={search_id}", flush=True)
+        
+        page = await browser.get(f"https://chronogenesis.net/club_profile?circle_id={search_id}")
         await page.send(zd.cdp.network.enable())
         page.add_handler(zd.cdp.network.ResponseReceived, resp_handler)
 
-        # Standard selection logic (Clean and simple)
-        try:
-            search_box = await page.select(".club-id-input", timeout=20)
-        except asyncio.TimeoutError:
-            # Safe diagnostic info
-            try:
-                title = await page.evaluate("document.title")
-            except:
-                title = "Unknown"
-            prefix = colorize("[Scraper Error]", LogColor.ERROR)
-            print(f"  {prefix} search_box timeout at {page.url} (Title: {title})", flush=True)
-            raise
-
-        await search_box.send_keys(search_id)
-        await search_box.send_keys(zd.SpecialKeys.ENTER)
-        await asyncio.sleep(3)
+        # Wait dynamically until the desired request is captured
+        target_url_prefix = f"https://api.chronogenesis.net/club_profile?circle_id={search_id}"
+        print(f"  {prefix} Waiting for data capture...", flush=True)
+        
+        timeout = 60
+        start_time = asyncio.get_event_loop().time()
+        while asyncio.get_event_loop().time() - start_time < timeout:
+            if any(url.startswith(target_url_prefix) for url in captured_responses.values()):
+                print(f"  {prefix} Data captured successfully.", flush=True)
+                break
+            await asyncio.sleep(0.5)
+        
+        # Short final delay to ensure body is fully ready for Fetch
+        await asyncio.sleep(1)
 
         # Click the result to ensure full club data is loaded
         try:

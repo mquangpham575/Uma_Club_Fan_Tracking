@@ -307,11 +307,25 @@ def sync_local_json_to_sheets(clubs_to_sync: dict, gc_client):
             # Process DataFrame
             df = build_dataframe(data)
             
-            # Sequential Export
-            export_to_gsheets(
-                gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                data.get("club_daily_history")
-            )
+            # Sequential Export with 429 Retry
+            try:
+                export_to_gsheets(
+                    gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+                    data.get("club_daily_history")
+                )
+            except Exception as e:
+                if "429" in str(e):
+                    prefix = colorize("[Quota]", LogColor.RETRY)
+                    print(f"  {prefix} {title}: Quota exceeded (429). Waiting 60s for reset...", flush=True)
+                    import time
+                    time.sleep(60)
+                    export_to_gsheets(
+                        gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+                        data.get("club_daily_history")
+                    )
+                else:
+                    raise e
+
             prefix = colorize("[Sync]", LogColor.SUCCESS)
             print(f"  {prefix} {title}: Updated Sheets from local JSON", flush=True)
         except Exception as e:
@@ -367,7 +381,7 @@ async def main():
     if engine_choice == "UMOE":
         from src.umoe_scraper import fetch_club_data
 
-    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "2"))
+    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "3"))
     CHRONO_START_INTERVAL = float(os.getenv("CHRONO_START_INTERVAL", "15"))
     CHRONO_RETRY_DELAY = int(os.getenv("CHRONO_RETRY_DELAY", "15"))
     CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "15"))
@@ -461,7 +475,16 @@ async def main():
         
     print("Reordering sheets...", flush=True)
     ordered_titles = [CLUBS[k]['title'] for k in CLUBS]
-    reorder_sheets(GC, SHEET_ID, ordered_titles)
+    try:
+        reorder_sheets(GC, SHEET_ID, ordered_titles)
+    except Exception as e:
+        if "429" in str(e):
+            print("  [Quota] Reordering hit limit. Waiting 60s...", flush=True)
+            import time
+            time.sleep(60)
+            reorder_sheets(GC, SHEET_ID, ordered_titles)
+        else:
+            print(f"Warning: Failed to reorder sheets: {e}")
     print("Sheets reordered.", flush=True)
     print("-" * 30)
     
