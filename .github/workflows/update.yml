@@ -52,12 +52,6 @@ jobs:
           retry_wait_seconds: 15
           command: xvfb-run --auto-servernum uv run python src/main.py --cron --engine chrono --scrape-only
 
-      # Phase 2: Sheet Synchronization (The safe work)
-      - name: Sync to Google Sheets
-        env:
-          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
-        run: uv run python src/main.py --cron --engine chrono --sync-only
-
       - name: Commit and push data
         run: |
           git config --global user.name "github-actions[bot]"
@@ -65,3 +59,9 @@ jobs:
           git add api_data/
           git commit -m "Auto-update tracked data: $(date +'%Y-%m-%d')" || echo "No changes to commit"
           git push
+
+      # Phase 2: Sheet Synchronization (The safe work)
+      - name: Sync to Google Sheets
+        env:
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+        run: uv run python src/main.py --cron --engine chrono --sync-only

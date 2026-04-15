@@ -365,14 +365,14 @@ async def main():
     if engine_choice == "UMOE":
         from src.umoe_scraper import fetch_club_data
 
-    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "2"))
-    CHRONO_START_INTERVAL = float(os.getenv("CHRONO_START_INTERVAL", "12"))
+    CHRONO_BATCH_SIZE = int(os.getenv("CHRONO_BATCH_SIZE", "3"))
+    CHRONO_START_INTERVAL = float(os.getenv("CHRONO_START_INTERVAL", "8"))
     CHRONO_RETRY_DELAY = int(os.getenv("CHRONO_RETRY_DELAY", "8"))
     CHRONO_TIMEOUT_COOLDOWN = int(os.getenv("CHRONO_TIMEOUT_COOLDOWN", "15"))
     CHRONO_MAX_ATTEMPTS = int(os.getenv("CHRONO_MAX_ATTEMPTS", "3"))
     CHRONO_PER_CLUB_TIMEOUT = int(os.getenv("CHRONO_PER_CLUB_TIMEOUT", "90"))
-    SKIP_FRESH_CHRONO = False  # Temporarily disabled for active testing
-    FRESH_MAX_AGE_HOURS = int(os.getenv("FRESH_MAX_AGE_HOURS", "12"))
+    SKIP_FRESH_CHRONO = "--force" not in sys.argv
+    FRESH_MAX_AGE_HOURS = int(os.getenv("FRESH_MAX_AGE_HOURS", "1"))
 
     BATCH_SIZE = CHRONO_BATCH_SIZE if engine_choice == "CHRONO" else 5
     RETRY_DELAY = CHRONO_RETRY_DELAY if engine_choice == "CHRONO" else 5
