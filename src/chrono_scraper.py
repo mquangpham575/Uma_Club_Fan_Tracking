@@ -10,10 +10,14 @@ async def scrape_club_data(cfg: dict, zd=None):
     This replaces the old zendriver/browser-based scraping logic.
     """
     club_id = cfg.get('club_id')
-    url = f"https://api.chronogenesis.net/club_profile?circle_id={club_id}"
+    sdate = cfg.get('sdate')
+    endpoint = "club_data_by_month" if sdate else "club_profile"
+    url = f"https://api.chronogenesis.net/{endpoint}?circle_id={club_id}"
+    if sdate:
+        url += f"&sdate={sdate}"
     
     headers = {
-        "Authorization": CHRONO_API_KEY,
+        "Authorization": cfg.get('api_key') or CHRONO_API_KEY,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
     

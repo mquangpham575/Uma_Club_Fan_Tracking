@@ -37,6 +37,8 @@ jobs:
         run: |
           mkdir -p config
           echo "$GCP_CREDS" > config/credentials.json
+          mkdir -p OnlyRex
+          echo "${{ secrets.ONLYREX_CREDENTIALS }}" > OnlyRex/credentials.json
 
       # Consolidated Update Phase
       - name: Update Tracker
@@ -49,3 +51,13 @@ jobs:
           max_attempts: 2
           retry_wait_seconds: 15
           command: uv run python src/main.py --cron --engine chrono
+
+      - name: Update OnlyRex
+        uses: nick-fields/retry@v3
+        env:
+          CHRONO_API_KEY: ${{ secrets.CHRONO_API_KEY }}
+        with:
+          timeout_minutes: 10
+          max_attempts: 2
+          retry_wait_seconds: 15
+          command: uv run python OnlyRex/only_rex_tracker.py --cron
