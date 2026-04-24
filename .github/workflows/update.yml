@@ -34,11 +34,12 @@ jobs:
       - name: Create Google Credentials File
         env:
           GCP_CREDS: ${{ secrets.GCP_CREDENTIALS }}
+          ONLYREX_CREDS: ${{ secrets.ONLYREX_CREDENTIALS }}
         run: |
           mkdir -p config
           echo "$GCP_CREDS" > config/credentials.json
           mkdir -p OnlyRex
-          echo "${{ secrets.ONLYREX_CREDENTIALS }}" > OnlyRex/credentials.json
+          echo "$ONLYREX_CREDS" > OnlyRex/credentials.json
 
       # Consolidated Update Phase
       - name: Update Tracker
