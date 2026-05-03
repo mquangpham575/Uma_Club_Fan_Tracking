@@ -4,7 +4,7 @@ import sys
 import random
 import logging
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 
 # Load local environment variables from .env if present
@@ -231,27 +231,21 @@ async def main():
             now_utc = datetime.now(timezone.utc)
             reset_time = now_utc.replace(hour=10, minute=0, second=0, microsecond=0)
             
-            # Target day number calculation
-            if now_utc >= reset_time:
-                target_day_num = now_utc.day - 1
-            else:
-                target_day_num = now_utc.day - 2
+            # Target date calculation: Yesterday if after reset, else 2 days ago
+            target_date = now_utc - timedelta(days=1 if now_utc >= reset_time else 2)
+            target_col_name = f"Day {target_date.day}"
                 
-            # Handle start of month edge cases
-            if target_day_num > 0:
-                target_col_name = f"Day {target_day_num}"
-                
-                # Check the first club's sheet as a status indicator
-                first_club_title = list(CLUBS.values())[0]['title']
-                ss = GC.open_by_key(SHEET_ID)
-                try:
-                    ws = ss.worksheet(first_club_title)
-                    headers = ws.row_values(1)
-                    if target_col_name in headers:
-                        print(f"--- Skip: Sheet is already up to date with {target_col_name} ---")
-                        return
-                except Exception:
-                    pass # Proceed if sheet not found
+            # Check the first club's sheet as a status indicator
+            first_club_title = list(CLUBS.values())[0]['title']
+            ss = GC.open_by_key(SHEET_ID)
+            try:
+                ws = ss.worksheet(first_club_title)
+                headers = ws.row_values(1)
+                if target_col_name in headers:
+                    print(f"--- Skip: Sheet is already up to date with {target_col_name} ---")
+                    return
+            except Exception:
+                pass # Proceed if sheet not found
         except Exception as e:
             print(f"Warning: Freshness check failed, proceeding anyway: {e}")
 
