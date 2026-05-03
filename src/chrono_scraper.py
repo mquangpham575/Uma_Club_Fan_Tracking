@@ -32,24 +32,8 @@ async def scrape_club_data(cfg: dict, zd=None):
             timeout=15
         )
         
-        if response.status_code == 200:
-            # Check if the response actually contains club data or an error message
-            res_json = response.json()
-            if isinstance(res_json, dict) and res_json.get("detail") == "Error":
-                 print(f"  {prefix} API returned error for ID {club_id}", flush=True)
-                 return None
-            
-            return response.text
-        
-        elif response.status_code == 403:
-            print(f"  {prefix} Forbidden (403). Your API key might be invalid or restricted.", flush=True)
-        elif response.status_code == 429:
-            print(f"  {prefix} Rate limited (429).", flush=True)
-        else:
-            print(f"  {prefix} Failed with status {response.status_code}", flush=True)
-            
-        return None
+        return response.text, response.status_code
 
     except Exception as e:
         print(f"  {prefix} Connection error: {e}", flush=True)
-        return None
+        return None, 500

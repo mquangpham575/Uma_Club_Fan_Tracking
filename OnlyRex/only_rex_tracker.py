@@ -37,8 +37,9 @@ from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
 from src.utils import clear_screen, setup_windows_console, LogColor, colorize
 
 
-# Global lock to prevent concurrent Google Sheets structural modifications
+# Global locks to prevent concurrent resource exhaustion
 SHEETS_LOCK = asyncio.Lock()
+API_SEMAPHORE = asyncio.Semaphore(1)
 
 def pick_club() -> dict | str:
     clear_screen()
@@ -101,13 +102,24 @@ async def process_club_workflow(
         try:
             from src.chrono_scraper import scrape_club_data
             cfg_with_key = {**cfg, "api_key": CHRONO_API_KEY}
-            raw_data = await asyncio.wait_for(
-                scrape_club_data(cfg_with_key),
-                timeout=per_club_timeout_seconds
-            )
-            if not raw_data:
-                raise Exception("API fetch failed")
+            async with API_SEMAPHORE:
+                raw_data, status_code = await asyncio.wait_for(
+                    scrape_club_data(cfg_with_key),
+                    timeout=per_club_timeout_seconds
+                )
+            
+            if status_code == 429:
+                prefix = colorize("[Rate Limit]", LogColor.RETRY)
+                print(f"  {prefix} {title}: 429 hit. Cool-down 30s...", flush=True)
+                await asyncio.sleep(30)
+                raise Exception("Rate limited")
+            
+            if status_code != 200 or not raw_data:
+                raise Exception(f"API fetch failed (Status {status_code})")
+
             data = json.loads(raw_data)
+            if isinstance(data, dict) and data.get("detail") == "Error":
+                 raise Exception("API returned data error")
             
             if isinstance(data, Exception): 
                 raise data
@@ -184,6 +196,8 @@ async def main():
 
     tasks = []
     for key, cfg in clubs_to_process.items():
+        # Staggered start
+        await asyncio.sleep(random.uniform(0.5, 1.0))
         tasks.append(
             asyncio.create_task(
                 process_club_workflow(
@@ -192,7 +206,7 @@ async def main():
                     GC,
                     engine_choice,
                     RETRY_DELAY,
-                    3,    # max_attempts
+                    5,    # Increased max_attempts
                     90    # timeout
                 )
             )
