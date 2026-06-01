@@ -17,19 +17,19 @@ first_day_of_month = effective_date.replace(day=1).strftime("%Y-%m-%d")
 
 CLUBS = {
     "1": {
-        "title": "ENDLESS (SS)",
-        "club_id": "145606097",
-        "THRESHOLD": 4500000,
-    },
-    "2": {
         "title": "ENDER (SS)",
         "club_id": "971029133",
         "THRESHOLD": 4500000,
     },
-    "3": {
-        "title": "ENDCORE (S+)",
+    "2": {
+        "title": "ENDCORE (SS)",
         "club_id": "168472480",
-        "THRESHOLD": 3500000,
+        "THRESHOLD": 4500000,
+    },
+    "3": {
+        "title": "ENDORSE (SS)",
+        "club_id": "151723709",
+        "THRESHOLD": 4000000,
     },
     "4": {
         "title": "ENDGOON (S)",
@@ -49,12 +49,12 @@ CLUBS = {
     "7": {
         "title": "ENDCRYPTED (A+)",
         "club_id": "313985233",
-        "THRESHOLD": 1500000,
+        "THRESHOLD": 1300000,
     },
     "8": {
         "title": "ENIGMA (A+)",
         "club_id": "166373193",
-        "THRESHOLD": 1300000,
+        "THRESHOLD": 1500000,
     },
     "9": {
         "title": "ENDYMION (A+)",
@@ -62,14 +62,14 @@ CLUBS = {
         "THRESHOLD": 1300000,
     },
     "10": {
-        "title": "ENDWAVES (A+)",
-        "club_id": "815680661",
-        "THRESHOLD": 1000000,
-    },
-    "11": {
         "title": "ENDDOOKIE (A+)",
         "club_id": "532271884",
-        "THRESHOLD": 1000000,
+        "THRESHOLD": 1300000,
+    },
+    "11": {
+        "title": "ENDWAVES (A+)",
+        "club_id": "815680661",
+        "THRESHOLD": 700000,
     },
     "12": {
         "title": "ENDFIELD (A)",
@@ -92,9 +92,9 @@ CLUBS = {
         "THRESHOLD": 0,
     },
     "16": {
-        "title": "UMA Vault (S)",
+        "title": "UMA Vault (A+)",
         "club_id": "150259101",
-        "THRESHOLD": 2100000,
+        "THRESHOLD": 1200000,
     },
     "17": {
         "title": "Dirt Idols (A+)",
@@ -120,4 +120,4 @@ CLUBS = {
 
 # Inject dynamic sdate into all club configs
 for club_cfg in CLUBS.values():
-    club_cfg["sdate"] = first_day_of_month
+    club_cfg["sdate"] = first_day_of_month
