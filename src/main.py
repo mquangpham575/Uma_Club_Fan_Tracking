@@ -30,7 +30,7 @@ try:
     if base_path not in sys.path:
         sys.path.append(base_path)
         
-    from config.globals import CLUBS, SHEET_ID, VERSION
+    from config.globals import CLUBS, SHEET_ID, VERSION, first_day_of_month
 except ImportError as e:
     print(f"Error: 'globals.py' not found (Base path: {base_path}). Details: {e}")
     sys.exit(1)
@@ -39,7 +39,7 @@ except ImportError as e:
 
 # Import Modules
 from src.processing import build_dataframe
-from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets
+from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets, export_all_club_data_to_gsheets, get_green_members
 from src.utils import clear_screen, setup_windows_console, LogColor, colorize
 
 
@@ -127,6 +127,7 @@ async def process_club_workflow(
     retry_delay: int,
     max_attempts: int,
     per_club_timeout_seconds: int,
+    green_members: set = None,
 ) -> bool:
     # Handles the retry loop and processing for a single club
     title = cfg["title"]
@@ -140,6 +141,7 @@ async def process_club_workflow(
                     scrape_club_data(cfg),
                     timeout=per_club_timeout_seconds
                 )
+                await asyncio.sleep(2.5)
                 
             if status_code == 429:
                 prefix = colorize("[Rate Limit]", LogColor.RETRY)
@@ -149,14 +151,14 @@ async def process_club_workflow(
             
             if status_code != 200 or not raw_data:
                 raise Exception(f"API fetch failed (Status {status_code})")
-
+ 
             data = json.loads(raw_data)
             if isinstance(data, dict) and data.get("detail") == "Error":
                  raise Exception("API returned data error")
             
             if isinstance(data, Exception): 
                 raise data
-
+ 
             # Phase 2: Export to Sheets with 429 Retry logic
             df = build_dataframe(data)
             async with SHEETS_LOCK:
@@ -166,34 +168,78 @@ async def process_club_workflow(
                         None, 
                         export_to_gsheets, 
                         gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                        data.get("club_daily_history")
+                        data.get("club_daily_history"),
+                        green_members
                     )
                 except Exception as e:
-                    if "429" in str(e):
-                        prefix = colorize("[Quota]", LogColor.RETRY)
-                        print(f"  {prefix} {title}: Quota exceeded (429). Waiting 60s for reset...", flush=True)
-                        await asyncio.sleep(60) 
+                    if "429" in str(e) or "500" in str(e):
+                        prefix = colorize("[Quota/Server]", LogColor.RETRY)
+                        print(f"  {prefix} {title}: Error ({e}). Waiting 30s for reset...", flush=True)
+                        await asyncio.sleep(30) 
                         await loop.run_in_executor(
                             None, 
                             export_to_gsheets, 
                             gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                            data.get("club_daily_history")
+                            data.get("club_daily_history"),
+                            green_members
                         )
                     else:
                         raise e
+                # Cooldown to respect Google Sheets write quota limit
+                await asyncio.sleep(3.0)
             
             prefix = colorize("[Success]", LogColor.SUCCESS)
             print(f"  {prefix} {title}", flush=True)
-            return True
+            
+            # Extract data for summary sheet
+            day_cols = [c for c in df.columns if isinstance(c, str) and c.startswith("Day ")]
+            member_data = []
+            for _, row in df.iterrows():
+                perf = row[day_cols].sum() if day_cols else 0.0
+                member_data.append({
+                    "member_name": row["Member_Name"],
+                    "avg_day": row["AVG/d"],
+                    "performance": perf
+                })
+                
+            if "(" in title and ")" in title:
+                short_name = title.split("(")[0].strip()
+                grade = title.split("(")[1].split(")")[0].strip()
+            else:
+                short_name = title
+                grade = ""
+                
+            rank = ""
+            daily_history = data.get("club_daily_history") or []
+            if daily_history:
+                try:
+                    latest_entry = max(daily_history, key=lambda x: int(x.get("actual_date", 0)))
+                    rank_val = latest_entry.get("rank")
+                    if rank_val is not None:
+                        rank = f"#{rank_val}"
+                except Exception:
+                    rank_val = daily_history[-1].get("rank")
+                    if rank_val is not None:
+                        rank = f"#{rank_val}"
+                        
+            club_metadata = {
+                "short_name": short_name,
+                "grade": grade,
+                "rank": rank,
+                "members": member_data
+            }
+            return club_metadata
             
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             attempt_no = attempt + 1
             prefix = colorize("[Error]", LogColor.ERROR)
             print(f"  {prefix} on {title} (Attempt {attempt_no}): {e}", flush=True)
 
             attempt += 1
             if attempt >= max_attempts:
-                return False
+                return None
 
             delay = retry_delay + random.uniform(1, 4)
             prefix = colorize("[Retry]", LogColor.RETRY)
@@ -215,6 +261,12 @@ async def main():
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
     
+    # Fetch existing green members (Carry Club/Hard Carry) to preserve them
+    club_titles = [CLUBS[k]['title'] for k in CLUBS]
+    print("Fetching existing Carry Club members from worksheets...", flush=True)
+    green_members = get_green_members(GC, SHEET_ID, club_titles)
+    print(f"Found {len(green_members)} Carry Club members.", flush=True)
+
     # Engine is now exclusively Chrono
     engine_choice = "CHRONO"
     if is_cron:
@@ -247,50 +299,64 @@ async def main():
             # Target date calculation: Yesterday if after reset, else 2 days ago
             target_date = now_utc - timedelta(days=1 if now_utc >= reset_time else 2)
             target_col_name = f"Day {target_date.day}"
+            expected_month_str = target_date.strftime("%B %Y").upper()
                 
-            # Check the first club's sheet as a status indicator
-            first_club_title = list(CLUBS.values())[0]['title']
+            # Check if the summary sheet month matches the target month to prevent skipping month transitions
             ss = GC.open_by_key(SHEET_ID)
             try:
-                ws = ss.worksheet(first_club_title)
-                headers = ws.row_values(1)
-                if target_col_name in headers:
-                    print(f"--- Skip: Sheet is already up to date with {target_col_name} ---")
-                    return
-            except Exception:
-                pass # Proceed if sheet not found
+                summary_ws = ss.worksheet("All Club Data")
+                first_row = summary_ws.row_values(1)
+                if not first_row or expected_month_str not in first_row[0]:
+                    print(f"--- Month transition detected ({expected_month_str}). Proceeding with update... ---")
+                else:
+                    # Same month, verify if target day's column is already present in first club's sheet
+                    first_club_title = list(CLUBS.values())[0]['title']
+                    try:
+                        ws = ss.worksheet(first_club_title)
+                        headers = ws.row_values(1)
+                        if target_col_name in headers:
+                            print(f"--- Skip: Sheet is already up to date with {target_col_name} ---")
+                            return
+                    except Exception:
+                        pass # Proceed if worksheet not found
+            except Exception as e:
+                print(f"Warning: Summary sheet month verification failed, proceeding: {e}")
         except Exception as e:
             print(f"Warning: Freshness check failed, proceeding anyway: {e}")
 
     total_failures = 0
+    successful_clubs = []
     print(f"\nProcessing {len(clubs_to_process)} clubs (Engine: {engine_choice})...\n", flush=True)
 
-    # Launch all tasks simultaneously (Speed of API)
-    tasks = []
     for key, cfg in clubs_to_process.items():
-        # Staggered start to prevent initial burst
-        await asyncio.sleep(random.uniform(0.5, 1.5))
-        tasks.append(
-            asyncio.create_task(
-                process_club_workflow(
-                    key,
-                    cfg,
-                    GC,
-                    engine_choice,
-                    RETRY_DELAY,
-                    5,    # Increased max_attempts
-                    90    # timeout
-                )
-            )
+        outcome = await process_club_workflow(
+            key,
+            cfg,
+            GC,
+            engine_choice,
+            RETRY_DELAY,
+            5,    # Increased max_attempts
+            90,   # timeout
+            green_members
         )
-            
-    # Wait for all club updates to finish
-    outcomes = await asyncio.gather(*tasks)
-    total_failures = outcomes.count(False)
+        if outcome is not None:
+            successful_clubs.append(outcome)
+        else:
+            total_failures += 1
+        # Cooldown between clubs to prevent API rate limiting
+        await asyncio.sleep(2.0)
+
+    if choice == "ALL" and successful_clubs:
+        print("Exporting All Club Data summary sheet...", flush=True)
+        try:
+            export_all_club_data_to_gsheets(GC, SHEET_ID, successful_clubs, sdate=first_day_of_month, green_members=green_members)
+            print("All Club Data summary sheet updated.", flush=True)
+        except Exception as e:
+            print(f"Warning: Failed to update All Club Data summary sheet: {e}", flush=True)
 
     # Reordering is now always the final step after the parallel gather
     print("Reordering sheets...", flush=True)
-    ordered_titles = [CLUBS[k]['title'] for k in CLUBS]
+    ordered_titles = ["All Club Data"] + [CLUBS[k]['title'] for k in CLUBS]
     try:
         reorder_sheets(GC, SHEET_ID, ordered_titles)
     except Exception as e:

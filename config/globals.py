@@ -74,7 +74,7 @@ CLUBS = {
     "12": {
         "title": "ENDFIELD (A)",
         "club_id": "653291031",
-        "THRESHOLD": 700000,
+        "THRESHOLD": 850000,
     },
     "13": {
         "title": "ENDMOON (A)",
