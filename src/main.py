@@ -39,7 +39,7 @@ except ImportError as e:
 
 # Import Modules
 from src.processing import build_dataframe
-from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets, export_all_club_data_to_gsheets, get_green_members
+from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets, export_all_club_data_to_gsheets
 from src.utils import clear_screen, setup_windows_console, LogColor, colorize
 
 
@@ -127,9 +127,8 @@ async def process_club_workflow(
     retry_delay: int,
     max_attempts: int,
     per_club_timeout_seconds: int,
-    green_members: set = None,
 ) -> bool:
-    # Handles the retry loop and processing for a single club
+    # Handles the retry loop and processing for a single club.
     title = cfg["title"]
     attempt = 0
     
@@ -168,8 +167,7 @@ async def process_club_workflow(
                         None, 
                         export_to_gsheets, 
                         gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                        data.get("club_daily_history"),
-                        green_members
+                        data.get("club_daily_history")
                     )
                 except Exception as e:
                     if "429" in str(e) or "500" in str(e):
@@ -180,8 +178,7 @@ async def process_club_workflow(
                             None, 
                             export_to_gsheets, 
                             gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                            data.get("club_daily_history"),
-                            green_members
+                            data.get("club_daily_history")
                         )
                     else:
                         raise e
@@ -261,12 +258,6 @@ async def main():
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
     
-    # Fetch existing green members (Carry Club/Hard Carry) to preserve them
-    club_titles = [CLUBS[k]['title'] for k in CLUBS]
-    print("Fetching existing Carry Club members from worksheets...", flush=True)
-    green_members = get_green_members(GC, SHEET_ID, club_titles)
-    print(f"Found {len(green_members)} Carry Club members.", flush=True)
-
     # Engine is now exclusively Chrono
     engine_choice = "CHRONO"
     if is_cron:
@@ -337,7 +328,6 @@ async def main():
             RETRY_DELAY,
             5,    # Increased max_attempts
             90,   # timeout
-            green_members
         )
         if outcome is not None:
             successful_clubs.append(outcome)
@@ -349,7 +339,7 @@ async def main():
     if choice == "ALL" and successful_clubs:
         print("Exporting All Club Data summary sheet...", flush=True)
         try:
-            export_all_club_data_to_gsheets(GC, SHEET_ID, successful_clubs, sdate=first_day_of_month, green_members=green_members)
+            export_all_club_data_to_gsheets(GC, SHEET_ID, successful_clubs, sdate=first_day_of_month)
             print("All Club Data summary sheet updated.", flush=True)
         except Exception as e:
             print(f"Warning: Failed to update All Club Data summary sheet: {e}", flush=True)

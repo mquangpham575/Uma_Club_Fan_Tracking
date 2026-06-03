@@ -78,7 +78,8 @@ def reorder_sheets(gc_client, spreadsheet_id: str, ordered_titles: list[str]):
     except Exception as e:
         print(f"Warning: Failed to reorder sheets: {e}")
 
-def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int, club_daily_history: list = None, green_members: set = None):
+def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int, club_daily_history: list = None):
+    # Exports individual club data and daily history to Google Sheets.
     GAP_COL = " "
     dcols = [c for c in df.columns if isinstance(c, str) and c.startswith("Day ")]
     df_to_write = df.copy()
@@ -388,12 +389,9 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
         }
     })
 
+    green_members = set()
     if "Member_Name" in df_to_write.columns:
-        top_3_names = set(df_to_write["Member_Name"].head(3).tolist())
-        if green_members is not None:
-            green_members = set(green_members).union(top_3_names)
-        else:
-            green_members = top_3_names
+        green_members = set(df_to_write["Member_Name"].head(3).tolist())
 
     if green_members and "Member_Name" in header:
         name_col_index = header.index("Member_Name")
@@ -419,18 +417,14 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
     ws.spreadsheet.batch_update({"requests": requests})
 
 
-def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_data: list, sdate: str = None, green_members: set = None):
+def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_data: list, sdate: str = None):
     """Exports combined member and club statistics across all tracked clubs to a formatted side-by-side dashboard in Google Sheets."""
-    # Union green_members with top 3 members of each club
-    top_3_members = set()
+    # Define green members dynamically as the top 3 members of each club
+    green_members = set()
     for club in all_clubs_data:
         # Get first 3 members of this club (they are sorted by AVG/d descending)
         for m in club["members"][:3]:
-            top_3_members.add(m["member_name"])
-    if green_members is not None:
-        green_members = set(green_members).union(top_3_members)
-    else:
-        green_members = top_3_members
+            green_members.add(m["member_name"])
 
     # 1. Compile Member Rows
     left_rows = []
@@ -969,51 +963,5 @@ GRADE_COLORS = {
     "Casual": {"red": 0.600, "green": 0.600, "blue": 0.600},
 }
 
-
-def get_green_members(gc_client, spreadsheet_id: str, club_titles: list) -> set:
-    """Fetches member names colored green across existing worksheets from Google Sheets."""
-    green_members = set()
-    try:
-        ss = gc_client.open_by_key(spreadsheet_id)
-        existing_titles = {ws.title for ws in ss.worksheets()}
-        titles_to_query = [t for t in club_titles if t in existing_titles]
-        if not titles_to_query:
-            return green_members
-
-        import urllib.parse
-        batch_size = 15
-        for i in range(0, len(titles_to_query), batch_size):
-            batch = titles_to_query[i:i+batch_size]
-            ranges_list = []
-            for t in batch:
-                # Wrap sheet name in single quotes in case it contains spaces or special characters
-                q_range = urllib.parse.quote(f"'{t}'!B1:B100")
-                ranges_list.append(f"ranges={q_range}")
-            ranges_params = "&".join(ranges_list)
-            url = f"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}?{ranges_params}&includeGridData=true"
-
-            res_obj = gc_client.http_client.session.get(url)
-            if res_obj.status_code == 200:
-                res = res_obj.json()
-                for s in res.get('sheets', []):
-                    data = s.get('data', [])
-                    if data:
-                        row_data = data[0].get('rowData', [])
-                        for r in row_data:
-                            values = r.get('values', [])
-                            if values:
-                                val = values[0]
-                                name = val.get('formattedValue')
-                                bg = val.get('userEnteredFormat', {}).get('backgroundColor', {})
-                                if bg and name:
-                                    r_val = bg.get('red', 1.0)
-                                    g_val = bg.get('green', 1.0)
-                                    b_val = bg.get('blue', 1.0)
-                                    if g_val > r_val and g_val > b_val and g_val < 0.9:
-                                        green_members.add(name)
-    except Exception as e:
-        print(f"Warning: Failed to fetch green member colors: {e}")
-
-    return green_members
 
 
