@@ -162,6 +162,7 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
     end_row = len(values)
     end_col = len(header)
     end_a1 = rowcol_to_a1(end_row, end_col)
+    values = [[("" if pd.isna(cell) else cell) for cell in row] for row in values]
     ws.update(values, f"A1:{end_a1}")
 
     sheet_id = int(ws.id)  # Adjustment: cast to int for API
@@ -536,6 +537,7 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
     
     end_row = len(values)
     end_a1 = rowcol_to_a1(end_row, 12)
+    values = [[("" if pd.isna(cell) else cell) for cell in row] for row in values]
     ws.update(values, f"A1:{end_a1}")
     
     # 5. Format the sheet
