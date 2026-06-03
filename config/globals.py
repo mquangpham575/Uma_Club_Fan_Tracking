@@ -54,7 +54,7 @@ CLUBS = {
     "8": {
         "title": "ENIGMA (A+)",
         "club_id": "166373193",
-        "THRESHOLD": 1500000,
+        "THRESHOLD": 1300000,
     },
     "9": {
         "title": "ENDYMION (A+)",

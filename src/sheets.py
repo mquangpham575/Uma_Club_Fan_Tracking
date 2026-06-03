@@ -370,6 +370,17 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
             }
         })
 
+    if dcols:
+        first_day_idx = header.index(dcols[0])
+        last_day_idx = header.index(dcols[-1])
+        requests.append({
+            "updateDimensionProperties": {
+                "range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": first_day_idx, "endIndex": last_day_idx + 1},
+                "properties": {"pixelSize": 90},
+                "fields": "pixelSize"
+            }
+        })
+
     requests.append({
         "updateSheetProperties": {
             "properties": {"sheetId": sheet_id, "gridProperties": {"frozenRowCount": 1}},
