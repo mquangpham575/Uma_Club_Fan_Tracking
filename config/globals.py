@@ -1,5 +1,6 @@
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+
 # globals.py
 
 VERSION = "1.1"
@@ -115,6 +116,11 @@ CLUBS = {
         "title": "yurimusume (Casual)",
         "club_id": "415579817",
         "THRESHOLD": 0,
+    },
+    "21": {
+        "title": "End Nuts (B)",
+        "club_id": "567130959",
+        "THRESHOLD": 200000,
     },
 }
 
