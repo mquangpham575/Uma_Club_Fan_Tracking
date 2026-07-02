@@ -317,10 +317,10 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
 
         *([
             {"addBanding": {"bandedRange": {"range": band_left,  "rowProperties": {"firstBandColor": band_light, "secondBandColor": band_very}}}}
-        ] if gidx is None or gidx > 0 else []),
+        ] if (gidx is None or gidx > 0) and last_data_row_1based > 1 else []),
         *([
             {"addBanding": {"bandedRange": {"range": band_right, "rowProperties": {"firstBandColor": band_light, "secondBandColor": band_very}}}}
-        ] if gidx is not None and gidx + 1 < end_col else []),
+        ] if gidx is not None and gidx + 1 < end_col and last_data_row_1based > 1 else []),
 
         *[
             {"repeatCell": {"range": r, "cell": {"userEnteredFormat": {"numberFormat": number_format}}, "fields": "userEnteredFormat.numberFormat"}}

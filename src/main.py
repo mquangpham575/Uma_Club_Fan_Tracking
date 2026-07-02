@@ -157,7 +157,12 @@ async def process_club_workflow(
             
             if isinstance(data, Exception): 
                 raise data
- 
+
+            if not data.get("club_friend_history"):
+                prefix = colorize("[No Data]", LogColor.RETRY)
+                print(f"  {prefix} {title}: No history data available in API yet. Skipping sheet update.", flush=True)
+                return True
+
             # Phase 2: Export to Sheets with 429 Retry logic
             df = build_dataframe(data)
             async with SHEETS_LOCK:
