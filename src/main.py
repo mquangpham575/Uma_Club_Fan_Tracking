@@ -30,7 +30,7 @@ try:
     if base_path not in sys.path:
         sys.path.append(base_path)
         
-    from config.globals import CLUBS, SHEET_ID, VERSION, first_day_of_month
+    from config.globals import CLUBS, SHEET_ID, VERSION, first_day_of_month, effective_date
 except ImportError as e:
     print(f"Error: 'globals.py' not found (Base path: {base_path}). Details: {e}")
     sys.exit(1)
@@ -248,7 +248,39 @@ async def process_club_workflow(
             print(f"  {prefix} {title}: sleeping {delay:.1f}s before attempt {attempt + 1}...", flush=True)
             await asyncio.sleep(delay)
 
-# Phase 2 removal (Consolidated into process_club_workflow)
+async def fetch_db_active_clubs(database_url: str, check_date) -> list:
+    """
+    Fetch active clubs and their daily quotas from the database for the given date.
+    
+    Intent:
+        Retrieve circle ID, name, and current daily quota for all active clubs in the database.
+    """
+    import asyncpg
+    conn = None
+    try:
+        conn = await asyncpg.connect(database_url)
+        rows = await conn.fetch(
+            """
+            SELECT c.circle_id, c.club_name,
+                   COALESCE(
+                       (SELECT daily_quota FROM quota_requirements qr 
+                        WHERE qr.club_id = c.club_id AND qr.effective_date <= $1 
+                        ORDER BY qr.effective_date DESC LIMIT 1),
+                       c.daily_quota
+                   ) as quota
+            FROM clubs c
+            WHERE c.circle_id IS NOT NULL AND c.is_active = TRUE
+            """,
+            check_date
+        )
+        return [dict(row) for row in rows]
+    except Exception as e:
+        print(f"Warning: Failed to fetch active clubs from database: {e}. Using default globals.", flush=True)
+        return None
+    finally:
+        if conn:
+            await conn.close()
+
 
 async def main():
     setup_windows_console(VERSION)
@@ -262,6 +294,65 @@ async def main():
 
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
+    
+    # Load dynamic quotas and active clubs from UmaCore PostgreSQL database if available
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        umacore_env_path = os.path.abspath(os.path.join(base_path, "..", "UmaCore", ".env"))
+        if os.path.exists(umacore_env_path):
+            try:
+                from dotenv import dotenv_values
+                env_vals = dotenv_values(umacore_env_path)
+                database_url = env_vals.get("DATABASE_URL")
+            except Exception:
+                pass
+
+    db_clubs = None
+    if database_url:
+        db_clubs = await fetch_db_active_clubs(database_url, effective_date.date())
+
+    if db_clubs is not None:
+        # Match circle_id and build new sorted dict
+        new_clubs = {}
+        circle_to_global_cfg = {cfg['club_id']: cfg for cfg in CLUBS.values()}
+        
+        # Sort db_clubs by quota descending, then by name
+        db_clubs.sort(key=lambda x: (-int(x['quota']), x['club_name']))
+        
+        idx = 1
+        for club in db_clubs:
+            cid = str(club['circle_id'])
+            quota = int(club['quota'])
+            cname = club['club_name']
+            
+            # Default to matching global config title if exists, otherwise DB name
+            if cid in circle_to_global_cfg:
+                cfg = circle_to_global_cfg[cid]
+                title = cfg.get('title', cname)
+            else:
+                title = cname
+            
+            new_clubs[str(idx)] = {
+                "title": title,
+                "club_id": cid,
+                "THRESHOLD": quota,
+                "sdate": first_day_of_month
+            }
+            idx += 1
+            
+        print(f"Loaded {len(new_clubs)} active clubs from database in quota-sorted order.", flush=True)
+        CLUBS.clear()
+        CLUBS.update(new_clubs)
+    else:
+        # Fallback: keep existing CLUBS but sort them by THRESHOLD descending
+        sorted_clubs = sorted(
+            CLUBS.values(),
+            key=lambda x: x.get("THRESHOLD", 0),
+            reverse=True
+        )
+        new_clubs = {str(i + 1): cfg for i, cfg in enumerate(sorted_clubs)}
+        CLUBS.clear()
+        CLUBS.update(new_clubs)
     
     # Engine is now exclusively Chrono
     engine_choice = "CHRONO"
