@@ -6,6 +6,12 @@ on:
   repository_dispatch:
     types: [external-cron]
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force update (skip redundancy checks)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -41,17 +47,32 @@ jobs:
           mkdir -p OnlyRex
           echo "$ONLYREX_CREDS" > OnlyRex/credentials.json
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          cat << 'EOF' > ~/.ssh/umacore_key
+          ${{ secrets.SSH_PRIVATE_KEY }}
+          EOF
+          sed -i 's/\r$//' ~/.ssh/umacore_key
+          chmod 600 ~/.ssh/umacore_key
+          ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Establish SSH database tunnel
+        run: |
+          ssh -i ~/.ssh/umacore_key -o StrictHostKeyChecking=no -f -N -L 5432:172.18.0.2:5432 umacore@${{ secrets.VM_HOST }}
+
       # Consolidated Update Phase
       - name: Update Tracker
         uses: nick-fields/retry@v3
         env:
           GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
           CHRONO_API_KEY: ${{ secrets.CHRONO_API_KEY }}
+          DATABASE_URL: postgresql://umacore:${{ secrets.POSTGRES_PASSWORD }}@127.0.0.1:5432/umacore
         with:
           timeout_minutes: 20
           max_attempts: 2
           retry_wait_seconds: 15
-          command: uv run python src/main.py --cron --engine chrono
+          command: uv run python src/main.py --cron --engine chrono ${{ github.event.inputs.force == 'true' && '--force' || '' }}
 
       - name: Update OnlyRex
         uses: nick-fields/retry@v3
