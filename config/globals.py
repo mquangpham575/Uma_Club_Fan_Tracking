@@ -9,6 +9,7 @@ GITHUB_API_URL = "https://api.github.com/repos/mquangpham575/Uma_Club_Fan_Tracki
 
 SHEET_ID = "1O09PM-hYo-H05kWWqMg71GelEpfaGrePQWzdDCKOqyU"
 CHRONO_API_KEY = os.getenv("CHRONO_API_KEY", "YOUR_LOCAL_KEY_HERE")
+SERVER_ID = os.getenv("SERVER_ID") or os.getenv("GUILD_ID", "1108441000873033869")
 
 # Calculate effective month (Chrono resets at 10:00 UTC)
 now_utc = datetime.now(timezone.utc)

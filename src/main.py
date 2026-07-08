@@ -248,7 +248,7 @@ async def process_club_workflow(
             print(f"  {prefix} {title}: sleeping {delay:.1f}s before attempt {attempt + 1}...", flush=True)
             await asyncio.sleep(delay)
 
-async def fetch_db_active_clubs(database_url: str, check_date) -> list:
+async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = None) -> list:
     """
     Fetch active clubs and their daily quotas from the database for the given date.
     
@@ -259,20 +259,34 @@ async def fetch_db_active_clubs(database_url: str, check_date) -> list:
     conn = None
     try:
         conn = await asyncpg.connect(database_url)
-        rows = await conn.fetch(
+        if guild_id:
+            query = """
+                SELECT c.circle_id, c.club_name,
+                       COALESCE(
+                           (SELECT daily_quota FROM quota_requirements qr 
+                            WHERE qr.club_id = c.club_id AND qr.effective_date <= $1 
+                            ORDER BY qr.effective_date DESC LIMIT 1),
+                           c.daily_quota
+                       ) as quota
+                FROM clubs c
+                WHERE c.circle_id IS NOT NULL 
+                  AND c.is_active = TRUE 
+                  AND c.guild_id = CAST($2 AS VARCHAR)
             """
-            SELECT c.circle_id, c.club_name,
-                   COALESCE(
-                       (SELECT daily_quota FROM quota_requirements qr 
-                        WHERE qr.club_id = c.club_id AND qr.effective_date <= $1 
-                        ORDER BY qr.effective_date DESC LIMIT 1),
-                       c.daily_quota
-                   ) as quota
-            FROM clubs c
-            WHERE c.circle_id IS NOT NULL AND c.is_active = TRUE
-            """,
-            check_date
-        )
+            rows = await conn.fetch(query, check_date, str(guild_id))
+        else:
+            query = """
+                SELECT c.circle_id, c.club_name,
+                       COALESCE(
+                           (SELECT daily_quota FROM quota_requirements qr 
+                            WHERE qr.club_id = c.club_id AND qr.effective_date <= $1 
+                            ORDER BY qr.effective_date DESC LIMIT 1),
+                           c.daily_quota
+                       ) as quota
+                FROM clubs c
+                WHERE c.circle_id IS NOT NULL AND c.is_active = TRUE
+            """
+            rows = await conn.fetch(query, check_date)
         return [dict(row) for row in rows]
     except Exception as e:
         print(f"Warning: Failed to fetch active clubs from database: {e}. Using default globals.", flush=True)
@@ -309,7 +323,8 @@ async def main():
 
     db_clubs = None
     if database_url:
-        db_clubs = await fetch_db_active_clubs(database_url, effective_date.date())
+        from config.globals import SERVER_ID
+        db_clubs = await fetch_db_active_clubs(database_url, effective_date.date(), SERVER_ID)
 
     if db_clubs is not None:
         # Match circle_id and build new sorted dict
