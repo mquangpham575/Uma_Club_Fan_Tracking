@@ -122,6 +122,11 @@ CLUBS = {
         "club_id": "567130959",
         "THRESHOLD": 200000,
     },
+    "22": {
+        "title": "aMAIzxyng (A)",
+        "club_id": "412167431",
+        "THRESHOLD": 700000,
+    },
 }
 
 # Inject dynamic sdate into all club configs
