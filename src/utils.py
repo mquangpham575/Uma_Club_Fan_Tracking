@@ -3,7 +3,6 @@ import os
 import sys
 
 
-
 def setup_windows_console(version_str=None):
     """
     Disables QuickEdit Mode and enables ANSI color support.

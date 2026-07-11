@@ -1,18 +1,15 @@
 import asyncio
-import os
-import sys
-import random
-import logging
 import json
-from datetime import datetime, timezone, timedelta
+import os
+import random
+import sys
+from datetime import datetime, timedelta, timezone
+
 from dotenv import load_dotenv
 
 # Load local environment variables from .env if present
 load_dotenv()
 
-# Silence verbose browser logs
-logging.getLogger("zendriver").setLevel(logging.WARNING)
-logging.getLogger("uc").setLevel(logging.WARNING)
 
 # Import Globals
 try:
@@ -30,7 +27,13 @@ try:
     if base_path not in sys.path:
         sys.path.append(base_path)
         
-    from config.globals import CLUBS, SHEET_ID, VERSION, first_day_of_month, effective_date
+    from config.globals import (
+        CLUBS,
+        SHEET_ID,
+        VERSION,
+        effective_date,
+        first_day_of_month,
+    )
 except ImportError as e:
     print(f"Error: 'globals.py' not found (Base path: {base_path}). Details: {e}")
     sys.exit(1)
@@ -38,10 +41,19 @@ except ImportError as e:
 # Zendriver compatibility patches removed (Chrono now uses direct API)
 
 # Import Modules
-from src.processing import build_dataframe
-from src.sheets import export_to_gsheets, get_gspread_client, reorder_sheets, export_all_club_data_to_gsheets
-from src.utils import clear_screen, setup_windows_console, LogColor, colorize
-
+from src.processing import build_dataframe  # noqa: E402
+from src.sheets import (  # noqa: E402
+    export_all_club_data_to_gsheets,
+    export_to_gsheets,
+    get_gspread_client,
+    reorder_sheets,
+)
+from src.utils import (  # noqa: E402
+    LogColor,
+    clear_screen,
+    colorize,
+    setup_windows_console,
+)
 
 # Global locks to prevent concurrent resource exhaustion
 SHEETS_LOCK = asyncio.Lock()
@@ -299,8 +311,6 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
 async def main():
     setup_windows_console(VERSION)
     is_cron = "--cron" in sys.argv
-    scrape_only = "--scrape-only" in sys.argv
-    sync_only = "--sync-only" in sys.argv
     
     # Startup
     if not is_cron:
@@ -381,8 +391,6 @@ async def main():
                 sys.exit(0)
             break 
 
-    # Lazy-loading Dependencies
-    zd = None
 
     RETRY_DELAY = int(os.getenv("CHRONO_RETRY_DELAY", "5"))
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}

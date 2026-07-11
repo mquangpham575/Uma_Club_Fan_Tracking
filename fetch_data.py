@@ -1,11 +1,12 @@
-import requests
-import json
 import base64
+import json
+
+import requests
 
 
 def fetch_via_github_api(owner, repo, path, token=None):
     """Method 2: GitHub Contents API (Handles metadata, private repos, and bypasses cache)"""
-    print(f"\n--- Method 2: GitHub API ---")
+    print("\n--- Method 2: GitHub API ---")
     api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
     print(f"API Endpoint: {api_url}")
     
@@ -34,9 +35,7 @@ def run_demonstration():
     repo = "Uma_Club_Fan_Tracking"
     file_path = "api_data/125289696.json"
     
-    # Construct URLs
-    raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/main/{file_path}"
-    
+
     try:
         # 1. Fetch via GitHub API
         data = fetch_via_github_api(owner, repo, file_path)
@@ -46,9 +45,9 @@ def run_demonstration():
         members = data.get("club_friend_profile", [])
         history = data.get("club_daily_history", [])
 
-        print(f"\n==========================================")
+        print("\n==========================================")
         print(f" CLUB: {club.get('name')} (ID: {club.get('circle_id')})")
-        print(f"==========================================")
+        print("==========================================")
         print(f" Current Rank : #{club.get('rank')}")
         print(f" Total Fans   : {club.get('fan_count', 0):,}")
         print(f" Members      : {len(members)}/30")
@@ -63,7 +62,7 @@ def run_demonstration():
         print("\n--- RECENT HISTORY ---")
         for h in history[:3]:
             print(f"  Day {h.get('actual_date'):<2} | Rank: #{h.get('rank'):<3} | Gain: +{h.get('interpolated_fan_gain', 0):,}")
-        print(f"==========================================\n")
+        print("==========================================\n")
 
     except Exception as e:
         print(f"Error during fetch: {e}")

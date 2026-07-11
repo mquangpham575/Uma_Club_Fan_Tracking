@@ -1,8 +1,10 @@
 import asyncio
+
 import requests
-import json
-from src.utils import LogColor, colorize
+
 from config.globals import CHRONO_API_KEY
+from src.utils import LogColor, colorize
+
 
 async def scrape_club_data(cfg: dict, zd=None):
     """

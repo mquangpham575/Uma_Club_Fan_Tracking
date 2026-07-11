@@ -1,5 +1,6 @@
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+
 # OnlyRex/globals.py
 
 VERSION = "1.1-REX"
