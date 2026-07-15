@@ -72,7 +72,7 @@ jobs:
           timeout_minutes: 20
           max_attempts: 2
           retry_wait_seconds: 15
-          command: uv run python src/main.py --cron --engine chrono ${{ github.event.inputs.force == 'true' && '--force' || '' }}
+          command: uv run python src/main.py --cron --engine chrono ${{ (github.event.inputs.force == 'true' || github.event.client_payload.force == true) && '--force' || '' }}
 
       - name: Update OnlyRex
         uses: nick-fields/retry@v3
@@ -83,4 +83,4 @@ jobs:
           timeout_minutes: 10
           max_attempts: 2
           retry_wait_seconds: 15
-          command: uv run python OnlyRex/only_rex_tracker.py --cron
+          command: uv run python OnlyRex/only_rex_tracker.py --cron ${{ (github.event.inputs.force == 'true' || github.event.client_payload.force == true) && '--force' || '' }}
