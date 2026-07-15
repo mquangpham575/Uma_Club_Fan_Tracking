@@ -78,6 +78,7 @@ jobs:
         uses: nick-fields/retry@v3
         env:
           CHRONO_API_KEY: ${{ secrets.CHRONO_API_KEY }}
+          DATABASE_URL: postgresql://umacore:${{ secrets.POSTGRES_PASSWORD }}@127.0.0.1:5432/umacore
         with:
           timeout_minutes: 10
           max_attempts: 2

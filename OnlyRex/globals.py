@@ -23,7 +23,6 @@ CLUBS = {
     "1": {
         "title": f"{month_name} {year_short} (A+)",
         "club_id": "150259101",
-        "THRESHOLD": 1300000,
         "sdate": first_day_of_month,
     },
 }

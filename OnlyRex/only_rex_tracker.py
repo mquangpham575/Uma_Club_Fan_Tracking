@@ -219,6 +219,37 @@ async def process_club_workflow(
             print(f"  {prefix} {title}: sleeping {delay:.1f}s before attempt {attempt + 1}...", flush=True)
             await asyncio.sleep(delay)
 
+async def fetch_db_quota_for_circle(database_url: str, check_date, circle_id: str) -> tuple:
+    """
+    Fetch the quota and quota_period for a specific circle ID from the database.
+    """
+    import asyncpg
+    conn = None
+    try:
+        conn = await asyncpg.connect(database_url)
+        query = """
+            SELECT 
+                COALESCE(
+                    (SELECT daily_quota FROM quota_requirements qr 
+                     WHERE qr.club_id = c.club_id AND qr.effective_date <= $1 
+                     ORDER BY qr.effective_date DESC LIMIT 1),
+                    c.daily_quota
+                ) as quota,
+                c.quota_period
+            FROM clubs c
+            WHERE c.circle_id = $2 AND c.is_active = TRUE
+        """
+        row = await conn.fetchrow(query, check_date, str(circle_id))
+        if row:
+            return int(row['quota']), row['quota_period']
+        return None, None
+    except Exception as e:
+        print(f"Error: Failed to fetch club quota from database: {e}.", flush=True)
+        raise e
+    finally:
+        if conn:
+            await conn.close()
+
 async def main():
     setup_windows_console(VERSION)
     is_cron = "--cron" in sys.argv
@@ -269,6 +300,41 @@ async def main():
                 print(f"Warning: Could not fetch headers for worksheet '{ws.title}': {e}", flush=True)
                 sheet_headers[ws.title] = []
                 
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        umacore_env_path = os.path.abspath(os.path.join(base_path, "UmaCore", ".env"))
+        if os.path.exists(umacore_env_path):
+            try:
+                from dotenv import dotenv_values
+                env_vals = dotenv_values(umacore_env_path)
+                database_url = env_vals.get("DATABASE_URL")
+            except Exception:
+                pass
+
+    if not database_url:
+        print("Error: DATABASE_URL must be configured. Database connectivity is required.", flush=True)
+        sys.exit(1)
+
+    try:
+        quota, period = await fetch_db_quota_for_circle(database_url, effective_date.date(), "150259101")
+        if quota is None:
+            print("Error: Club 150259101 is not registered or not active in the database.", flush=True)
+            sys.exit(1)
+        
+        if period == 'daily':
+            threshold = quota
+        elif period == 'weekly':
+            threshold = int(quota / 7.0)
+        elif period == 'biweekly':
+            threshold = int(quota / 14.0)
+        else:
+            threshold = int(quota / 30.0)
+            
+        print(f"Loaded database quota for circle 150259101: {quota:,} ({period}) -> daily equivalent: {threshold:,}", flush=True)
+    except Exception as e:
+        print(f"Fatal error: Database connection or query failed: {e}. Exiting.", flush=True)
+        sys.exit(1)
+
     discovered_clubs = []
     for title in sheet_titles:
         parsed = parse_sheet_title(title)
@@ -286,7 +352,7 @@ async def main():
             discovered_clubs.append({
                 "title": title,
                 "club_id": "150259101",
-                "THRESHOLD": 1300000,
+                "THRESHOLD": threshold,
                 "sdate": sdate,
                 "year": year,
                 "month": month_num,
