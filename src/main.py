@@ -399,6 +399,34 @@ async def main():
     CLUBS.clear()
     CLUBS.update(new_clubs)
     
+    # Delete stale worksheets for deactivated clubs
+    active_titles = {cfg['title'] for cfg in CLUBS.values()}
+    try:
+        ss = GC.open_by_key(SHEET_ID)
+        all_worksheets = ss.worksheets()
+        for ws in all_worksheets:
+            title = ws.title
+            if title == "All Club Data":
+                continue
+            
+            # Check if this worksheet belongs to a club defined in globals.py
+            # but is not in our active titles set
+            matched_global_cfg = None
+            for cfg in circle_to_global_cfg.values():
+                if cfg.get('title') == title:
+                    matched_global_cfg = cfg
+                    break
+                    
+            if matched_global_cfg and title not in active_titles:
+                print(f"Detected deactivated club sheet '{title}'. Deleting worksheet...", flush=True)
+                try:
+                    ss.del_worksheet(ws)
+                    print(f"Deleted worksheet '{title}'.", flush=True)
+                except Exception as ex:
+                    print(f"Warning: Failed to delete worksheet '{title}': {ex}", flush=True)
+    except Exception as e:
+        print(f"Warning: Failed to perform stale sheet cleanup: {e}", flush=True)
+    
     # Engine is now exclusively Chrono
     engine_choice = "CHRONO"
     if is_cron:
