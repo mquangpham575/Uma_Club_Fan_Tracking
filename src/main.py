@@ -346,10 +346,8 @@ async def main():
     new_clubs = {}
     circle_to_global_cfg = {cfg['club_id']: cfg for cfg in CLUBS.values()}
     
-    # Compute monthly threshold for each club based on quota_period
-    import calendar
-    _, days_in_month = calendar.monthrange(effective_date.year, effective_date.month)
-    
+    # Compute daily equivalent threshold for each club based on quota_period
+    # This aligns with column C (AVG/d) comparison in the spreadsheet
     parsed_db_clubs = []
     for club in db_clubs:
         cid = str(club['circle_id'])
@@ -358,13 +356,13 @@ async def main():
         period = club.get('quota_period', 'daily')
         
         if period == 'daily':
-            threshold = quota * days_in_month
+            threshold = quota
         elif period == 'weekly':
-            threshold = int(quota * (days_in_month / 7.0))
+            threshold = int(quota / 7.0)
         elif period == 'biweekly':
-            threshold = int(quota * (days_in_month / 14.0))
+            threshold = int(quota / 14.0)
         else:
-            threshold = quota  # Monthly
+            threshold = int(quota / 30.0)  # Monthly normalization
             
         parsed_db_clubs.append({
             "circle_id": cid,
