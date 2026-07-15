@@ -273,7 +273,7 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
         conn = await asyncpg.connect(database_url)
         if guild_id:
             query = """
-                SELECT c.circle_id, c.club_name,
+                SELECT c.circle_id, c.club_name, c.quota_period,
                        COALESCE(
                            (SELECT daily_quota FROM quota_requirements qr 
                             WHERE qr.club_id = c.club_id AND qr.effective_date <= $1 
@@ -288,7 +288,7 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
             rows = await conn.fetch(query, check_date, str(guild_id))
         else:
             query = """
-                SELECT c.circle_id, c.club_name,
+                SELECT c.circle_id, c.club_name, c.quota_period,
                        COALESCE(
                            (SELECT daily_quota FROM quota_requirements qr 
                             WHERE qr.club_id = c.club_id AND qr.effective_date <= $1 
@@ -301,8 +301,8 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
             rows = await conn.fetch(query, check_date)
         return [dict(row) for row in rows]
     except Exception as e:
-        print(f"Warning: Failed to fetch active clubs from database: {e}. Using default globals.", flush=True)
-        return None
+        print(f"Error: Failed to fetch active clubs from database: {e}.", flush=True)
+        raise e
     finally:
         if conn:
             await conn.close()
@@ -319,7 +319,7 @@ async def main():
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
     
-    # Load dynamic quotas and active clubs from UmaCore PostgreSQL database if available
+    # Load dynamic quotas and active clubs from UmaCore PostgreSQL database
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
         umacore_env_path = os.path.abspath(os.path.join(base_path, "..", "UmaCore", ".env"))
@@ -331,53 +331,75 @@ async def main():
             except Exception:
                 pass
 
-    db_clubs = None
-    if database_url:
+    if not database_url:
+        print("Error: DATABASE_URL must be configured. Database connectivity is required.", flush=True)
+        sys.exit(1)
+
+    try:
         from config.globals import SERVER_ID
         db_clubs = await fetch_db_active_clubs(database_url, effective_date.date(), SERVER_ID)
+    except Exception as e:
+        print(f"Fatal error: Database connection or query failed: {e}. Exiting.", flush=True)
+        sys.exit(1)
 
-    if db_clubs is not None:
-        # Match circle_id and build new sorted dict
-        new_clubs = {}
-        circle_to_global_cfg = {cfg['club_id']: cfg for cfg in CLUBS.values()}
+    # Match circle_id and build new sorted dict
+    new_clubs = {}
+    circle_to_global_cfg = {cfg['club_id']: cfg for cfg in CLUBS.values()}
+    
+    # Compute monthly threshold for each club based on quota_period
+    import calendar
+    _, days_in_month = calendar.monthrange(effective_date.year, effective_date.month)
+    
+    parsed_db_clubs = []
+    for club in db_clubs:
+        cid = str(club['circle_id'])
+        quota = int(club['quota'])
+        cname = club['club_name']
+        period = club.get('quota_period', 'daily')
         
-        # Sort db_clubs by quota descending, then by name
-        db_clubs.sort(key=lambda x: (-int(x['quota']), x['club_name']))
+        if period == 'daily':
+            threshold = quota * days_in_month
+        elif period == 'weekly':
+            threshold = int(quota * (days_in_month / 7.0))
+        elif period == 'biweekly':
+            threshold = int(quota * (days_in_month / 14.0))
+        else:
+            threshold = quota  # Monthly
+            
+        parsed_db_clubs.append({
+            "circle_id": cid,
+            "club_name": cname,
+            "quota": quota,
+            "threshold": threshold,
+        })
         
-        idx = 1
-        for club in db_clubs:
-            cid = str(club['circle_id'])
-            quota = int(club['quota'])
-            cname = club['club_name']
-            
-            # Default to matching global config title if exists, otherwise DB name
-            if cid in circle_to_global_cfg:
-                cfg = circle_to_global_cfg[cid]
-                title = cfg.get('title', cname)
-            else:
-                title = cname
-            
-            new_clubs[str(idx)] = {
-                "title": title,
-                "club_id": cid,
-                "THRESHOLD": quota,
-                "sdate": first_day_of_month
-            }
-            idx += 1
-            
-        print(f"Loaded {len(new_clubs)} active clubs from database in quota-sorted order.", flush=True)
-        CLUBS.clear()
-        CLUBS.update(new_clubs)
-    else:
-        # Fallback: keep existing CLUBS but sort them by THRESHOLD descending
-        sorted_clubs = sorted(
-            CLUBS.values(),
-            key=lambda x: x.get("THRESHOLD", 0),
-            reverse=True
-        )
-        new_clubs = {str(i + 1): cfg for i, cfg in enumerate(sorted_clubs)}
-        CLUBS.clear()
-        CLUBS.update(new_clubs)
+    # Sort by computed threshold descending, then by name
+    parsed_db_clubs.sort(key=lambda x: (-x['threshold'], x['club_name']))
+    
+    idx = 1
+    for club in parsed_db_clubs:
+        cid = club['circle_id']
+        threshold = club['threshold']
+        cname = club['club_name']
+        
+        # Default to matching global config title if exists, otherwise DB name
+        if cid in circle_to_global_cfg:
+            cfg = circle_to_global_cfg[cid]
+            title = cfg.get('title', cname)
+        else:
+            title = cname
+        
+        new_clubs[str(idx)] = {
+            "title": title,
+            "club_id": cid,
+            "THRESHOLD": threshold,
+            "sdate": first_day_of_month
+        }
+        idx += 1
+        
+    print(f"Loaded {len(new_clubs)} active clubs from database in quota-sorted order.", flush=True)
+    CLUBS.clear()
+    CLUBS.update(new_clubs)
     
     # Engine is now exclusively Chrono
     engine_choice = "CHRONO"
