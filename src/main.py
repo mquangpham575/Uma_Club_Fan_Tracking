@@ -283,7 +283,7 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
                 FROM clubs c
                 WHERE c.circle_id IS NOT NULL 
                   AND c.is_active = TRUE 
-                  AND c.guild_id = CAST($2 AS VARCHAR)
+                  AND c.guild_id = CAST($2 AS BIGINT)
             """
             rows = await conn.fetch(query, check_date, str(guild_id))
         else:
