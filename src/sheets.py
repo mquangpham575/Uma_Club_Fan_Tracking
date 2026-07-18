@@ -78,7 +78,7 @@ def reorder_sheets(gc_client, spreadsheet_id: str, ordered_titles: list[str]):
     except Exception as e:
         print(f"Warning: Failed to reorder sheets: {e}")
 
-def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int, club_daily_history: list = None):
+def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int, club_daily_history: list = None, circle_id: str = None):
     # Exports individual club data and daily history to Google Sheets.
     GAP_COL = " "
     dcols = [c for c in df.columns if isinstance(c, str) and c.startswith("Day ")]
@@ -107,6 +107,9 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
                 bottom_totals[c] = total.item()
             else:
                 bottom_totals[c] = total 
+
+    if circle_id:
+        bottom_totals["Member_ID"] = f"CID:{circle_id}"
 
     day_avgs = pd.Series("", index=df_to_write.columns, dtype=object)
     if dcols:

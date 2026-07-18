@@ -184,7 +184,7 @@ async def process_club_workflow(
                         None, 
                         export_to_gsheets, 
                         gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                        data.get("club_daily_history")
+                        data.get("club_daily_history"), cfg.get("club_id")
                     )
                 except Exception as e:
                     if "429" in str(e) or "500" in str(e):
@@ -195,7 +195,7 @@ async def process_club_workflow(
                             None, 
                             export_to_gsheets, 
                             gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                            data.get("club_daily_history")
+                            data.get("club_daily_history"), cfg.get("club_id")
                         )
                     else:
                         raise e
@@ -399,11 +399,52 @@ async def main():
     CLUBS.clear()
     CLUBS.update(new_clubs)
     
-    # Delete stale worksheets for deactivated clubs
+    # Rename sheets based on stored circle_id (CID) if name changed, then delete stale worksheets
     active_titles = {cfg['title'] for cfg in CLUBS.values()}
+    cid_to_active_cfg = {cfg['club_id']: cfg for cfg in CLUBS.values()}
+    
     try:
         ss = GC.open_by_key(SHEET_ID)
         all_worksheets = ss.worksheets()
+        
+        # Read CID for each sheet to discover renames
+        sheet_to_cid = {}
+        print("Scanning worksheet IDs to check for name changes...", flush=True)
+        for ws in all_worksheets:
+            title = ws.title
+            if title == "All Club Data":
+                continue
+            
+            try:
+                # Retrieve column A values (first 30-40 rows contains the totals row)
+                col_a = ws.col_values(1)
+                for val in col_a:
+                    if val and str(val).startswith("CID:"):
+                        cid = str(val).split("CID:")[1].strip()
+                        sheet_to_cid[ws] = cid
+                        break
+            except Exception as ex:
+                print(f"Warning: Failed to read CID for sheet '{title}': {ex}", flush=True)
+            # Sleep briefly to respect API read limits
+            await asyncio.sleep(0.2)
+            
+        # Process renames
+        for ws, cid in sheet_to_cid.items():
+            if cid in cid_to_active_cfg:
+                target_title = cid_to_active_cfg[cid]['title']
+                if ws.title != target_title:
+                    print(f"Renaming worksheet '{ws.title}' to '{target_title}' (Circle ID: {cid})...", flush=True)
+                    try:
+                        ws.update_title(target_title)
+                        print(f"Successfully renamed worksheet to '{target_title}'.", flush=True)
+                        ws.title = target_title
+                    except Exception as ex:
+                        print(f"Warning: Failed to rename worksheet '{ws.title}' to '{target_title}': {ex}", flush=True)
+                        
+        # Refresh the worksheets list after renaming
+        all_worksheets = ss.worksheets()
+        active_titles = {cfg['title'] for cfg in CLUBS.values()}
+        
         for ws in all_worksheets:
             title = ws.title
             if title == "All Club Data":
@@ -425,7 +466,7 @@ async def main():
                 except Exception as ex:
                     print(f"Warning: Failed to delete worksheet '{title}': {ex}", flush=True)
     except Exception as e:
-        print(f"Warning: Failed to perform stale sheet cleanup: {e}", flush=True)
+        print(f"Warning: Failed to perform stale sheet cleanup & renames: {e}", flush=True)
     
     # Engine is now exclusively Chrono
     engine_choice = "CHRONO"

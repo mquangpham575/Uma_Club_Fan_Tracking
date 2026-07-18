@@ -185,7 +185,7 @@ async def process_club_workflow(
                         None, 
                         export_to_gsheets, 
                         gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                        data.get("club_daily_history")
+                        data.get("club_daily_history"), cfg.get("club_id")
                     )
                 except Exception as e:
                     if "429" in str(e):
@@ -196,7 +196,7 @@ async def process_club_workflow(
                             None, 
                             export_to_gsheets, 
                             gc_client, df, SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                            data.get("club_daily_history")
+                            data.get("club_daily_history"), cfg.get("club_id")
                         )
                     else:
                         raise e
