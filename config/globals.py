@@ -15,7 +15,7 @@ SERVER_ID = os.getenv("SERVER_ID") or os.getenv("GUILD_ID", "1108441000873033869
 now_utc = datetime.now(timezone.utc)
 reset_time = now_utc.replace(hour=10, minute=0, second=0, microsecond=0)
 effective_date = now_utc if now_utc >= reset_time else now_utc - timedelta(days=1)
-first_day_of_month = effective_date.replace(day=1).strftime("%Y-%m-%d")
+first_day_of_month = effective_date.replace(day=22).strftime("%Y-%m-%d")
 
 CLUBS = {
     "1": {
