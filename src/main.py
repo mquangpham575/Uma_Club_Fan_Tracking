@@ -30,6 +30,7 @@ try:
     from config.globals import (
         CLUBS,
         SHEET_ID,
+        TEMP_SHEET_ID,
         VERSION,
         effective_date,
         first_day_of_month,
@@ -173,12 +174,30 @@ async def process_club_workflow(
             if not data.get("club_friend_history"):
                 prefix = colorize("[No Data]", LogColor.RETRY)
                 print(f"  {prefix} {title}: No history data available in API yet. Skipping sheet update.", flush=True)
-                return True
+                return None
 
             # Phase 2: Export to Sheets with 429 Retry logic
             df = build_dataframe(data)
+
+            # Filter data for temp sheet (days 22 to 31)
+            import copy
+            temp_data = copy.deepcopy(data)
+            if "club_friend_history" in temp_data:
+                temp_data["club_friend_history"] = [
+                    x for x in temp_data["club_friend_history"]
+                    if x.get("actual_date") is not None and 22 <= int(x.get("actual_date")) <= 31
+                ]
+            if "club_daily_history" in temp_data:
+                temp_data["club_daily_history"] = [
+                    x for x in temp_data["club_daily_history"]
+                    if x.get("actual_date") is not None and 22 <= int(x.get("actual_date")) <= 31
+                ]
+            temp_df = build_dataframe(temp_data)
+
             async with SHEETS_LOCK:
                 loop = asyncio.get_running_loop()
+                
+                # 1. Update normal sheet
                 try:
                     await loop.run_in_executor(
                         None, 
@@ -199,6 +218,29 @@ async def process_club_workflow(
                         )
                     else:
                         raise e
+                await asyncio.sleep(3.0)
+
+                # 2. Update temp sheet
+                try:
+                    await loop.run_in_executor(
+                        None, 
+                        export_to_gsheets, 
+                        gc_client, temp_df, TEMP_SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+                        temp_data.get("club_daily_history"), cfg.get("club_id")
+                    )
+                except Exception as e:
+                    if "429" in str(e) or "500" in str(e):
+                        prefix = colorize("[Quota/Server]", LogColor.RETRY)
+                        print(f"  {prefix} {title} (Temp): Error ({e}). Waiting 30s for reset...", flush=True)
+                        await asyncio.sleep(30) 
+                        await loop.run_in_executor(
+                            None, 
+                            export_to_gsheets, 
+                            gc_client, temp_df, TEMP_SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+                            temp_data.get("club_daily_history"), cfg.get("club_id")
+                        )
+                    else:
+                        raise e
                 # Cooldown to respect Google Sheets write quota limit
                 await asyncio.sleep(3.0)
             
@@ -214,6 +256,17 @@ async def process_club_workflow(
                     "member_name": row["Member_Name"],
                     "avg_day": row["AVG/d"],
                     "performance": perf
+                })
+
+            # Extract data for temp summary sheet
+            temp_day_cols = [c for c in temp_df.columns if isinstance(c, str) and c.startswith("Day ")]
+            temp_member_data = []
+            for _, row in temp_df.iterrows():
+                temp_perf = row[temp_day_cols].sum() if temp_day_cols else 0.0
+                temp_member_data.append({
+                    "member_name": row["Member_Name"],
+                    "avg_day": row["AVG/d"],
+                    "performance": temp_perf
                 })
                 
             if "(" in title and ")" in title:
@@ -235,6 +288,19 @@ async def process_club_workflow(
                     rank_val = daily_history[-1].get("rank")
                     if rank_val is not None:
                         rank = f"#{rank_val}"
+
+            temp_rank = ""
+            temp_daily_history = temp_data.get("club_daily_history") or []
+            if temp_daily_history:
+                try:
+                    latest_entry = max(temp_daily_history, key=lambda x: int(x.get("actual_date", 0)))
+                    rank_val = latest_entry.get("rank")
+                    if rank_val is not None:
+                        temp_rank = f"#{rank_val}"
+                except Exception:
+                    rank_val = temp_daily_history[-1].get("rank")
+                    if rank_val is not None:
+                        temp_rank = f"#{rank_val}"
                         
             club_metadata = {
                 "short_name": short_name,
@@ -242,7 +308,14 @@ async def process_club_workflow(
                 "rank": rank,
                 "members": member_data
             }
-            return club_metadata
+
+            temp_club_metadata = {
+                "short_name": short_name,
+                "grade": grade,
+                "rank": temp_rank,
+                "members": temp_member_data
+            }
+            return club_metadata, temp_club_metadata
             
         except Exception as e:
             import traceback
@@ -525,6 +598,7 @@ async def main():
 
     total_failures = 0
     successful_clubs = []
+    temp_successful_clubs = []
     print(f"\nProcessing {len(clubs_to_process)} clubs (Engine: {engine_choice})...\n", flush=True)
 
     for key, cfg in clubs_to_process.items():
@@ -537,20 +611,34 @@ async def main():
             5,    # Increased max_attempts
             90,   # timeout
         )
-        if outcome is not None:
-            successful_clubs.append(outcome)
+        if outcome is not None and isinstance(outcome, tuple):
+            normal_outcome, temp_outcome = outcome
+            if normal_outcome:
+                successful_clubs.append(normal_outcome)
+            if temp_outcome:
+                temp_successful_clubs.append(temp_outcome)
         else:
             total_failures += 1
         # Cooldown between clubs to prevent API rate limiting
         await asyncio.sleep(2.0)
 
-    if choice == "ALL" and successful_clubs:
-        print("Exporting All Club Data summary sheet...", flush=True)
-        try:
-            export_all_club_data_to_gsheets(GC, SHEET_ID, successful_clubs, sdate=first_day_of_month)
-            print("All Club Data summary sheet updated.", flush=True)
-        except Exception as e:
-            print(f"Warning: Failed to update All Club Data summary sheet: {e}", flush=True)
+    if choice == "ALL":
+        if successful_clubs:
+            print("Exporting All Club Data summary sheet...", flush=True)
+            try:
+                export_all_club_data_to_gsheets(GC, SHEET_ID, successful_clubs, sdate=first_day_of_month)
+                print("All Club Data summary sheet updated.", flush=True)
+            except Exception as e:
+                print(f"Warning: Failed to update All Club Data summary sheet: {e}", flush=True)
+                
+        if temp_successful_clubs:
+            print("Exporting Temp All Club Data summary sheet...", flush=True)
+            try:
+                temp_sdate = effective_date.replace(day=22).strftime("%Y-%m-%d")
+                export_all_club_data_to_gsheets(GC, TEMP_SHEET_ID, temp_successful_clubs, sdate=temp_sdate)
+                print("Temp All Club Data summary sheet updated.", flush=True)
+            except Exception as e:
+                print(f"Warning: Failed to update Temp All Club Data summary sheet: {e}", flush=True)
 
     # Reordering is now always the final step after the parallel gather
     print("Reordering sheets...", flush=True)
@@ -564,6 +652,17 @@ async def main():
             reorder_sheets(GC, SHEET_ID, ordered_titles)
         else:
             print(f"Warning: Failed to reorder sheets: {e}")
+
+    try:
+        reorder_sheets(GC, TEMP_SHEET_ID, ordered_titles)
+    except Exception as e:
+        if "429" in str(e):
+            print("  [Quota] Temp Reordering hit limit. Waiting 60s...", flush=True)
+            await asyncio.sleep(60)
+            reorder_sheets(GC, TEMP_SHEET_ID, ordered_titles)
+        else:
+            print(f"Warning: Failed to reorder temp sheets: {e}")
+            
     print("Sheets reordered.", flush=True)
 
     print("-" * 30)
