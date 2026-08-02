@@ -144,13 +144,19 @@ async def process_club_workflow(
     # Handles the retry loop and processing for a single club.
     title = cfg["title"]
     attempt = 0
+    sdate = cfg.get("sdate") or first_day_of_month
+    fallback_attempted = False
     
     while attempt < max_attempts:
         try:
             from src.chrono_scraper import scrape_club_data
+            
+            cfg_to_use = cfg.copy()
+            cfg_to_use["sdate"] = sdate
+            
             async with API_SEMAPHORE:
                 raw_data, status_code = await asyncio.wait_for(
-                    scrape_club_data(cfg),
+                    scrape_club_data(cfg_to_use),
                     timeout=per_club_timeout_seconds
                 )
                 await asyncio.sleep(2.5)
@@ -161,6 +167,33 @@ async def process_club_workflow(
                 await asyncio.sleep(30)
                 raise Exception("Rate limited")
             
+            # Check for early-month fallback: if first 3 days and api failed or returned empty data, query previous month
+            from config.globals import effective_date
+            is_early_month = effective_date.day <= 3
+            
+            has_no_data = False
+            if status_code == 200 and raw_data:
+                try:
+                    data_check = json.loads(raw_data)
+                    if isinstance(data_check, dict) and not data_check.get("club_friend_history"):
+                        has_no_data = True
+                except Exception:
+                    pass
+            
+            if not fallback_attempted and is_early_month and (status_code != 200 or has_no_data):
+                try:
+                    curr_dt = datetime.strptime(sdate, "%Y-%m-%d")
+                    prev_month_date = curr_dt.replace(day=1) - timedelta(days=1)
+                    prev_month_first_day = prev_month_date.replace(day=1).strftime("%Y-%m-%d")
+                    
+                    print(f"  [Fallback] {title}: Early month detected ({effective_date.strftime('%Y-%m-%d')}) and current month query failed/empty (Status {status_code}). Falling back to previous month ({prev_month_first_day})...", flush=True)
+                    sdate = prev_month_first_day
+                    fallback_attempted = True
+                    attempt = 0
+                    continue
+                except Exception as fe:
+                    print(f"  [Fallback Error] Failed to calculate fallback date: {fe}", flush=True)
+
             if status_code != 200 or not raw_data:
                 raise Exception(f"API fetch failed (Status {status_code})")
  
@@ -315,7 +348,7 @@ async def process_club_workflow(
                 "rank": temp_rank,
                 "members": temp_member_data
             }
-            return club_metadata, temp_club_metadata
+            return club_metadata, temp_club_metadata, sdate
             
         except Exception as e:
             import traceback
@@ -599,6 +632,7 @@ async def main():
     total_failures = 0
     successful_clubs = []
     temp_successful_clubs = []
+    resolved_sdates = set()
     print(f"\nProcessing {len(clubs_to_process)} clubs (Engine: {engine_choice})...\n", flush=True)
 
     for key, cfg in clubs_to_process.items():
@@ -612,7 +646,13 @@ async def main():
             90,   # timeout
         )
         if outcome is not None and isinstance(outcome, tuple):
-            normal_outcome, temp_outcome = outcome
+            if len(outcome) == 3:
+                normal_outcome, temp_outcome, resolved_sdate = outcome
+                resolved_sdates.add(resolved_sdate)
+            else:
+                normal_outcome, temp_outcome = outcome
+                resolved_sdates.add(cfg.get("sdate") or first_day_of_month)
+                
             if normal_outcome:
                 successful_clubs.append(normal_outcome)
             if temp_outcome:
@@ -623,10 +663,14 @@ async def main():
         await asyncio.sleep(2.0)
 
     if choice == "ALL":
+        summary_sdate = first_day_of_month
+        if resolved_sdates:
+            summary_sdate = sorted(list(resolved_sdates))[0]
+
         if successful_clubs:
             print("Exporting All Club Data summary sheet...", flush=True)
             try:
-                export_all_club_data_to_gsheets(GC, SHEET_ID, successful_clubs, sdate=first_day_of_month)
+                export_all_club_data_to_gsheets(GC, SHEET_ID, successful_clubs, sdate=summary_sdate)
                 print("All Club Data summary sheet updated.", flush=True)
             except Exception as e:
                 print(f"Warning: Failed to update All Club Data summary sheet: {e}", flush=True)
@@ -634,7 +678,8 @@ async def main():
         if temp_successful_clubs:
             print("Exporting Temp All Club Data summary sheet...", flush=True)
             try:
-                temp_sdate = effective_date.replace(day=22).strftime("%Y-%m-%d")
+                dt_summary = datetime.strptime(summary_sdate, "%Y-%m-%d")
+                temp_sdate = dt_summary.replace(day=22).strftime("%Y-%m-%d")
                 export_all_club_data_to_gsheets(GC, TEMP_SHEET_ID, temp_successful_clubs, sdate=temp_sdate)
                 print("Temp All Club Data summary sheet updated.", flush=True)
             except Exception as e:
