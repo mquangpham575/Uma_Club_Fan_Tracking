@@ -450,7 +450,6 @@ async def main():
 
     # Match circle_id and build new sorted dict
     new_clubs = {}
-    circle_to_global_cfg = {cfg['club_id']: cfg for cfg in CLUBS.values()}
     
     # Compute daily equivalent threshold for each club based on quota_period
     # This aligns with column C (AVG/d) comparison in the spreadsheet
@@ -486,12 +485,7 @@ async def main():
         threshold = club['threshold']
         cname = club['club_name']
         
-        # Default to matching global config title if exists, otherwise DB name
-        if cid in circle_to_global_cfg:
-            cfg = circle_to_global_cfg[cid]
-            title = cfg.get('title', cname)
-        else:
-            title = cname
+        title = cname
         
         new_clubs[str(idx)] = {
             "title": title,
@@ -556,21 +550,17 @@ async def main():
             if title == "All Club Data":
                 continue
             
-            # Check if this worksheet belongs to a club defined in globals.py
-            # but is not in our active titles set
-            matched_global_cfg = None
-            for cfg in circle_to_global_cfg.values():
-                if cfg.get('title') == title:
-                    matched_global_cfg = cfg
-                    break
-                    
-            if matched_global_cfg and title not in active_titles:
-                print(f"Detected deactivated club sheet '{title}'. Deleting worksheet...", flush=True)
-                try:
-                    ss.del_worksheet(ws)
-                    print(f"Deleted worksheet '{title}'.", flush=True)
-                except Exception as ex:
-                    print(f"Warning: Failed to delete worksheet '{title}': {ex}", flush=True)
+            # If this sheet is in our CID list, it's a club sheet.
+            # Check if its CID is in the currently active database config.
+            if ws in sheet_to_cid:
+                sheet_cid = sheet_to_cid[ws]
+                if sheet_cid not in cid_to_active_cfg:
+                    print(f"Detected deactivated club sheet '{title}' (Circle ID: {sheet_cid}). Deleting worksheet...", flush=True)
+                    try:
+                        ss.del_worksheet(ws)
+                        print(f"Deleted worksheet '{title}'.", flush=True)
+                    except Exception as ex:
+                        print(f"Warning: Failed to delete worksheet '{title}': {ex}", flush=True)
     except Exception as e:
         print(f"Warning: Failed to perform stale sheet cleanup & renames: {e}", flush=True)
     
