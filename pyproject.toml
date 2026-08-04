@@ -10,6 +10,7 @@ dependencies = [
     "pandas>=3.0.0",
     "protobuf>=6.33.5",
     "requests>=2.31.0",
+    "curl_cffi>=0.7.0",
     "pyinstaller>=6.19.0",
     "python-dotenv",
     "asyncpg>=0.29.0",

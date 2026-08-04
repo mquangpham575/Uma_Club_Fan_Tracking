@@ -7,6 +7,12 @@ def build_dataframe(data: dict) -> pd.DataFrame:
         if c not in df.columns:
             df[c] = pd.NA
 
+    # Entries without an actual_date would otherwise pivot into a bogus "Day <NA>" column,
+    # and mixed nulls coerce the column to float ("Day 5.0"). Normalize to day integers first.
+    if "actual_date" in df.columns:
+        df["actual_date"] = pd.to_numeric(df["actual_date"], errors="coerce").astype("Int64")
+        df = df.dropna(subset=["actual_date"]).copy()
+
     df = (
         df.assign(day_col=lambda d: "Day " + d["actual_date"].astype(str))
             .pivot_table(

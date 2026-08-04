@@ -56,27 +56,25 @@ def get_banded_range_ids(gc_client, spreadsheet_id: str, sheet_title: str) -> li
 
 
 def reorder_sheets(gc_client, spreadsheet_id: str, ordered_titles: list[str]):
-    # Reorders the worksheets in the spreadsheet to match the order of ordered_titles
-    try:
-        ss = gc_client.open_by_key(spreadsheet_id)
-        worksheets = ss.worksheets()
-        ws_map = {ws.title: ws for ws in worksheets}
-        
-        ordered_ws = []
-        # Add sheets in the order specified
-        for title in ordered_titles:
-            if title in ws_map:
-                ordered_ws.append(ws_map[title])
-        
-        # Add any remaining sheets that were not in the ordered list
-        for ws in worksheets:
-             if ws.title not in ordered_titles:
-                ordered_ws.append(ws)
+    # Reorders the worksheets in the spreadsheet to match the order of ordered_titles.
+    # Exceptions propagate to the caller, which handles 429/500 retries.
+    ss = gc_client.open_by_key(spreadsheet_id)
+    worksheets = ss.worksheets()
+    ws_map = {ws.title: ws for ws in worksheets}
+    
+    ordered_ws = []
+    # Add sheets in the order specified
+    for title in ordered_titles:
+        if title in ws_map:
+            ordered_ws.append(ws_map[title])
+    
+    # Add any remaining sheets that were not in the ordered list
+    for ws in worksheets:
+         if ws.title not in ordered_titles:
+            ordered_ws.append(ws)
 
-        if ordered_ws:
-            ss.reorder_worksheets(ordered_ws)
-    except Exception as e:
-        print(f"Warning: Failed to reorder sheets: {e}")
+    if ordered_ws:
+        ss.reorder_worksheets(ordered_ws)
 
 def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_title: str, threshold: int, club_daily_history: list = None, circle_id: str = None):
     # Exports individual club data and daily history to Google Sheets.
@@ -198,11 +196,6 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
 
     numeric_ranges_all = [col_range_rows(2, end_row, c1) for c1 in numeric_cols_1]
     numeric_ranges_data_days = [col_range_rows(2, last_data_row_1based, c1) for c1 in day_cols_1]
-
-    avgd_col_1 = col_1_based("AVG/d")
-    numeric_ranges_data = list(numeric_ranges_data_days)
-    if avgd_col_1 is not None:
-        numeric_ranges_data.append(col_range_rows(2, last_data_row_1based, avgd_col_1))
 
     blue_fill  = {"red": 0.31, "green": 0.51, "blue": 0.74}
     white_font = {"red": 1, "green": 1, "blue": 1}
@@ -506,25 +499,29 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
             
         values.append(row)
 
-    # Pad with empty rows to at least 32 rows to allow writing the legend at row 24-31
-    while len(values) < 32:
-        values.append([""] * 12)
+    # Legend sits in rows 24-31 (0-based 23-30) of column H. Only place it when it
+    # cannot collide with the right-hand club table, which occupies rows 3..2+len(right_rows).
+    legend_fits = len(right_rows) + 2 <= 23
+    if legend_fits:
+        # Pad with empty rows to at least 32 rows to allow writing the legend at row 24-31
+        while len(values) < 32:
+            values.append([""] * 12)
 
-    # Populate Legend into values array
-    legend_data = [
-        ("SS", "SS"),
-        ("S+", "S+"),
-        ("S", "S"),
-        ("A+", "A+"),
-        ("A", "A"),
-        ("Casual", "Casual"),
-        (None, None),
-        ("Carry Club", "Carry Club")
-    ]
-    for idx, (lbl, val) in enumerate(legend_data):
-        row_idx = 23 + idx
-        values[row_idx][6] = ""
-        values[row_idx][7] = val if val is not None else ""
+        # Populate Legend into values array
+        legend_data = [
+            ("SS", "SS"),
+            ("S+", "S+"),
+            ("S", "S"),
+            ("A+", "A+"),
+            ("A", "A"),
+            ("Casual", "Casual"),
+            (None, None),
+            ("Carry Club", "Carry Club")
+        ]
+        for idx, (lbl, val) in enumerate(legend_data):
+            row_idx = 23 + idx
+            values[row_idx][6] = ""
+            values[row_idx][7] = val if val is not None else ""
 
     # 4. Write to Google Sheets
     ss = gc_client.open_by_key(spreadsheet_id)
@@ -771,13 +768,13 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
             }
         },
         # Align legend labels left (rows 24 to 31, Col H index 7)
-        {
+        *([{
             "repeatCell": {
                 "range": {"sheetId": sheet_id, "startRowIndex": 23, "endRowIndex": 31, "startColumnIndex": 7, "endColumnIndex": 8},
                 "cell": {"userEnteredFormat": {"horizontalAlignment": "LEFT"}},
                 "fields": "userEnteredFormat.horizontalAlignment"
             }
-        },
+        }] if legend_fits else []),
         # Font families for number data (Col A, D, E, H, J, K, L)
         {
             "repeatCell": {
@@ -830,13 +827,13 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
             }
         },
         # Legend labels (rows 24 to 31, Col H index 7) font Arial
-        {
+        *([{
             "repeatCell": {
                 "range": {"sheetId": sheet_id, "startRowIndex": 23, "endRowIndex": 31, "startColumnIndex": 7, "endColumnIndex": 8},
                 "cell": {"userEnteredFormat": {"textFormat": {"fontFamily": "Arial"}}},
                 "fields": "userEnteredFormat.textFormat.fontFamily"
             }
-        }
+        }] if legend_fits else [])
     ])
 
     # Color Left Table B (Club Spec) based on grade
@@ -927,32 +924,33 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
             })
 
     # Format Legend color blocks
-    legend_colors = {
-        23: GRADE_COLORS["SS"],
-        24: GRADE_COLORS["S+"],
-        25: GRADE_COLORS["S"],
-        26: GRADE_COLORS["A+"],
-        27: GRADE_COLORS["A"],
-        28: GRADE_COLORS["Casual"],
-        30: GRADE_COLORS["A"] # Carry Club green
-    }
-    for r_idx, color in legend_colors.items():
-        requests.append({
-            "repeatCell": {
-                "range": {"sheetId": sheet_id, "startRowIndex": r_idx, "endRowIndex": r_idx + 1, "startColumnIndex": 6, "endColumnIndex": 7},
-                "cell": {"userEnteredFormat": {"backgroundColor": color}},
-                "fields": "userEnteredFormat.backgroundColor"
-            }
-        })
-        requests.append({
-            "updateBorders": {
-                "range": {"sheetId": sheet_id, "startRowIndex": r_idx, "endRowIndex": r_idx + 1, "startColumnIndex": 6, "endColumnIndex": 7},
-                "top": {"style": "SOLID"},
-                "bottom": {"style": "SOLID"},
-                "left": {"style": "SOLID"},
-                "right": {"style": "SOLID"}
-            }
-        })
+    if legend_fits:
+        legend_colors = {
+            23: GRADE_COLORS["SS"],
+            24: GRADE_COLORS["S+"],
+            25: GRADE_COLORS["S"],
+            26: GRADE_COLORS["A+"],
+            27: GRADE_COLORS["A"],
+            28: GRADE_COLORS["Casual"],
+            30: GRADE_COLORS["A"] # Carry Club green
+        }
+        for r_idx, color in legend_colors.items():
+            requests.append({
+                "repeatCell": {
+                    "range": {"sheetId": sheet_id, "startRowIndex": r_idx, "endRowIndex": r_idx + 1, "startColumnIndex": 6, "endColumnIndex": 7},
+                    "cell": {"userEnteredFormat": {"backgroundColor": color}},
+                    "fields": "userEnteredFormat.backgroundColor"
+                }
+            })
+            requests.append({
+                "updateBorders": {
+                    "range": {"sheetId": sheet_id, "startRowIndex": r_idx, "endRowIndex": r_idx + 1, "startColumnIndex": 6, "endColumnIndex": 7},
+                    "top": {"style": "SOLID"},
+                    "bottom": {"style": "SOLID"},
+                    "left": {"style": "SOLID"},
+                    "right": {"style": "SOLID"}
+                }
+            })
 
     ws.spreadsheet.batch_update({"requests": requests})
 

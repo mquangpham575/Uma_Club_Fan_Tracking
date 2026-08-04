@@ -58,22 +58,30 @@ from src.utils import (  # noqa: E402
 
 # Global locks to prevent concurrent resource exhaustion
 SHEETS_LOCK = asyncio.Lock()
-API_SEMAPHORE = asyncio.Semaphore(1)  # Strict sequential API access
+# Limits concurrent Chrono API requests (per-club fetch phase). Configurable via env.
+API_SEMAPHORE = asyncio.Semaphore(int(os.getenv("API_CONCURRENCY", "3")))
 
 # Throttling logic removed (Chrono now uses direct API)
 
+# Sentinel returned when the API responded but has no history data yet (not an error).
+NO_DATA = ("NO_DATA",)
 
-def has_fresh_snapshot(circle_id: str, max_age_hours: int) -> bool:
-    """Check whether a club already has a recent local snapshot (logic naturally returning False since JSONs are removed)."""
-    return False
+
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        print(f"Warning: Invalid numeric value for {name}. Using default {default}.", flush=True)
+        return default
 
 # JSON saving removed (Now syncs directly to Google Sheets)
 # Helper Functions
-def select_engine() -> str:
-    # UMOE removed, defaulting to Chrono
-    return "CHRONO"
 
 def pick_club() -> dict | str:
+    if not CLUBS:
+        print("Error: No active clubs loaded. Check the database configuration.", flush=True)
+        sys.exit(1)
+
     clear_screen()
     print("Select Target Club:")
     print("-" * 30)
@@ -129,18 +137,17 @@ def pick_club() -> dict | str:
         return "ALL"
     if choice in CLUBS:
         return CLUBS[choice]
-    return CLUBS[list(CLUBS.keys())[0]]
+    print(f"\nInvalid selection: '{choice}'. Defaulting to ALL.", flush=True)
+    return "ALL"
 
 # Main Execution
 async def process_club_workflow(
-    key: str,
     cfg: dict,
     gc_client,
-    engine,
     retry_delay: int,
     max_attempts: int,
     per_club_timeout_seconds: int,
-) -> bool:
+) -> tuple | None:
     # Handles the retry loop and processing for a single club.
     title = cfg["title"]
     attempt = 0
@@ -159,34 +166,34 @@ async def process_club_workflow(
                     scrape_club_data(cfg_to_use),
                     timeout=per_club_timeout_seconds
                 )
-                await asyncio.sleep(2.5)
-                
+            await asyncio.sleep(2.5)
+            
             if status_code == 429:
                 prefix = colorize("[Rate Limit]", LogColor.RETRY)
                 print(f"  {prefix} {title}: 429 hit. Cool-down 30s...", flush=True)
                 await asyncio.sleep(30)
                 raise Exception("Rate limited")
             
-            # Check for early-month fallback: if first 3 days and api failed or returned empty data, query previous month
-            from config.globals import effective_date
+            # Early-month fallback: only when the API responded 200 but the
+            # current month's history is not populated yet. Any non-200 is a
+            # retryable failure, NOT a signal to reuse last month's data.
             is_early_month = effective_date.day <= 3
             
-            has_no_data = False
+            data = None
             if status_code == 200 and raw_data:
                 try:
-                    data_check = json.loads(raw_data)
-                    if isinstance(data_check, dict) and not data_check.get("club_friend_history"):
-                        has_no_data = True
-                except Exception:
-                    pass
+                    data = json.loads(raw_data)
+                except (json.JSONDecodeError, ValueError) as je:
+                    print(f"  [Parse Error] {title}: Invalid JSON from API (Status 200): {je}", flush=True)
             
-            if not fallback_attempted and is_early_month and (status_code != 200 or has_no_data):
+            has_no_data = isinstance(data, dict) and not data.get("club_friend_history")
+            if not fallback_attempted and is_early_month and status_code == 200 and has_no_data:
                 try:
                     curr_dt = datetime.strptime(sdate, "%Y-%m-%d")
                     prev_month_date = curr_dt.replace(day=1) - timedelta(days=1)
                     prev_month_first_day = prev_month_date.replace(day=1).strftime("%Y-%m-%d")
                     
-                    print(f"  [Fallback] {title}: Early month detected ({effective_date.strftime('%Y-%m-%d')}) and current month query failed/empty (Status {status_code}). Falling back to previous month ({prev_month_first_day})...", flush=True)
+                    print(f"  [Fallback] {title}: Early month detected ({effective_date.strftime('%Y-%m-%d')}) and current month has no data yet. Falling back to previous month ({prev_month_first_day})...", flush=True)
                     sdate = prev_month_first_day
                     fallback_attempted = True
                     attempt = 0
@@ -196,18 +203,17 @@ async def process_club_workflow(
 
             if status_code != 200 or not raw_data:
                 raise Exception(f"API fetch failed (Status {status_code})")
- 
-            data = json.loads(raw_data)
-            if isinstance(data, dict) and data.get("detail") == "Error":
-                 raise Exception("API returned data error")
-            
-            if isinstance(data, Exception): 
-                raise data
+            if data is None:
+                raise Exception("API returned invalid/unparseable JSON")
+            if not isinstance(data, dict):
+                raise Exception(f"API returned unexpected payload type: {type(data).__name__}")
+            if data.get("detail") == "Error":
+                raise Exception("API returned data error")
 
             if not data.get("club_friend_history"):
                 prefix = colorize("[No Data]", LogColor.RETRY)
                 print(f"  {prefix} {title}: No history data available in API yet. Skipping sheet update.", flush=True)
-                return None
+                return NO_DATA
 
             # Phase 2: Export to Sheets with 429 Retry logic
             df = build_dataframe(data)
@@ -376,7 +382,19 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
     import asyncpg
     conn = None
     try:
-        conn = await asyncpg.connect(database_url)
+        # SSH-tunneled databases can refuse the very first connection attempt;
+        # retry transient network errors (ConnectionRefusedError subclasses OSError).
+        last_err = None
+        for attempt in range(3):
+            try:
+                conn = await asyncpg.connect(database_url)
+                break
+            except OSError as e:
+                last_err = e
+                print(f"  [Retry] DB connect refused (attempt {attempt + 1}/3): {e}", flush=True)
+                await asyncio.sleep(1 + attempt * 2)
+        if conn is None:
+            raise last_err
         if guild_id:
             query = """
                 SELECT c.circle_id, c.club_name, c.quota_period,
@@ -414,6 +432,43 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
             await conn.close()
 
 
+async def export_summary_with_retry(gc_client, spreadsheet_id: str, all_clubs_data: list, sdate: str, label: str, max_attempts: int = 3) -> bool:
+    """Exports the summary sheet, retrying with a 30s cool-down on 429/500."""
+    loop = asyncio.get_running_loop()
+    for attempt in range(max_attempts):
+        try:
+            await loop.run_in_executor(None, export_all_club_data_to_gsheets, gc_client, spreadsheet_id, all_clubs_data, sdate)
+            return True
+        except Exception as e:
+            if "429" in str(e) or "500" in str(e):
+                print(f"  [Quota/Server] {label} summary: Error ({e}). Waiting 30s for reset...", flush=True)
+                await asyncio.sleep(30)
+            else:
+                print(f"Warning: Failed to update {label} summary sheet: {e}", flush=True)
+                return False
+    print(f"Warning: Failed to update {label} summary sheet after retries.", flush=True)
+    return False
+
+
+async def reorder_sheets_with_retry(gc_client, spreadsheet_id: str, ordered_titles: list, label: str, max_attempts: int = 3) -> bool:
+    """Reorders sheets, retrying with escalating cool-downs on 429/500."""
+    loop = asyncio.get_running_loop()
+    for attempt in range(max_attempts):
+        try:
+            await loop.run_in_executor(None, reorder_sheets, gc_client, spreadsheet_id, ordered_titles)
+            return True
+        except Exception as e:
+            if "429" in str(e) or "500" in str(e):
+                wait = 30 * (attempt + 1)
+                print(f"  [Quota] {label} Reordering hit limit ({e}). Waiting {wait}s...", flush=True)
+                await asyncio.sleep(wait)
+            else:
+                print(f"Warning: Failed to reorder {label} sheets: {e}", flush=True)
+                return False
+    print(f"Warning: Failed to reorder {label} sheets after retries.", flush=True)
+    return False
+
+
 async def main():
     setup_windows_console(VERSION)
     is_cron = "--cron" in sys.argv
@@ -424,6 +479,10 @@ async def main():
 
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
+
+    if not SHEET_ID or not TEMP_SHEET_ID:
+        print("Error: SHEET_ID and TEMP_SHEET_ID must be configured (via .env or config/globals.py).", flush=True)
+        sys.exit(1)
     
     # Load dynamic quotas and active clubs from UmaCore PostgreSQL database
     database_url = os.getenv("DATABASE_URL")
@@ -500,12 +559,12 @@ async def main():
     CLUBS.update(new_clubs)
     
     # Rename sheets based on stored circle_id (CID) if name changed, then delete stale worksheets
-    active_titles = {cfg['title'] for cfg in CLUBS.values()}
     cid_to_active_cfg = {cfg['club_id']: cfg for cfg in CLUBS.values()}
     
     try:
         ss = GC.open_by_key(SHEET_ID)
         all_worksheets = ss.worksheets()
+        ws_by_id = {ws.id: ws for ws in all_worksheets}
         
         # Read CID for each sheet to discover renames
         sheet_to_cid = {}
@@ -521,7 +580,7 @@ async def main():
                 for val in col_a:
                     if val and str(val).startswith("CID:"):
                         cid = str(val).split("CID:")[1].strip()
-                        sheet_to_cid[ws] = cid
+                        sheet_to_cid[ws.id] = cid
                         break
             except Exception as ex:
                 print(f"Warning: Failed to read CID for sheet '{title}': {ex}", flush=True)
@@ -529,38 +588,36 @@ async def main():
             await asyncio.sleep(0.2)
             
         # Process renames
-        for ws, cid in sheet_to_cid.items():
-            if cid in cid_to_active_cfg:
-                target_title = cid_to_active_cfg[cid]['title']
-                if ws.title != target_title:
-                    print(f"Renaming worksheet '{ws.title}' to '{target_title}' (Circle ID: {cid})...", flush=True)
-                    try:
-                        ws.update_title(target_title)
-                        print(f"Successfully renamed worksheet to '{target_title}'.", flush=True)
-                        ws.title = target_title
-                    except Exception as ex:
-                        print(f"Warning: Failed to rename worksheet '{ws.title}' to '{target_title}': {ex}", flush=True)
-                        
-        # Refresh the worksheets list after renaming
-        all_worksheets = ss.worksheets()
-        active_titles = {cfg['title'] for cfg in CLUBS.values()}
+        for ws_id, cid in sheet_to_cid.items():
+            ws = ws_by_id.get(ws_id)
+            if ws is None or cid not in cid_to_active_cfg:
+                continue
+            target_title = cid_to_active_cfg[cid]['title']
+            if ws.title != target_title:
+                print(f"Renaming worksheet '{ws.title}' to '{target_title}' (Circle ID: {cid})...", flush=True)
+                try:
+                    ws.update_title(target_title)
+                    print(f"Successfully renamed worksheet to '{target_title}'.", flush=True)
+                    ws.title = target_title
+                except Exception as ex:
+                    print(f"Warning: Failed to rename worksheet '{ws.title}' to '{target_title}': {ex}", flush=True)
         
-        for ws in all_worksheets:
+        # Refresh the worksheets list after renaming and match by stable id
+        for ws in ss.worksheets():
             title = ws.title
             if title == "All Club Data":
                 continue
             
             # If this sheet is in our CID list, it's a club sheet.
             # Check if its CID is in the currently active database config.
-            if ws in sheet_to_cid:
-                sheet_cid = sheet_to_cid[ws]
-                if sheet_cid not in cid_to_active_cfg:
-                    print(f"Detected deactivated club sheet '{title}' (Circle ID: {sheet_cid}). Deleting worksheet...", flush=True)
-                    try:
-                        ss.del_worksheet(ws)
-                        print(f"Deleted worksheet '{title}'.", flush=True)
-                    except Exception as ex:
-                        print(f"Warning: Failed to delete worksheet '{title}': {ex}", flush=True)
+            sheet_cid = sheet_to_cid.get(ws.id)
+            if sheet_cid is not None and sheet_cid not in cid_to_active_cfg:
+                print(f"Detected deactivated club sheet '{title}' (Circle ID: {sheet_cid}). Deleting worksheet...", flush=True)
+                try:
+                    ss.del_worksheet(ws)
+                    print(f"Deleted worksheet '{title}'.", flush=True)
+                except Exception as ex:
+                    print(f"Warning: Failed to delete worksheet '{title}': {ex}", flush=True)
     except Exception as e:
         print(f"Warning: Failed to perform stale sheet cleanup & renames: {e}", flush=True)
     
@@ -569,15 +626,13 @@ async def main():
     if is_cron:
         choice = "ALL"
     else:
-        while True:
-            choice = pick_club()
-            clear_screen()
-            if choice == "EXIT":
-                sys.exit(0)
-            break 
+        choice = pick_club()
+        clear_screen()
+        if choice == "EXIT":
+            sys.exit(0)
 
 
-    RETRY_DELAY = int(os.getenv("CHRONO_RETRY_DELAY", "5"))
+    RETRY_DELAY = _env_int("CHRONO_RETRY_DELAY", 5)
     clubs_to_process = CLUBS if choice == "ALL" else {k: v for k, v in CLUBS.items() if v == choice}
 
     force_run = "--force" in sys.argv
@@ -620,84 +675,63 @@ async def main():
             print(f"Warning: Freshness check failed, proceeding anyway: {e}")
 
     total_failures = 0
-    successful_clubs = []
-    temp_successful_clubs = []
-    resolved_sdates = set()
-    print(f"\nProcessing {len(clubs_to_process)} clubs (Engine: {engine_choice})...\n", flush=True)
+    successful_results = []
+    concurrency = max(1, _env_int("CLUB_CONCURRENCY", 4))
+    print(f"\nProcessing {len(clubs_to_process)} clubs (Engine: {engine_choice}, concurrency: {concurrency})...\n", flush=True)
 
-    for key, cfg in clubs_to_process.items():
-        outcome = await process_club_workflow(
-            key,
-            cfg,
-            GC,
-            engine_choice,
-            RETRY_DELAY,
-            5,    # Increased max_attempts
-            90,   # timeout
-        )
-        if outcome is not None and isinstance(outcome, tuple):
-            if len(outcome) == 3:
+    items = list(clubs_to_process.items())
+    if not items:
+        print("No clubs to process.", flush=True)
+    else:
+        sem = asyncio.Semaphore(concurrency)
+
+        async def _process_one(cfg):
+            async with sem:
+                return await process_club_workflow(cfg, GC, RETRY_DELAY, 5, 90)
+
+        outcomes = await asyncio.gather(*(_process_one(cfg) for _, cfg in items))
+
+        for outcome in outcomes:
+            if outcome == NO_DATA:
+                continue
+            if outcome is not None and isinstance(outcome, tuple) and len(outcome) == 3:
                 normal_outcome, temp_outcome, resolved_sdate = outcome
-                resolved_sdates.add(resolved_sdate)
+                if normal_outcome or temp_outcome:
+                    successful_results.append((resolved_sdate, normal_outcome, temp_outcome))
             else:
-                normal_outcome, temp_outcome = outcome
-                resolved_sdates.add(cfg.get("sdate") or first_day_of_month)
-                
-            if normal_outcome:
-                successful_clubs.append(normal_outcome)
-            if temp_outcome:
-                temp_successful_clubs.append(temp_outcome)
-        else:
-            total_failures += 1
-        # Cooldown between clubs to prevent API rate limiting
-        await asyncio.sleep(2.0)
+                total_failures += 1
 
-    if choice == "ALL":
-        summary_sdate = first_day_of_month
-        if resolved_sdates:
-            summary_sdate = sorted(list(resolved_sdates))[0]
+    if choice == "ALL" and successful_results:
+        # Exclude clubs that resolved to a different month than the majority so the
+        # dashboard never mixes months (e.g. early-month fallback to the previous month).
+        sdate_counts = {}
+        for sdate, _, _ in successful_results:
+            sdate_counts[sdate] = sdate_counts.get(sdate, 0) + 1
+        summary_sdate = max(sdate_counts, key=lambda s: (sdate_counts[s], s))
+        conforming = [r for r in successful_results if r[0] == summary_sdate]
+        excluded = len(successful_results) - len(conforming)
+        if excluded:
+            print(f"  Excluded {excluded} club(s) from summary (resolved to a different month than {summary_sdate}).", flush=True)
+        successful_clubs = [r[1] for r in conforming]
+        temp_successful_clubs = [r[2] for r in conforming]
 
         if successful_clubs:
             print("Exporting All Club Data summary sheet...", flush=True)
-            try:
-                export_all_club_data_to_gsheets(GC, SHEET_ID, successful_clubs, sdate=summary_sdate)
+            if await export_summary_with_retry(GC, SHEET_ID, successful_clubs, summary_sdate, "All Club Data"):
                 print("All Club Data summary sheet updated.", flush=True)
-            except Exception as e:
-                print(f"Warning: Failed to update All Club Data summary sheet: {e}", flush=True)
-                
+
         if temp_successful_clubs:
             print("Exporting Temp All Club Data summary sheet...", flush=True)
-            try:
-                dt_summary = datetime.strptime(summary_sdate, "%Y-%m-%d")
-                temp_sdate = dt_summary.replace(day=22).strftime("%Y-%m-%d")
-                export_all_club_data_to_gsheets(GC, TEMP_SHEET_ID, temp_successful_clubs, sdate=temp_sdate)
+            dt_summary = datetime.strptime(summary_sdate, "%Y-%m-%d")
+            temp_sdate = dt_summary.replace(day=22).strftime("%Y-%m-%d")
+            if await export_summary_with_retry(GC, TEMP_SHEET_ID, temp_successful_clubs, temp_sdate, "Temp All Club Data"):
                 print("Temp All Club Data summary sheet updated.", flush=True)
-            except Exception as e:
-                print(f"Warning: Failed to update Temp All Club Data summary sheet: {e}", flush=True)
 
     # Reordering is now always the final step after the parallel gather
     print("Reordering sheets...", flush=True)
     ordered_titles = ["All Club Data"] + [CLUBS[k]['title'] for k in CLUBS]
-    try:
-        reorder_sheets(GC, SHEET_ID, ordered_titles)
-    except Exception as e:
-        if "429" in str(e):
-            print("  [Quota] Reordering hit limit. Waiting 60s...", flush=True)
-            await asyncio.sleep(60)
-            reorder_sheets(GC, SHEET_ID, ordered_titles)
-        else:
-            print(f"Warning: Failed to reorder sheets: {e}")
-
-    try:
-        reorder_sheets(GC, TEMP_SHEET_ID, ordered_titles)
-    except Exception as e:
-        if "429" in str(e):
-            print("  [Quota] Temp Reordering hit limit. Waiting 60s...", flush=True)
-            await asyncio.sleep(60)
-            reorder_sheets(GC, TEMP_SHEET_ID, ordered_titles)
-        else:
-            print(f"Warning: Failed to reorder temp sheets: {e}")
-            
+    await reorder_sheets_with_retry(GC, SHEET_ID, ordered_titles, "")
+    await reorder_sheets_with_retry(GC, TEMP_SHEET_ID, ordered_titles, "Temp")
     print("Sheets reordered.", flush=True)
 
     print("-" * 30)
