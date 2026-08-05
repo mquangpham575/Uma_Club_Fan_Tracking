@@ -30,7 +30,7 @@ try:
     from config.globals import (
         CLUBS,
         SHEET_ID,
-        TEMP_SHEET_ID,
+        # TEMP_SHEET_ID,  # temp sheet retired
         VERSION,
         effective_date,
         first_day_of_month,
@@ -216,22 +216,35 @@ async def process_club_workflow(
                 return NO_DATA
 
             # Phase 2: Export to Sheets with 429 Retry logic
-            df = build_dataframe(data)
+            # Join-map is best-effort: a fetch failure only disables pre-join graying
+            # for this club, it must not force a retry of the main data.
+            join_map = {}
+            try:
+                from src.chrono_scraper import scrape_club_join_map
+                async with API_SEMAPHORE:
+                    join_map = await asyncio.wait_for(
+                        scrape_club_join_map(cfg_to_use),
+                        timeout=per_club_timeout_seconds
+                    )
+            except Exception as e:
+                print(f"  [Join Map] {title}: fetch failed ({e}). Continuing without pre-join graying.", flush=True)
+            df = build_dataframe(data, join_map, sdate)
 
-            # Filter data for temp sheet (days 22 to 31)
-            import copy
-            temp_data = copy.deepcopy(data)
-            if "club_friend_history" in temp_data:
-                temp_data["club_friend_history"] = [
-                    x for x in temp_data["club_friend_history"]
-                    if x.get("actual_date") is not None and 22 <= int(x.get("actual_date")) <= 31
-                ]
-            if "club_daily_history" in temp_data:
-                temp_data["club_daily_history"] = [
-                    x for x in temp_data["club_daily_history"]
-                    if x.get("actual_date") is not None and 22 <= int(x.get("actual_date")) <= 31
-                ]
-            temp_df = build_dataframe(temp_data)
+            # --- Temp sheet retired (was days 22-31 filter + separate export) ---
+            # # Filter data for temp sheet (days 22 to 31)
+            # import copy
+            # temp_data = copy.deepcopy(data)
+            # if "club_friend_history" in temp_data:
+            #     temp_data["club_friend_history"] = [
+            #         x for x in temp_data["club_friend_history"]
+            #         if x.get("actual_date") is not None and 22 <= int(x.get("actual_date")) <= 31
+            #     ]
+            # if "club_daily_history" in temp_data:
+            #     temp_data["club_daily_history"] = [
+            #         x for x in temp_data["club_daily_history"]
+            #         if x.get("actual_date") is not None and 22 <= int(x.get("actual_date")) <= 31
+            #     ]
+            # temp_df = build_dataframe(temp_data)
 
             async with SHEETS_LOCK:
                 loop = asyncio.get_running_loop()
@@ -259,27 +272,27 @@ async def process_club_workflow(
                         raise e
                 await asyncio.sleep(3.0)
 
-                # 2. Update temp sheet
-                try:
-                    await loop.run_in_executor(
-                        None, 
-                        export_to_gsheets, 
-                        gc_client, temp_df, TEMP_SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                        temp_data.get("club_daily_history"), cfg.get("club_id")
-                    )
-                except Exception as e:
-                    if "429" in str(e) or "500" in str(e):
-                        prefix = colorize("[Quota/Server]", LogColor.RETRY)
-                        print(f"  {prefix} {title} (Temp): Error ({e}). Waiting 30s for reset...", flush=True)
-                        await asyncio.sleep(30) 
-                        await loop.run_in_executor(
-                            None, 
-                            export_to_gsheets, 
-                            gc_client, temp_df, TEMP_SHEET_ID, cfg['title'], cfg["THRESHOLD"],
-                            temp_data.get("club_daily_history"), cfg.get("club_id")
-                        )
-                    else:
-                        raise e
+                # 2. Update temp sheet (retired)
+                # try:
+                #     await loop.run_in_executor(
+                #         None, 
+                #         export_to_gsheets, 
+                #         gc_client, temp_df, TEMP_SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+                #         temp_data.get("club_daily_history"), cfg.get("club_id")
+                #     )
+                # except Exception as e:
+                #     if "429" in str(e) or "500" in str(e):
+                #         prefix = colorize("[Quota/Server]", LogColor.RETRY)
+                #         print(f"  {prefix} {title} (Temp): Error ({e}). Waiting 30s for reset...", flush=True)
+                #         await asyncio.sleep(30) 
+                #         await loop.run_in_executor(
+                #             None, 
+                #             export_to_gsheets, 
+                #             gc_client, temp_df, TEMP_SHEET_ID, cfg['title'], cfg["THRESHOLD"],
+                #             temp_data.get("club_daily_history"), cfg.get("club_id")
+                #         )
+                #     else:
+                #         raise e
                 # Cooldown to respect Google Sheets write quota limit
                 await asyncio.sleep(3.0)
             
@@ -297,16 +310,16 @@ async def process_club_workflow(
                     "performance": perf
                 })
 
-            # Extract data for temp summary sheet
-            temp_day_cols = [c for c in temp_df.columns if isinstance(c, str) and c.startswith("Day ")]
-            temp_member_data = []
-            for _, row in temp_df.iterrows():
-                temp_perf = row[temp_day_cols].sum() if temp_day_cols else 0.0
-                temp_member_data.append({
-                    "member_name": row["Member_Name"],
-                    "avg_day": row["AVG/d"],
-                    "performance": temp_perf
-                })
+            # Extract data for temp summary sheet (retired)
+            # temp_day_cols = [c for c in temp_df.columns if isinstance(c, str) and c.startswith("Day ")]
+            # temp_member_data = []
+            # for _, row in temp_df.iterrows():
+            #     temp_perf = row[temp_day_cols].sum() if temp_day_cols else 0.0
+            #     temp_member_data.append({
+            #         "member_name": row["Member_Name"],
+            #         "avg_day": row["AVG/d"],
+            #         "performance": temp_perf
+            #     })
                 
             if "(" in title and ")" in title:
                 short_name = title.split("(")[0].strip()
@@ -328,18 +341,18 @@ async def process_club_workflow(
                     if rank_val is not None:
                         rank = f"#{rank_val}"
 
-            temp_rank = ""
-            temp_daily_history = temp_data.get("club_daily_history") or []
-            if temp_daily_history:
-                try:
-                    latest_entry = max(temp_daily_history, key=lambda x: int(x.get("actual_date", 0)))
-                    rank_val = latest_entry.get("rank")
-                    if rank_val is not None:
-                        temp_rank = f"#{rank_val}"
-                except Exception:
-                    rank_val = temp_daily_history[-1].get("rank")
-                    if rank_val is not None:
-                        temp_rank = f"#{rank_val}"
+            # temp_rank = ""  # temp sheet retired
+            # temp_daily_history = temp_data.get("club_daily_history") or []
+            # if temp_daily_history:
+            #     try:
+            #         latest_entry = max(temp_daily_history, key=lambda x: int(x.get("actual_date", 0)))
+            #         rank_val = latest_entry.get("rank")
+            #         if rank_val is not None:
+            #             temp_rank = f"#{rank_val}"
+            #     except Exception:
+            #         rank_val = temp_daily_history[-1].get("rank")
+            #         if rank_val is not None:
+            #             temp_rank = f"#{rank_val}"
                         
             club_metadata = {
                 "short_name": short_name,
@@ -348,13 +361,13 @@ async def process_club_workflow(
                 "members": member_data
             }
 
-            temp_club_metadata = {
-                "short_name": short_name,
-                "grade": grade,
-                "rank": temp_rank,
-                "members": temp_member_data
-            }
-            return club_metadata, temp_club_metadata, sdate
+            # temp_club_metadata = {
+            #     "short_name": short_name,
+            #     "grade": grade,
+            #     "rank": temp_rank,
+            #     "members": temp_member_data
+            # }
+            return club_metadata, sdate
             
         except Exception as e:
             import traceback
@@ -480,8 +493,8 @@ async def main():
     # Initialize Google Sheets Client
     GC = get_gspread_client(base_path)
 
-    if not SHEET_ID or not TEMP_SHEET_ID:
-        print("Error: SHEET_ID and TEMP_SHEET_ID must be configured (via .env or config/globals.py).", flush=True)
+    if not SHEET_ID:
+        print("Error: SHEET_ID must be configured (via .env or config/globals.py).", flush=True)
         sys.exit(1)
     
     # Load dynamic quotas and active clubs from UmaCore PostgreSQL database
@@ -567,25 +580,28 @@ async def main():
         ws_by_id = {ws.id: ws for ws in all_worksheets}
         
         # Read CID for each sheet to discover renames
+        # Read CID for each sheet to discover renames via a single batchGet call
         sheet_to_cid = {}
         print("Scanning worksheet IDs to check for name changes...", flush=True)
-        for ws in all_worksheets:
-            title = ws.title
-            if title == "All Club Data":
-                continue
-            
+        scan_sheets = [ws for ws in all_worksheets if ws.title != "All Club Data"]
+        if scan_sheets:
+            ranges = [f"'{ws.title}'!A1:A" for ws in scan_sheets]
             try:
-                # Retrieve column A values (first 30-40 rows contains the totals row)
-                col_a = ws.col_values(1)
-                for val in col_a:
-                    if val and str(val).startswith("CID:"):
-                        cid = str(val).split("CID:")[1].strip()
-                        sheet_to_cid[ws.id] = cid
-                        break
+                batch_resp = ss.values_batch_get(ranges)
+                title_to_ws = {ws.title: ws for ws in scan_sheets}
+                for vr in batch_resp.get("valueRanges", []):
+                    sheet_name = vr.get("range", "").split("!")[0].strip("'")
+                    ws = title_to_ws.get(sheet_name)
+                    if ws is None:
+                        continue
+                    col_a = [row[0] for row in vr.get("values", []) if row]
+                    for val in col_a:
+                        if val and str(val).startswith("CID:"):
+                            cid = str(val).split("CID:")[1].strip()
+                            sheet_to_cid[ws.id] = cid
+                            break
             except Exception as ex:
-                print(f"Warning: Failed to read CID for sheet '{title}': {ex}", flush=True)
-            # Sleep briefly to respect API read limits
-            await asyncio.sleep(0.2)
+                print(f"Warning: Failed to batch-read worksheet CIDs: {ex}", flush=True)
             
         # Process renames
         for ws_id, cid in sheet_to_cid.items():
@@ -694,10 +710,10 @@ async def main():
         for outcome in outcomes:
             if outcome == NO_DATA:
                 continue
-            if outcome is not None and isinstance(outcome, tuple) and len(outcome) == 3:
-                normal_outcome, temp_outcome, resolved_sdate = outcome
-                if normal_outcome or temp_outcome:
-                    successful_results.append((resolved_sdate, normal_outcome, temp_outcome))
+            if outcome is not None and isinstance(outcome, tuple) and len(outcome) == 2:
+                normal_outcome, resolved_sdate = outcome
+                if normal_outcome:
+                    successful_results.append((resolved_sdate, normal_outcome))
             else:
                 total_failures += 1
 
@@ -705,7 +721,7 @@ async def main():
         # Exclude clubs that resolved to a different month than the majority so the
         # dashboard never mixes months (e.g. early-month fallback to the previous month).
         sdate_counts = {}
-        for sdate, _, _ in successful_results:
+        for sdate, _ in successful_results:
             sdate_counts[sdate] = sdate_counts.get(sdate, 0) + 1
         summary_sdate = max(sdate_counts, key=lambda s: (sdate_counts[s], s))
         conforming = [r for r in successful_results if r[0] == summary_sdate]
@@ -713,25 +729,26 @@ async def main():
         if excluded:
             print(f"  Excluded {excluded} club(s) from summary (resolved to a different month than {summary_sdate}).", flush=True)
         successful_clubs = [r[1] for r in conforming]
-        temp_successful_clubs = [r[2] for r in conforming]
 
         if successful_clubs:
             print("Exporting All Club Data summary sheet...", flush=True)
             if await export_summary_with_retry(GC, SHEET_ID, successful_clubs, summary_sdate, "All Club Data"):
                 print("All Club Data summary sheet updated.", flush=True)
 
-        if temp_successful_clubs:
-            print("Exporting Temp All Club Data summary sheet...", flush=True)
-            dt_summary = datetime.strptime(summary_sdate, "%Y-%m-%d")
-            temp_sdate = dt_summary.replace(day=22).strftime("%Y-%m-%d")
-            if await export_summary_with_retry(GC, TEMP_SHEET_ID, temp_successful_clubs, temp_sdate, "Temp All Club Data"):
-                print("Temp All Club Data summary sheet updated.", flush=True)
+        # Temp All Club Data summary sheet retired:
+        # temp_successful_clubs = [r[2] for r in conforming]
+        # if temp_successful_clubs:
+        #     print("Exporting Temp All Club Data summary sheet...", flush=True)
+        #     dt_summary = datetime.strptime(summary_sdate, "%Y-%m-%d")
+        #     temp_sdate = dt_summary.replace(day=22).strftime("%Y-%m-%d")
+        #     if await export_summary_with_retry(GC, TEMP_SHEET_ID, temp_successful_clubs, temp_sdate, "Temp All Club Data"):
+        #         print("Temp All Club Data summary sheet updated.", flush=True)
 
     # Reordering is now always the final step after the parallel gather
     print("Reordering sheets...", flush=True)
     ordered_titles = ["All Club Data"] + [CLUBS[k]['title'] for k in CLUBS]
     await reorder_sheets_with_retry(GC, SHEET_ID, ordered_titles, "")
-    await reorder_sheets_with_retry(GC, TEMP_SHEET_ID, ordered_titles, "Temp")
+    # await reorder_sheets_with_retry(GC, TEMP_SHEET_ID, ordered_titles, "Temp")
     print("Sheets reordered.", flush=True)
 
     print("-" * 30)

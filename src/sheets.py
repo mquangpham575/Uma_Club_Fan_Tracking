@@ -434,8 +434,8 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
                 "Average Day": member["avg_day"],
                 "Perfomance": member["performance"]
             })
-    # Sort members by Average Day descending
-    left_rows.sort(key=lambda x: x["Average Day"] if x["Average Day"] is not None else 0, reverse=True)
+    # Sort members by Average Day descending (NaN = just-joined, no data yet -> last)
+    left_rows.sort(key=lambda x: 0 if x["Average Day"] is None or pd.isna(x["Average Day"]) else x["Average Day"], reverse=True)
 
     # 2. Compile Club Rows
     right_rows = []
@@ -445,9 +445,12 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
         rank = club["rank"]
         members = club["members"]
         
-        total_avg_day = sum(m["avg_day"] for m in members if m["avg_day"] is not None)
+        # Members who just joined (no post-join data yet) have a NaN avg_day;
+        # exclude them from club aggregates so round() never sees NaN.
+        active = [m for m in members if m["avg_day"] is not None and not pd.isna(m["avg_day"])]
+        total_avg_day = sum(m["avg_day"] for m in active)
         total_perf = sum(m["performance"] for m in members if m["performance"] is not None)
-        avg_per_player = round(total_avg_day / len(members)) if members else 0
+        avg_per_player = round(total_avg_day / len(active)) if active else 0
         
         right_rows.append({
             "GRADE": grade,
@@ -457,8 +460,8 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
             "Average/player": avg_per_player,
             "Perfomance": total_perf
         })
-    # Sort clubs by Average Day descending
-    right_rows.sort(key=lambda x: x["Average Day"] if x["Average Day"] is not None else 0, reverse=True)
+    # Sort clubs by Average Day descending (NaN-safe)
+    right_rows.sort(key=lambda x: 0 if x["Average Day"] is None or pd.isna(x["Average Day"]) else x["Average Day"], reverse=True)
 
     # 3. Build side-by-side grid
     from datetime import datetime
