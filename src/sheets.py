@@ -387,8 +387,9 @@ def export_to_gsheets(gc_client, df: pd.DataFrame, spreadsheet_id: str, sheet_ti
     })
 
     green_members = set()
-    if "Member_Name" in df_to_write.columns:
-        green_members = set(df_to_write["Member_Name"].head(3).tolist())
+    if "Member_Name" in df_to_write.columns and "Total" in df_to_write.columns:
+        top_by_total = df_to_write.dropna(subset=["Total"]).sort_values("Total", ascending=False, kind="mergesort")
+        green_members = set(top_by_total["Member_Name"].head(3).tolist())
 
     if green_members and "Member_Name" in header:
         name_col_index = header.index("Member_Name")

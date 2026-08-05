@@ -93,5 +93,5 @@ def build_dataframe(data: dict, join_map: dict = None, sdate: str = None) -> pd.
         if c not in ("Member_ID", "Member_Name"):
             df[c] = pd.to_numeric(df[c], errors="coerce")
 
-    df = df.sort_values(["Total", "Member_Name"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
+    df = df.sort_values(["AVG/d", "Member_Name"], ascending=[False, True], na_position="last", kind="mergesort").reset_index(drop=True)
     return df
