@@ -66,6 +66,10 @@ API_SEMAPHORE = asyncio.Semaphore(int(os.getenv("API_CONCURRENCY", "3")))
 # Sentinel returned when the API responded but has no history data yet (not an error).
 NO_DATA = ("NO_DATA",)
 
+# Sentinel returned when the API keeps answering 403 for a club: our key has no
+# permission to read that club, so it is skipped (not retried, not a failure).
+NO_PERMISSION = ("NO_PERMISSION",)
+
 
 def _env_int(name: str, default: int) -> int:
     try:
@@ -154,6 +158,7 @@ async def process_club_workflow(
     attempt = 0
     sdate = cfg.get("sdate") or first_day_of_month
     fallback_attempted = False
+    forbidden_hits = 0  # consecutive 403s; a second one means "no API permission"
 
     if temp_only:
         if not TEMP_SHEET_ID:
@@ -181,6 +186,16 @@ async def process_club_workflow(
                     print(f"  {prefix} {title} (Temp): 429 hit. Cool-down 30s...", flush=True)
                     await asyncio.sleep(30)
                     raise Exception("Rate limited")
+
+                if prev_status == 403:
+                    forbidden_hits += 1
+                    if forbidden_hits >= 2:
+                        prefix = colorize("[No Permission]", LogColor.RETRY)
+                        print(f"  {prefix} {title} (Temp): API returned 403 (no access to this club). Skipping.", flush=True)
+                        return NO_PERMISSION
+                    print(f"  [403] {title} (Temp): confirming before skipping...", flush=True)
+                    await asyncio.sleep(3)
+                    continue
 
                 if prev_status != 200 or not raw_prev_data:
                     raise Exception(f"API fetch failed (Status {prev_status})")
@@ -303,6 +318,16 @@ async def process_club_workflow(
                 print(f"  {prefix} {title}: 429 hit. Cool-down 30s...", flush=True)
                 await asyncio.sleep(30)
                 raise Exception("Rate limited")
+
+            if status_code == 403:
+                forbidden_hits += 1
+                if forbidden_hits >= 2:
+                    prefix = colorize("[No Permission]", LogColor.RETRY)
+                    print(f"  {prefix} {title}: API returned 403 (no access to this club). Skipping.", flush=True)
+                    return NO_PERMISSION
+                print(f"  [403] {title}: confirming before skipping...", flush=True)
+                await asyncio.sleep(3)
+                continue
             
             # Early-month fallback: only when the API responded 200 but the
             # current month's history is not populated yet. Any non-200 is a
@@ -913,7 +938,11 @@ async def main():
 
         outcomes = await asyncio.gather(*(_process_one(cfg) for _, cfg in items))
 
-        for outcome in outcomes:
+        no_permission_clubs = []
+        for (_, _cfg), outcome in zip(items, outcomes):
+            if outcome == NO_PERMISSION:
+                no_permission_clubs.append(_cfg["title"])
+                continue
             if outcome == NO_DATA:
                 continue
             if outcome is not None and isinstance(outcome, tuple) and len(outcome) == 4:
@@ -928,6 +957,15 @@ async def main():
                     successful_results.append((resolved_sdate, normal_outcome))
             else:
                 total_failures += 1
+
+        if no_permission_clubs:
+            if len(no_permission_clubs) == len(items):
+                # Every club refused us: that is a key / network problem, not per-club permissions.
+                print("  Warning: every club returned 403 - check CHRONO_API_KEY / network; treating as failures.", flush=True)
+                total_failures += len(no_permission_clubs)
+            else:
+                print(f"\nSkipped {len(no_permission_clubs)} club(s) without ChronoGenesis API permission: "
+                      + ", ".join(no_permission_clubs), flush=True)
 
     if not is_temp_only and choice == "ALL" and successful_results:
         # Exclude clubs that resolved to a different month than the majority so the
