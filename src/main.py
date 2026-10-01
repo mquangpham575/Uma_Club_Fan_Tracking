@@ -965,21 +965,7 @@ async def main():
 
     # Reordering is now always the final step after the parallel gather
     print("Reordering sheets...", flush=True)
-    club_titles = [CLUBS[k]['title'] for k in CLUBS]
-    rank_by_name = {}
-    for _, _club in successful_results:
-        _r = str(_club.get("rank", "")).lstrip("#")
-        if _r.isdigit():
-            rank_by_name[_club["short_name"]] = int(_r)
-
-    def _tab_rank(idx_title):
-        idx, t = idx_title
-        short = t.split("(")[0].strip() if "(" in t else t
-        # Ranked clubs first (best rank first); unranked keep their existing order at the end.
-        return (rank_by_name.get(short, float("inf")), idx)
-
-    club_titles = [t for _, t in sorted(enumerate(club_titles), key=_tab_rank)]
-    ordered_titles = ["All Club Data"] + club_titles
+    ordered_titles = ["All Club Data"] + [CLUBS[k]['title'] for k in CLUBS]
     if not is_temp_only:
         await reorder_sheets_with_retry(GC, SHEET_ID, ordered_titles, "")
     if TEMP_SHEET_ID:
