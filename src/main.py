@@ -543,12 +543,16 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
         import json
         import subprocess
         
+        date_literal = check_date.isoformat()[:10] if hasattr(check_date, "isoformat") else str(check_date)[:10]
+        datetime.strptime(date_literal, "%Y-%m-%d")  # reject anything that is not a date
         guild_clause = f"AND c.guild_id = {int(guild_id)}" if guild_id else ""
         sql = (
             "SELECT json_agg(t) FROM ("
-            "SELECT c.circle_id, c.club_name, c.quota_period, COALESCE(qr.daily_quota, c.daily_quota) AS quota "
+            "SELECT c.circle_id, c.club_name, c.quota_period, COALESCE("
+            "(SELECT qr.daily_quota FROM quota_requirements qr "
+            f"WHERE qr.club_id = c.club_id AND qr.effective_date <= '{date_literal}' "
+            "ORDER BY qr.effective_date DESC LIMIT 1), c.daily_quota) AS quota "
             "FROM clubs c "
-            "LEFT JOIN quota_requirements qr ON qr.club_id = c.club_id "
             f"WHERE c.is_active = true AND c.circle_id IS NOT NULL AND c.circle_id != '' {guild_clause} "
             "ORDER BY c.circle_id"
             ") t;"
@@ -590,7 +594,7 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
     try:
         conn = await asyncpg.connect(database_url)
         where_clauses = ["c.is_active = TRUE", "c.circle_id IS NOT NULL", "c.circle_id != ''"]
-        params = []
+        params = [check_date]
         if guild_id:
             where_clauses.append(f"c.guild_id = ${len(params) + 1}")
             params.append(int(guild_id))
@@ -598,9 +602,13 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
         where_sql = " AND ".join(where_clauses)
         query = f"""
             SELECT c.circle_id, c.club_name, c.quota_period,
-                   COALESCE(qr.daily_quota, c.daily_quota) as quota
+                   COALESCE(
+                       (SELECT qr.daily_quota FROM quota_requirements qr
+                        WHERE qr.club_id = c.club_id AND qr.effective_date <= $1
+                        ORDER BY qr.effective_date DESC LIMIT 1),
+                       c.daily_quota
+                   ) as quota
             FROM clubs c
-            LEFT JOIN quota_requirements qr ON qr.club_id = c.club_id
             WHERE {where_sql}
             ORDER BY c.circle_id
         """
