@@ -435,8 +435,8 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
                 "Average Day": member["avg_day"],
                 "Perfomance": member["performance"]
             })
-    # Sort members by Average Day descending (NaN = just-joined, no data yet -> last)
-    left_rows.sort(key=lambda x: 0 if x["Average Day"] is None or pd.isna(x["Average Day"]) else x["Average Day"], reverse=True)
+    # Sort members by Perfomance (total gain for the month) descending (NaN = no data yet -> last)
+    left_rows.sort(key=lambda x: 0 if x["Perfomance"] is None or pd.isna(x["Perfomance"]) else x["Perfomance"], reverse=True)
 
     # 2. Compile Club Rows
     right_rows = []
