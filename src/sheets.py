@@ -461,8 +461,15 @@ def export_all_club_data_to_gsheets(gc_client, spreadsheet_id: str, all_clubs_da
             "Average/player": avg_per_player,
             "Perfomance": total_perf
         })
-    # Sort clubs by Average Day descending (NaN-safe)
-    right_rows.sort(key=lambda x: 0 if x["Average Day"] is None or pd.isna(x["Average Day"]) else x["Average Day"], reverse=True)
+    # Sort clubs by RANK ascending (#1 first). Clubs without a rank go last;
+    # ties fall back to Average Day descending (NaN-safe).
+    def _club_sort_key(x):
+        digits = str(x["RANK"]).lstrip("#")
+        rank_num = int(digits) if digits.isdigit() else float("inf")
+        avg = 0 if x["Average Day"] is None or pd.isna(x["Average Day"]) else x["Average Day"]
+        return (rank_num, -avg)
+
+    right_rows.sort(key=_club_sort_key)
 
     # 3. Build side-by-side grid
     from datetime import datetime
