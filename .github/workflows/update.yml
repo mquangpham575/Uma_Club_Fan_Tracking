@@ -59,7 +59,11 @@ jobs:
 
       - name: Establish SSH database tunnel
         run: |
-          ssh -i ~/.ssh/umacore_key -o StrictHostKeyChecking=no -f -N -L 5432:172.18.0.2:5432 umacore@${{ secrets.VM_HOST }}
+          # Look up the postgres container IP each run: it changes when containers restart (was hardcoded 172.18.0.2).
+          PG_IP=$(ssh -i ~/.ssh/umacore_key -o StrictHostKeyChecking=no umacore@${{ secrets.VM_HOST }} "docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' umacore-postgres")
+          echo "postgres container IP: $PG_IP"
+          test -n "$PG_IP"
+          ssh -i ~/.ssh/umacore_key -o StrictHostKeyChecking=no -f -N -L 5432:$PG_IP:5432 umacore@${{ secrets.VM_HOST }}
 
       # Consolidated Update Phase
       - name: Update Tracker
