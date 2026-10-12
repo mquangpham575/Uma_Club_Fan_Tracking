@@ -70,6 +70,9 @@ NO_DATA = ("NO_DATA",)
 # permission to read that club, so it is skipped (not retried, not a failure).
 NO_PERMISSION = ("NO_PERMISSION",)
 
+# Sentinel returned when club processing fails after exhausting retry attempts.
+FAILED = "FAILED" 
+
 
 def _env_int(name: str, default: int) -> int:
     try:
@@ -548,7 +551,7 @@ async def process_club_workflow(
 
             attempt += 1
             if attempt >= max_attempts:
-                return None
+                return (FAILED, str(e))
 
             delay = retry_delay + random.uniform(1, 4)
             prefix = colorize("[Retry]", LogColor.RETRY)
@@ -939,6 +942,7 @@ async def main():
         outcomes = await asyncio.gather(*(_process_one(cfg) for _, cfg in items))
 
         no_permission_clubs = []
+        failed_clubs = []
         for (_, _cfg), outcome in zip(items, outcomes):
             if outcome == NO_PERMISSION:
                 no_permission_clubs.append(_cfg["title"])
@@ -952,17 +956,24 @@ async def main():
                 if temp_outcome and temp_resolved_sdate:
                     temp_successful_results.append((temp_resolved_sdate, temp_outcome))
             elif outcome is not None and isinstance(outcome, tuple) and len(outcome) == 2:
-                normal_outcome, resolved_sdate = outcome
-                if normal_outcome:
-                    successful_results.append((resolved_sdate, normal_outcome))
+                if outcome[0] == FAILED:
+                    total_failures += 1
+                    failed_clubs.append((_cfg["title"], outcome[1]))
+                else:
+                    normal_outcome, resolved_sdate = outcome
+                    if normal_outcome:
+                        successful_results.append((resolved_sdate, normal_outcome))
             else:
                 total_failures += 1
+                failed_clubs.append((_cfg["title"], "Processing failed or timed out"))
 
         if no_permission_clubs:
             if len(no_permission_clubs) == len(items):
                 # Every club refused us: that is a key / network problem, not per-club permissions.
                 print("  Warning: every club returned 403 - check CHRONO_API_KEY / network; treating as failures.", flush=True)
                 total_failures += len(no_permission_clubs)
+                for c_title in no_permission_clubs:
+                    failed_clubs.append((c_title, "API returned 403 Forbidden (check CHRONO_API_KEY / network)"))
             else:
                 print(f"\nSkipped {len(no_permission_clubs)} club(s) without ChronoGenesis API permission: "
                       + ", ".join(no_permission_clubs), flush=True)
@@ -1013,6 +1024,10 @@ async def main():
     print("-" * 30)
     if total_failures > 0:
         print(f"Completed with errors: {total_failures} failed.", flush=True)
+        if failed_clubs:
+            print("  Failed Club(s):", flush=True)
+            for f_title, f_err in failed_clubs:
+                print(f"    - {f_title}: {f_err}", flush=True)
     else:
         print("All operations complete.", flush=True)
     
