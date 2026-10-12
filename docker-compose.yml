@@ -1,0 +1,36 @@
+services:
+  uma-tracker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: uma-tracker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SCHEDULE_UTC_TIME=10:15
+      - DATABASE_URL=postgresql://umacore:${POSTGRES_PASSWORD}@postgres:5432/umacore
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/credentials.json:/app/config/credentials.json:ro
+      - ./OnlyRex/credentials.json:/app/OnlyRex/credentials.json:ro
+      - ./logs:/app/logs
+    networks:
+      - umacore-net
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  umacore-net:
+    name: umacore-net

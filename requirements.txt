@@ -1,0 +1,11 @@
+# Direct dependencies for uma-tracking
+google-auth>=2.48.0
+gspread>=6.2.1
+pandas>=3.0.0
+protobuf>=6.33.5
+requests>=2.31.0
+curl_cffi>=0.7.0
+pyinstaller>=6.19.0
+python-dotenv
+asyncpg>=0.29.0
+aiohttp>=3.9.0
