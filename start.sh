@@ -26,5 +26,5 @@ docker compose up -d --build
 
 echo ""
 echo "========================================================"
-echo "  Uma Tracker listening on http://localhost:8080"
+echo "  Uma Tracker listening on http://localhost:8085"
 echo "========================================================"

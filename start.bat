@@ -47,8 +47,8 @@ if errorlevel 1 (
 echo.
 echo ========================================================
 echo   Deployment Success!
-echo   Service is listening on http://localhost:8080
-echo   Health check: curl http://localhost:8080/health
+echo   Service is listening on http://localhost:8085
+echo   Health check: curl http://localhost:8085/health
 echo ========================================================
 echo.
 pause

@@ -12,7 +12,7 @@ services:
       - SCHEDULE_UTC_TIME=10:15
       - DATABASE_URL=postgresql://umacore:${POSTGRES_PASSWORD}@postgres:5432/umacore
     ports:
-      - "8080:8080"
+      - "${TRACKER_HOST_PORT:-8085}:8080"
     volumes:
       - ./config/credentials.json:/app/config/credentials.json:ro
     networks:
