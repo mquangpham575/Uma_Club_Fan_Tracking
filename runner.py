@@ -38,49 +38,29 @@ RUNNER_STATE = {
 
 async def run_tracker_subprocesses(force: bool = False) -> bool:
     """
-    Executes the tracker sync routines sequentially:
-    1. src/main.py --cron --engine chrono [--force]
-    2. OnlyRex/only_rex_tracker.py --cron [--force]
+    Executes the tracker sync routine:
+    src/main.py --cron --engine chrono [--force]
     """
-    cmd1 = [sys.executable, "src/main.py", "--cron", "--engine", "chrono"]
+    cmd = [sys.executable, "src/main.py", "--cron", "--engine", "chrono"]
     if force:
-        cmd1.append("--force")
+        cmd.append("--force")
 
-    cmd2 = [sys.executable, "OnlyRex/only_rex_tracker.py", "--cron"]
-    if force:
-        cmd2.append("--force")
-
-    logger.info("Executing Step 1/2: %s", " ".join(cmd1))
-    proc1 = await asyncio.create_subprocess_exec(
-        *cmd1,
+    logger.info("Executing tracker update: %s", " ".join(cmd))
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT
     )
-    stdout1, _ = await proc1.communicate()
-    if stdout1:
-        for line in stdout1.decode(errors="replace").splitlines():
+    stdout, _ = await proc.communicate()
+    if stdout:
+        for line in stdout.decode(errors="replace").splitlines():
             logger.info(" [main.py] %s", line)
 
-    if proc1.returncode != 0:
-        logger.error("Step 1 (main.py) failed with exit code %s", proc1.returncode)
+    if proc.returncode != 0:
+        logger.error("Tracker update failed with exit code %s", proc.returncode)
         return False
 
-    logger.info("Step 1 (main.py) succeeded. Executing Step 2/2: %s", " ".join(cmd2))
-    proc2 = await asyncio.create_subprocess_exec(
-        *cmd2,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.STDOUT
-    )
-    stdout2, _ = await proc2.communicate()
-    if stdout2:
-        for line in stdout2.decode(errors="replace").splitlines():
-            logger.info(" [only_rex] %s", line)
-
-    if proc2.returncode != 0:
-        logger.error("Step 2 (only_rex_tracker.py) failed with exit code %s", proc2.returncode)
-        return False
-
-    logger.info("Step 2 (only_rex_tracker.py) succeeded. All sync tasks completed.")
+    logger.info("Tracker update succeeded. All sync tasks completed.")
     return True
 
 
@@ -179,11 +159,11 @@ async def daily_scheduler_loop(target_hour: int = 10, target_minute: int = 15):
             RUNNER_STATE["next_scheduled_utc"] = next_run.isoformat()
             logger.info("Next scheduled run at %s UTC (in %.1f hours / %.0f seconds)",
                         next_run.strftime("%Y-%m-%d %H:%M:%S"), sleep_sec / 3600, sleep_sec)
-            
+
             await asyncio.sleep(sleep_sec)
             logger.info("Daily scheduled trigger time reached (%02d:%02d UTC). Starting sync...", target_hour, target_minute)
             await perform_sync(trigger_source="scheduler", force=False)
-            
+
             # Prevent re-trigger within the same minute
             await asyncio.sleep(65)
         except asyncio.CancelledError:

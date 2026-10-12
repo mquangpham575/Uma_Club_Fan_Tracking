@@ -16,11 +16,6 @@ if [ ! -f "config/credentials.json" ]; then
     exit 1
 fi
 
-if [ ! -f "OnlyRex/credentials.json" ]; then
-    echo "[ERROR] Missing OnlyRex credentials at OnlyRex/credentials.json"
-    exit 1
-fi
-
 if [ ! -f ".env" ]; then
     echo "[ERROR] Missing .env file."
     exit 1

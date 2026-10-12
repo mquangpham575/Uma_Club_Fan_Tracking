@@ -15,7 +15,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source code and scripts
 COPY pyproject.toml .
 COPY src/ ./src/
-COPY OnlyRex/ ./OnlyRex/
 COPY config/ ./config/
 COPY runner.py .
 

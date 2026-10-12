@@ -26,12 +26,6 @@ if not exist "config\credentials.json" (
     pause
     exit /b 1
 )
-if not exist "OnlyRex\credentials.json" (
-    echo [ERROR] Missing OnlyRex credentials at OnlyRex\credentials.json
-    echo Please place your valid OnlyRex credentials.json file.
-    pause
-    exit /b 1
-)
 if not exist ".env" (
     echo [ERROR] Missing .env file.
     echo Please create .env with CHRONO_API_KEY and POSTGRES_PASSWORD.
