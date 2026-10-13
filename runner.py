@@ -151,8 +151,21 @@ def compute_seconds_until_schedule(target_hour: int, target_minute: int) -> tupl
 async def daily_scheduler_loop(target_hour: int = 10, target_minute: int = 15):
     """
     Scheduler background loop running once daily at target UTC time.
+    Automatically triggers a catch-up sync on startup if today's scheduled time has already passed.
     """
     logger.info("Daily scheduler loop active. Configured target time: %02d:%02d UTC", target_hour, target_minute)
+
+    # Check for startup catch-up: if container launches after target UTC time, Chrono data is already
+    # available for today. Run an immediate catch-up sync so the day is not missed.
+    now = datetime.now(timezone.utc)
+    target_today = datetime.combine(now.date(), time(target_hour, target_minute), tzinfo=timezone.utc)
+    if now >= target_today:
+        logger.info(
+            "Startup check: Current time (%s UTC) is past today's scheduled %02d:%02d UTC. Triggering startup catch-up sync...",
+            now.strftime("%H:%M:%S"), target_hour, target_minute
+        )
+        asyncio.create_task(perform_sync(trigger_source="startup_catchup", force=False))
+
     while True:
         try:
             sleep_sec, next_run = compute_seconds_until_schedule(target_hour, target_minute)
