@@ -11,10 +11,12 @@ services:
       - PYTHONUNBUFFERED=1
       - SCHEDULE_UTC_TIME=10:15
       - DATABASE_URL=postgresql://umacore:${POSTGRES_PASSWORD}@postgres:5432/umacore
+      - STATE_FILE=/app/data/state.json
     ports:
       - "${TRACKER_HOST_PORT:-8085}:8080"
     volumes:
       - ./config/credentials.json:/app/config/credentials.json:ro
+      - tracker_data:/app/data
     networks:
       - umacore-net
     deploy:
@@ -28,6 +30,9 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  tracker_data:
 
 networks:
   umacore-net:

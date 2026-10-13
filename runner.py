@@ -5,6 +5,7 @@ Intent:
     Runs a 24/7 background service that triggers daily Google Sheets sync
     at 10:15 UTC (after Chrono reset) and exposes an HTTP webhook endpoint
     for on-demand sync from UmaCore Discord bot.
+    Includes smart redundancy checks: skips if today already ran, catches up if missed.
 """
 
 import asyncio
@@ -25,7 +26,48 @@ logger = logging.getLogger("tracker-runner")
 # Global lock to prevent overlapping runs and API rate limits
 SYNC_LOCK = asyncio.Lock()
 
-# Runner state
+STATE_FILE = os.getenv("STATE_FILE", "/app/data/state.json")
+if not os.path.isabs(STATE_FILE):
+    STATE_FILE = os.path.join(os.path.dirname(__file__), STATE_FILE)
+
+
+def get_effective_date_str() -> str:
+    """
+    Computes current ChronoGenesis effective date (reset is 10:00 UTC).
+    """
+    now = datetime.now(timezone.utc)
+    reset_time = now.replace(hour=10, minute=0, second=0, microsecond=0)
+    effective_dt = now if now >= reset_time else now - timedelta(days=1)
+    return effective_dt.strftime("%Y-%m-%d")
+
+
+def load_persisted_state() -> dict:
+    """
+    Loads persisted state containing last successful effective date.
+    """
+    try:
+        if os.path.exists(STATE_FILE):
+            with open(STATE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception as e:
+        logger.warning("Could not read state file %s: %s", STATE_FILE, e)
+    return {}
+
+
+def save_persisted_state(data: dict):
+    """
+    Saves persisted state to disk.
+    """
+    try:
+        os.makedirs(os.path.dirname(os.path.abspath(STATE_FILE)), exist_ok=True)
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        logger.warning("Could not save state file %s: %s", STATE_FILE, e)
+
+
+# Initialize Runner state
+persisted = load_persisted_state()
 RUNNER_STATE = {
     "is_running": False,
     "last_run_started_utc": None,
@@ -33,6 +75,7 @@ RUNNER_STATE = {
     "last_status": "initialized",
     "last_error": None,
     "next_scheduled_utc": None,
+    "last_successful_effective_date": persisted.get("last_successful_effective_date"),
 }
 
 
@@ -67,7 +110,19 @@ async def run_tracker_subprocesses(force: bool = False) -> bool:
 async def perform_sync(trigger_source: str, force: bool = False):
     """
     Executes the sync pipeline protected by SYNC_LOCK.
+    Performs redundancy check: if force=False and today already ran, skips execution.
     """
+    effective_date = get_effective_date_str()
+
+    if not force:
+        last_done = RUNNER_STATE.get("last_successful_effective_date")
+        if last_done == effective_date:
+            logger.info(
+                "Redundancy check: Sync for effective date %s has already completed successfully. Skipping run (source: %s).",
+                effective_date, trigger_source
+            )
+            return True
+
     if SYNC_LOCK.locked():
         logger.warning("Sync requested via [%s] but another sync is already in progress. Skipping.", trigger_source)
         return False
@@ -77,11 +132,20 @@ async def perform_sync(trigger_source: str, force: bool = False):
         RUNNER_STATE["last_run_started_utc"] = datetime.now(timezone.utc).isoformat()
         RUNNER_STATE["last_status"] = f"running (source: {trigger_source})"
         RUNNER_STATE["last_error"] = None
-        logger.info("Starting sync routine. Source: %s, Force: %s", trigger_source, force)
+        logger.info("Starting sync routine. Effective date: %s, Source: %s, Force: %s",
+                    effective_date, trigger_source, force)
 
         try:
             success = await run_tracker_subprocesses(force=force)
-            RUNNER_STATE["last_status"] = "success" if success else "failed"
+            if success:
+                RUNNER_STATE["last_status"] = "success"
+                RUNNER_STATE["last_successful_effective_date"] = effective_date
+                save_persisted_state({
+                    "last_successful_effective_date": effective_date,
+                    "last_run_finished_utc": datetime.now(timezone.utc).isoformat()
+                })
+            else:
+                RUNNER_STATE["last_status"] = "failed"
             return success
         except Exception as exc:
             logger.exception("Unexpected error during sync execution: %s", exc)
@@ -96,7 +160,7 @@ async def perform_sync(trigger_source: str, force: bool = False):
 async def handle_trigger(request: web.Request) -> web.Response:
     """
     HTTP POST /trigger endpoint.
-    Triggered by UmaCore bot when club quotas or club configs are updated.
+    Triggered by UmaCore bot or manual sync script (force=True).
     """
     if SYNC_LOCK.locked():
         return web.json_response(
@@ -108,7 +172,7 @@ async def handle_trigger(request: web.Request) -> web.Response:
             status=202
         )
 
-    # Launch sync in background task so HTTP response returns immediately
+    # Launch sync in background task with force=True
     asyncio.create_task(perform_sync(trigger_source="webhook", force=True))
     return web.json_response(
         {
@@ -123,11 +187,12 @@ async def handle_trigger(request: web.Request) -> web.Response:
 async def handle_health(request: web.Request) -> web.Response:
     """
     HTTP GET /health or GET / endpoint.
-    Returns liveness status and execution metadata.
+    Returns liveness status, execution metadata, and current effective date.
     """
     return web.json_response(
         {
             "status": "ok",
+            "current_effective_date": get_effective_date_str(),
             "state": RUNNER_STATE
         }
     )
@@ -151,20 +216,25 @@ def compute_seconds_until_schedule(target_hour: int, target_minute: int) -> tupl
 async def daily_scheduler_loop(target_hour: int = 10, target_minute: int = 15):
     """
     Scheduler background loop running once daily at target UTC time.
-    Automatically triggers a catch-up sync on startup if today's scheduled time has already passed.
+    Checks startup status: if today has not completed yet, runs catch-up.
     """
     logger.info("Daily scheduler loop active. Configured target time: %02d:%02d UTC", target_hour, target_minute)
 
-    # Check for startup catch-up: if container launches after target UTC time, Chrono data is already
-    # available for today. Run an immediate catch-up sync so the day is not missed.
+    # Startup check: if container starts after target time, check if today's sync is missing
     now = datetime.now(timezone.utc)
     target_today = datetime.combine(now.date(), time(target_hour, target_minute), tzinfo=timezone.utc)
+    effective_date = get_effective_date_str()
+    last_done = RUNNER_STATE.get("last_successful_effective_date")
+
     if now >= target_today:
-        logger.info(
-            "Startup check: Current time (%s UTC) is past today's scheduled %02d:%02d UTC. Triggering startup catch-up sync...",
-            now.strftime("%H:%M:%S"), target_hour, target_minute
-        )
-        asyncio.create_task(perform_sync(trigger_source="startup_catchup", force=False))
+        if last_done != effective_date:
+            logger.info(
+                "Startup check: Current time (%s UTC) is past today's scheduled %02d:%02d UTC and today (%s) has not run yet. Running catch-up sync...",
+                now.strftime("%H:%M:%S"), target_hour, target_minute, effective_date
+            )
+            asyncio.create_task(perform_sync(trigger_source="startup_catchup", force=False))
+        else:
+            logger.info("Startup check: Today's sync for %s already completed previously. No catch-up needed.", effective_date)
 
     while True:
         try:
