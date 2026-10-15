@@ -621,6 +621,13 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
     conn = None
     try:
         conn = await asyncpg.connect(database_url)
+    except Exception as db_err:
+        if "@postgres:" in database_url and ("Name or service not known" in str(db_err) or "gaierror" in str(db_err)):
+            fallback_url = database_url.replace("@postgres:", "@umacore-postgres:")
+            print(f"  [DB Connection] Host 'postgres' unresolvable; retrying with container name 'umacore-postgres'...", flush=True)
+            conn = await asyncpg.connect(fallback_url)
+        else:
+            raise db_err
         where_clauses = ["c.is_active = TRUE", "c.circle_id IS NOT NULL", "c.circle_id != ''"]
         params = [check_date]
         if guild_id:

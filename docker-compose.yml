@@ -10,7 +10,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - SCHEDULE_UTC_TIME=10:15
-      - DATABASE_URL=postgresql://umacore:${POSTGRES_PASSWORD}@postgres:5432/umacore
+      - DATABASE_URL=postgresql://umacore:${POSTGRES_PASSWORD}@umacore-postgres:5432/umacore
       - STATE_FILE=/app/data/state.json
     ports:
       - "${TRACKER_HOST_PORT:-8085}:8080"
