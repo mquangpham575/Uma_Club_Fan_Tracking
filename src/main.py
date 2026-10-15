@@ -639,14 +639,7 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
             else:
                 raise db_err
 
-        where_clauses = ["c.is_active = TRUE", "c.circle_id IS NOT NULL", "c.circle_id != ''"]
-        params = [check_date]
-        if guild_id:
-            where_clauses.append(f"c.guild_id = ${len(params) + 1}")
-            params.append(int(guild_id))
-            
-        where_sql = " AND ".join(where_clauses)
-        query = f"""
+        base_query = f"""
             SELECT c.circle_id, c.club_name, c.quota_period,
                    COALESCE(
                        (SELECT qr.daily_quota FROM quota_requirements qr
@@ -655,10 +648,29 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
                        c.daily_quota
                    ) as quota
             FROM clubs c
-            WHERE {where_sql}
+            WHERE {{where_clause}}
             ORDER BY c.circle_id
         """
-        rows = await conn.fetch(query, *params)
+
+        rows = []
+        # Attempt 1: Target guild or NULL guild
+        if guild_id:
+            w_sql = "c.is_active = TRUE AND c.circle_id IS NOT NULL AND c.circle_id != '' AND (c.guild_id = $2 OR c.guild_id IS NULL)"
+            rows = await conn.fetch(base_query.format(where_clause=w_sql), check_date, int(guild_id))
+
+        # Attempt 2: If no clubs found or no guild_id specified, load all active clubs
+        if not rows:
+            w_sql = "c.is_active = TRUE AND c.circle_id IS NOT NULL AND c.circle_id != ''"
+            rows = await conn.fetch(base_query.format(where_clause=w_sql), check_date)
+            if rows:
+                print(f"  [DB Query] Loaded {len(rows)} active clubs across all guilds.", flush=True)
+
+        if not rows:
+            total_clubs = await conn.fetchval("SELECT count(*) FROM clubs")
+            print(f"  [DB Warning] Query returned 0 active clubs. Total clubs in database: {total_clubs}", flush=True)
+            if total_clubs == 0:
+                print("  [DB ERROR] The database appears completely empty! Initial SQL seed dump may need to be imported.", flush=True)
+
         active_clubs = {}
         for r in rows:
             cid = str(r['circle_id'])
