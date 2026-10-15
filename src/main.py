@@ -619,15 +619,26 @@ async def fetch_db_active_clubs(database_url: str, check_date, guild_id: str = N
 
     import asyncpg
     conn = None
+    masked_target = database_url.split('@')[1] if '@' in database_url else 'configured host'
+    print(f"  [DB Connection] Connecting to PostgreSQL at {masked_target}...", flush=True)
+
     try:
-        conn = await asyncpg.connect(database_url)
-    except Exception as db_err:
-        if "@postgres:" in database_url and ("Name or service not known" in str(db_err) or "gaierror" in str(db_err)):
-            fallback_url = database_url.replace("@postgres:", "@umacore-postgres:")
-            print(f"  [DB Connection] Host 'postgres' unresolvable; retrying with container name 'umacore-postgres'...", flush=True)
-            conn = await asyncpg.connect(fallback_url)
-        else:
-            raise db_err
+        try:
+            conn = await asyncpg.connect(database_url)
+        except Exception as db_err:
+            fallback_url = None
+            if "@postgres:" in database_url:
+                fallback_url = database_url.replace("@postgres:", "@umacore-postgres:")
+            elif "@umacore-postgres:" in database_url:
+                fallback_url = database_url.replace("@umacore-postgres:", "@postgres:")
+
+            if fallback_url:
+                fallback_target = fallback_url.split('@')[1]
+                print(f"  [DB Connection] Initial connect failed ({db_err}). Retrying with fallback host {fallback_target}...", flush=True)
+                conn = await asyncpg.connect(fallback_url)
+            else:
+                raise db_err
+
         where_clauses = ["c.is_active = TRUE", "c.circle_id IS NOT NULL", "c.circle_id != ''"]
         params = [check_date]
         if guild_id:
